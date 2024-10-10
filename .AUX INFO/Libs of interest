@@ -1,0 +1,28 @@
+Concurrency and Synchronization
+#include <pthread.h>
+#include <semaphore.h>
+
+Networking (Communication)
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+File Handling
+#include <stdio.h>
+#include <stdlib.h>
+
+File Manipulation
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+Data Structures (Parsing)
+#include <string.h>
+#include <ctype.h>
+
+Timing and Measurement
+#include <time.h>
+
+Error Handling
+#include <errno.h>
