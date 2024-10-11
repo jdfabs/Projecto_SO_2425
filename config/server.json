@@ -1,0 +1,11 @@
+{
+    "server": {
+        "ip": "127.0.0.1",
+        "port": 8080,
+        "enable_logging": true,
+        "log_file": "./logs/server_log.txt",
+        "log_level": "info",
+        "max_clients": 5,
+        "backup_interval": 15
+    }
+}

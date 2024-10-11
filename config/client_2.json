@@ -1,0 +1,8 @@
+{
+    "client": {
+        "id": "client2",
+        "server_ip": "127.0.0.1",
+        "server_port": 8080,
+        "log_file": "client2_log.txt"
+    }
+}
