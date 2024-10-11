@@ -30,11 +30,13 @@
 /************************************
  * GLOBAL VARIABLES
  ************************************/
-
+ ServerConfig config;
 /************************************
  * STATIC FUNCTION PROTOTYPES
  ************************************/
 ServerConfig load_default_config();
+int validadeBoard(int board[SIZE][SIZE]);
+
 
 /************************************
  * STATIC FUNCTIONS
@@ -42,7 +44,7 @@ ServerConfig load_default_config();
 
 int main(int argc, char *argv[]) {
     
-    ServerConfig config;
+   
 
     if(load_server_config(&config)>=0){
         printf("Client IP: %s\n", config.ip);
@@ -62,9 +64,9 @@ int main(int argc, char *argv[]) {
 
     int testBoard[SIZE][SIZE] = 
     {
-        {0, 0, 4, 6, 7, 8, 9, 1, 2},
+        {1, 3, 4, 6, 7, 8, 9, 1, 2},
         {6, 7, 2, 1, 9, 5, 3, 4, 8},
-        {1, 9, 8, 3, 4, 2, 5, 6, 7},
+        {0, 9, 8, 3, 4, 2, 5, 6, 7},
         {8, 5, 9, 7, 6, 1, 4, 2, 3},
         {4, 2, 6, 8, 5, 3, 7, 9, 1},
         {7, 1, 3, 9, 2, 4, 8, 5, 6},
@@ -73,18 +75,34 @@ int main(int argc, char *argv[]) {
         {3, 4, 5, 2, 8, 6, 1, 7, 9}
     };
 
-    if (isValidSudoku(testBoard)) {
-        printf("The Sudoku board is valid!\n");
-        log_event(config.log_file, "Sudoku board verified with success");
-    } else {
-        printf("The Sudoku board is invalid!\n");
-        log_event(config.log_file, "Sudoku board verified without success");
-    }
-
+    validadeBoard(testBoard);
+    
 
     exit(0);
      
 }
+
+int validadeBoard(int board[SIZE][SIZE]){
+    //Validation Function is less computationaly expensive
+    //So it's first checked if it's valid and only if not checked how many cells are possibly wrong
+    int wrong;
+    if (isValidSudoku(board)) {
+        printf("The Sudoku board is valid!\n");
+        log_event(config.log_file, "Sudoku board verified with success");
+        return wrong;
+    } else {
+        printf("The Sudoku board is invalid!\n");
+        wrong = wrongCellsCounter(board);
+        printf("has %d possibly wrong cells\n", wrong);
+
+        char log_message[100];
+        sprintf(log_message, "Sudoku board verified without success. %d possibly wrong cells", wrong);
+
+        log_event(config.log_file, log_message);
+    }
+    return wrong;
+}
+
 
 /************************************
  * GLOBAL FUNCTIONS

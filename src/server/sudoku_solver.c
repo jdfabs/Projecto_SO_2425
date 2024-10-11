@@ -35,18 +35,19 @@
  ************************************/
 
 /************************************
- * STATIC FUNCTION PROTOTYPES
+ * FUNCTION PROTOTYPES
  ************************************/
-
-/************************************
- * STATIC FUNCTIONS
- ************************************/
+int wrongCellsCounter(int board[SIZE][SIZE]);
+bool isCellValidInRow(int board[SIZE][SIZE], int row, int col);
+bool isCellValidInCol(int board[SIZE][SIZE], int row, int col);
+bool isCellValidInSquare(int board[SIZE][SIZE], int row, int col);
 
 /************************************
  * GLOBAL FUNCTIONS
  ************************************/
 
 // PARTIAL ALGORITHIM REF: https://medium.com/strategio/sudoku-validator-algorithm-dc848cb45093
+
 
 
 bool isValidSudoku(int board[SIZE][SIZE]){
@@ -74,16 +75,40 @@ bool isValidSudoku(int board[SIZE][SIZE]){
                 square[counter++] = board[startRow + r][startCol + c];
             }
         }
-
         if (!isValidGroup(square)) return false;
-          printf("square %d valid\n", i+1);
-
-       
-        
+        printf("square %d valid\n", i+1);
     } 
     return true;
 }
 
+
+
+
+
+
+int wrongCellsCounter(int board[SIZE][SIZE]) {
+    int wrongCount = 0;
+
+    
+    for (int i = 0; i < SIZE; i++) {//foreach row
+        for (int j = 0; j < SIZE; j++) { //foreach col
+            if (board[i][j] != 0) { //0's is unfill, never wrong
+                // Check if the cell violates any constraints
+                if (!isCellValidInRow(board, i, j) ||
+                    !isCellValidInCol(board, i, j) ||
+                    !isCellValidInSquare(board, i, j)) {
+                    wrongCount++;
+                }
+            }
+        }
+    }
+
+    return wrongCount;
+}
+
+//AUX FUNCS
+
+//Helper to Board Validador
 bool isValidGroup(int group[SIZE]){ // 0 implies not filled in
     bool seen[SIZE] = { false };
     
@@ -98,4 +123,40 @@ bool isValidGroup(int group[SIZE]){ // 0 implies not filled in
     }
     
     return true; 
+}
+
+
+// Helpers To Wrong Cell counter
+bool isCellValidInRow(int board[SIZE][SIZE], int row, int col) {
+    int num = board[row][col];
+    for (int i = 0; i < SIZE; i++) { //for each cell in row
+        if (i != col && board[row][i] == num) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool isCellValidInCol(int board[SIZE][SIZE], int row, int col) {
+    int num = board[row][col];
+    for (int i = 0; i < SIZE; i++) { //foreach cell in col
+        if (i != row && board[i][col] == num) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool isCellValidInSquare(int board[SIZE][SIZE], int row, int col) {
+    int num = board[row][col];
+    int startRow = (row / 3) * 3;
+    int startCol = (col / 3) * 3;
+    for (int i = startRow; i < startRow + 3; i++) { //rows from aprop
+        for (int j = startCol; j < startCol + 3; j++) { //cols from aprop
+            if ((i != row || j != col) && board[i][j] == num) {
+                return false; 
+            }
+        }
+    }
+    return true;
 }

@@ -44,3 +44,4 @@ int load_server_config(ServerConfig *config);
 
 bool isValidSudoku(int board[SIZE][SIZE]);
 bool isValidGroup(int group[SIZE]);
+int wrongCellsCounter(int board[SIZE][SIZE]);
