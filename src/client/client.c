@@ -9,6 +9,7 @@
 /************************************
  * INCLUDES
  ************************************/
+ #include "client.h"
 
 /************************************
  * EXTERN VARIABLES
@@ -38,7 +39,27 @@
  * STATIC FUNCTIONS
  ************************************/
 int main(int argc, char *argv[]) {
-   
+    ClientConfig config;
+
+    char configLoc[255];
+    if(argc > 1){
+    snprintf(configLoc, sizeof(configLoc),"./config/%s.json", argv[1] );
+    }
+    else{
+        printf("NO SPECIFIC CONFIG FILE PROVIVED, GOING FOR DEFAULT FILE\n");
+        snprintf(configLoc, sizeof(configLoc), "./config/client_1.json");
+    }
+
+    if(load_client_config(configLoc, &config)>=0){
+       printf("Client ID: %s\n", config.id);
+        printf("Server IP: %s\n", config.server_ip);
+        printf("Server Port: %d\n", config.server_port);
+        printf("Log File: %s\n", config.log_file);
+    } else {
+        fprintf(stderr, "Failed to load client configuration.\n");
+        exit(-1);
+    }
+    exit(0);
 }
 /************************************
  * GLOBAL FUNCTIONS
