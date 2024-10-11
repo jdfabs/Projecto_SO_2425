@@ -30,6 +30,8 @@ typedef struct
     int backup_interval;
 } ServerConfig;
 
+#define SIZE 9
+
 /************************************
  * EXPORTED VARIABLES
  ************************************/
@@ -39,3 +41,6 @@ typedef struct
  ************************************/
 
 int load_server_config(ServerConfig *config);
+
+bool isValidSudoku(int board[SIZE][SIZE]);
+bool isValidGroup(int group[SIZE]);
