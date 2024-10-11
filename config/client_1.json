@@ -3,6 +3,6 @@
         "id": "client1",
         "server_ip": "127.0.0.1",
         "server_port": 8080,
-        "log_file": "client1_log.txt"
+        "log_file": "./logs/client1_log.txt"
     }
 }

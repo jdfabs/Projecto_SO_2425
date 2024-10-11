@@ -10,6 +10,7 @@
  * INCLUDES
  ************************************/
  #include "client.h"
+ #include "../common/common.h"
 
 /************************************
  * EXTERN VARIABLES
@@ -59,8 +60,14 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Failed to load client configuration.\n");
         exit(-1);
     }
+
+    log_event(config.log_file, "Client Started");
+    log_event(config.log_file, "Client Config Loaded");
+
+    
     exit(0);
 }
+
 /************************************
  * GLOBAL FUNCTIONS
  ************************************/
