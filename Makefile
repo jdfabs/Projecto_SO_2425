@@ -1,7 +1,7 @@
 # Compiler and flags
 CC = gcc
 CFLAGS = -g -I./include #debug flag + auto includes
-LDFLAGS = -lcjson
+LDFLAGS = 
 
 # Directories
 SRC_DIR = ./src
