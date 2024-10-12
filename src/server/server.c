@@ -8,7 +8,6 @@
 /************************************
  * INCLUDES
  ************************************/
-#include <file_handler.h>
 #include "server.h"
 #include "../common/common.h"
 /************************************
@@ -85,21 +84,20 @@ int main(int argc, char *argv[]) {
 int validadeBoard(int board[SIZE][SIZE]){
     //Validation Function is less computationaly expensive
     //So it's first checked if it's valid and only if not checked how many cells are possibly wrong
-    int wrong;
+    int wrong = 0;
     if (isValidSudoku(board)) {
         printf("The Sudoku board is valid!\n");
         log_event(config.log_file, "Sudoku board verified with success");
         return wrong;
-    } else {
-        printf("The Sudoku board is invalid!\n");
-        wrong = wrongCellsCounter(board);
-        printf("has %d possibly wrong cells\n", wrong);
-
-        char log_message[100];
-        sprintf(log_message, "Sudoku board verified without success. %d possibly wrong cells", wrong);
-
-        log_event(config.log_file, log_message);
     }
+    printf("The Sudoku board is invalid!\n");
+    wrong = wrongCellsCounter(board);
+    printf("has %d possibly wrong cells\n", wrong);
+
+    char log_message[100];
+    sprintf(log_message, "Sudoku board verified without success. %d possibly wrong cells", wrong);
+
+    log_event(config.log_file, log_message);
     return wrong;
 }
 

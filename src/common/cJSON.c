@@ -403,8 +403,6 @@ CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
 CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
 {
     char *copy = NULL;
-    size_t v1_len;
-    size_t v2_len;
     /* if object's type is not cJSON_String or is cJSON_IsReference, it should not set valuestring */
     if ((object == NULL) || !(object->type & cJSON_String) || (object->type & cJSON_IsReference))
     {
@@ -416,8 +414,8 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
         return NULL;
     }
 
-    v1_len = strlen(valuestring);
-    v2_len = strlen(object->valuestring);
+    size_t v1_len = strlen(valuestring);
+    size_t v2_len = strlen(object->valuestring);
 
     if (v1_len <= v2_len)
     {
@@ -1098,15 +1096,13 @@ static parse_buffer *skip_utf8_bom(parse_buffer * const buffer)
 
 CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated)
 {
-    size_t buffer_length;
-
     if (NULL == value)
     {
         return NULL;
     }
 
     /* Adding null character size due to require_null_terminated. */
-    buffer_length = strlen(value) + sizeof("");
+    size_t buffer_length = strlen(value) + sizeof("");
 
     return cJSON_ParseWithLengthOpts(value, buffer_length, return_parse_end, require_null_terminated);
 }
@@ -1771,13 +1767,12 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
     {
         if (output_buffer->format)
         {
-            size_t i;
             output_pointer = ensure(output_buffer, output_buffer->depth);
             if (output_pointer == NULL)
             {
                 return false;
             }
-            for (i = 0; i < output_buffer->depth; i++)
+            for (size_t i = 0; i < output_buffer->depth; i++)
             {
                 *output_pointer++ = '\t';
             }
@@ -1840,8 +1835,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
     }
     if (output_buffer->format)
     {
-        size_t i;
-        for (i = 0; i < (output_buffer->depth - 1); i++)
+        for (size_t i = 0; i < (output_buffer->depth - 1); i++)
         {
             *output_pointer++ = '\t';
         }

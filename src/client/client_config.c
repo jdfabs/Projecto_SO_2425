@@ -40,6 +40,14 @@ cJSON* parseFileToJson(FILE *file) ;
  * STATIC FUNCTIONS
  ************************************/
 
+void loadDefaulClientConfigs(ClientConfig *config) {
+    printf("No config file found - Loading Default configs\n");
+    strcpy(config->id ,"Client 1");
+    strcpy(config ->server_ip , "127.0.0.1");
+    config->server_port = 8080;
+    strcpy(config->log_file, "./config/client_1.json");
+}
+
 /************************************
  * GLOBAL FUNCTIONS
  ************************************/
@@ -47,16 +55,11 @@ int load_client_config(const char *filename, ClientConfig *config)
 {
     FILE *file = fopen(filename, "r");
     if (!file) {
-        //load default
-        printf("No config file found - Loading Default configs\n");
-        strcpy(config->id ,"Client 1");
-        strcpy(config ->server_ip , "127.0.0.1");
-        config->server_port = 8080;
-        strcpy(config->log_file, "./config/client_1.json");
+        loadDefaulClientConfigs(config);
         return 1;
 
     }
-   
+
       // Parse the JSON data
     cJSON *json = parseFileToJson(file);
    
@@ -66,7 +69,7 @@ int load_client_config(const char *filename, ClientConfig *config)
     }
 
     // Get the client configuration
-    cJSON *client = cJSON_GetObjectItem(json, "client");
+    const cJSON *client = cJSON_GetObjectItem(json, "client");
     if (client) {
         // Extracting values from the JSON object
         strcpy(config->id, cJSON_GetObjectItem(client, "id")->valuestring);
@@ -91,10 +94,10 @@ cJSON* parseFileToJson(FILE *file) {
     }
 
     fseek(file, 0, SEEK_END);
-    long length = ftell(file);  
+    const long length = ftell(file);
     fseek(file, 0, SEEK_SET);   
     
-    char *data = (char *)malloc(length + 1);
+    char *data = malloc(length + 1);
     if (data == NULL) {
         fclose(file);
         return NULL;

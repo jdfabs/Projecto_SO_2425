@@ -60,7 +60,7 @@ int load_server_config(ServerConfig *config){
 
     // Read the entire file into a string
     fseek(file, 0, SEEK_END);
-    long length = ftell(file);
+    const long length = ftell(file);
     fseek(file, 0, SEEK_SET);
     char *data = malloc(length + 1);
     fread(data, 1, length, file);
@@ -76,7 +76,7 @@ int load_server_config(ServerConfig *config){
     }
 
     // Get the client configuration
-    cJSON *server = cJSON_GetObjectItem(json, "server");
+    const cJSON *server = cJSON_GetObjectItem(json, "server");
     if (server) {
         // Extracting values from the JSON object
         strcpy(config->ip ,cJSON_GetObjectItem(server, "ip")->valuestring);

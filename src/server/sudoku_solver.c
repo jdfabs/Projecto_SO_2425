@@ -37,7 +37,7 @@
 /************************************
  * FUNCTION PROTOTYPES
  ************************************/
-int wrongCellsCounter(int board[SIZE][SIZE]);
+
 bool isCellValidInRow(int board[SIZE][SIZE], int row, int col);
 bool isCellValidInCol(int board[SIZE][SIZE], int row, int col);
 bool isCellValidInSquare(int board[SIZE][SIZE], int row, int col);
@@ -66,8 +66,8 @@ bool isValidSudoku(int board[SIZE][SIZE]){
         if (!isValidGroup(row) ) return false;
         printf("row %d valid", i+1);
 
-        int startRow = (i / 3) * 3;  
-        int startCol = (i % 3) * 3;  
+        const int startRow = i / 3 * 3;
+        const int startCol = i % 3 * 3;
         
         int counter = 0;
         for (int r = 0; r < 3; r++) { // fill square #i
@@ -109,7 +109,7 @@ int wrongCellsCounter(int board[SIZE][SIZE]) {
 //AUX FUNCS
 
 //Helper to Board Validador
-bool isValidGroup(int group[SIZE]){ // 0 implies not filled in
+bool isValidGroup(const int group[SIZE]){ // 0 implies not filled in
     bool seen[SIZE] = { false };
     
     for (int i = 0; i < SIZE; i++) {    //foreach check if duped
@@ -127,8 +127,8 @@ bool isValidGroup(int group[SIZE]){ // 0 implies not filled in
 
 
 // Helpers To Wrong Cell counter
-bool isCellValidInRow(int board[SIZE][SIZE], int row, int col) {
-    int num = board[row][col];
+bool isCellValidInRow(int board[SIZE][SIZE], const int row, const int col) {
+    const int num = board[row][col];
     for (int i = 0; i < SIZE; i++) { //for each cell in row
         if (i != col && board[row][i] == num) {
             return false;
@@ -137,8 +137,8 @@ bool isCellValidInRow(int board[SIZE][SIZE], int row, int col) {
     return true;
 }
 
-bool isCellValidInCol(int board[SIZE][SIZE], int row, int col) {
-    int num = board[row][col];
+bool isCellValidInCol(int board[SIZE][SIZE], const int row, const int col) {
+    const int num = board[row][col];
     for (int i = 0; i < SIZE; i++) { //foreach cell in col
         if (i != row && board[i][col] == num) {
             return false;
@@ -147,10 +147,10 @@ bool isCellValidInCol(int board[SIZE][SIZE], int row, int col) {
     return true;
 }
 
-bool isCellValidInSquare(int board[SIZE][SIZE], int row, int col) {
-    int num = board[row][col];
-    int startRow = (row / 3) * 3;
-    int startCol = (col / 3) * 3;
+bool isCellValidInSquare(int board[SIZE][SIZE], const int row, const int col) {
+    const int num = board[row][col];
+    const int startRow = row / 3 * 3;
+    const int startCol = col / 3 * 3;
     for (int i = startRow; i < startRow + 3; i++) { //rows from aprop
         for (int j = startCol; j < startCol + 3; j++) { //cols from aprop
             if ((i != row || j != col) && board[i][j] == num) {

@@ -53,13 +53,14 @@ int log_event(const char *file_path, const char *message){
         return -1; 
     }
 
-    time_t now = time(NULL); //get current time
+    const time_t now = time(NULL); //get current time
     char *timestamp = ctime(&now); //string timestamp
     timestamp[strcspn(timestamp, "\n")] = 0; //Remove new line
 
     fprintf(file, "[%s] %s\n", timestamp, message);
 
     fclose(file);
+    return 0;
 }
 /************************************
  * GLOBAL FUNCTIONS
