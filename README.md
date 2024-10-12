@@ -1,6 +1,6 @@
 # Projeto Sudoku - SO 2425 - Cliente/Servidor
 # João Silva 2064413
-# Samuel ----
+# Samuel Andrade 2068220
 # Rosa ----
 
 ## Descrição
