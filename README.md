@@ -1,6 +1,6 @@
 # Projeto Sudoku - SO 2425 - Cliente/Servidor
 # João Silva 2064413
-# Samuel ----
+# Samuel Andrade 2068220
 # Rosa ----
 
 ## Descrição
@@ -25,6 +25,7 @@ O projeto está dividido nos seguintes ficheiros e diretórios principais:
     ├── common/
         ├── coms.c                  # TODO - Comunicação entre processos
         ├── file_handler.c          # Leitura/escrita de ficheiros
+        ├── cJSON.c                 # Source code cJson - [Leitura Json](https://github.com/DaveGamble/cJSON)
 ├── include/                   # Diretório com alguns ficheiros .h
 ├── logs/                      # Diretório onde são guardados os logs
 ├── config/                    # Diretório onde estão os ficheiros de configuração

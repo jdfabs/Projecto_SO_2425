@@ -34,6 +34,7 @@
 /************************************
  * STATIC FUNCTION PROTOTYPES
  ************************************/
+cJSON* parseFileToJson(FILE *file) ;
 
 /************************************
  * STATIC FUNCTIONS
@@ -56,20 +57,11 @@ int load_client_config(const char *filename, ClientConfig *config)
 
     }
    
-    // Read the entire file into a string
-    fseek(file, 0, SEEK_END);
-    long length = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    char *data = malloc(length + 1);
-    fread(data, 1, length, file);
-    fclose(file);
-    data[length] = '\0'; // Null-terminate the string
-
       // Parse the JSON data
-    cJSON *json = cJSON_Parse(data);
+    cJSON *json = parseFileToJson(file);
+   
     if (!json) {
         fprintf(stderr, "Could not parse JSON: %s\n", cJSON_GetErrorPtr());
-        free(data);
         return -1;
     }
 
@@ -84,12 +76,37 @@ int load_client_config(const char *filename, ClientConfig *config)
     } else {
         fprintf(stderr, "Could not find 'client' in JSON\n");
         cJSON_Delete(json);
-        free(data);
         return -1;
     }
 
     // Cleanup
     cJSON_Delete(json);
-    free(data);
     return 0; // Success
+}
+
+cJSON* parseFileToJson(FILE *file) {
+    
+    if (file == NULL) {
+        return NULL;
+    }
+
+    fseek(file, 0, SEEK_END);
+    long length = ftell(file);  
+    fseek(file, 0, SEEK_SET);   
+    
+    char *data = (char *)malloc(length + 1);
+    if (data == NULL) {
+        fclose(file);
+        return NULL;
+    }
+
+    fread(data, 1, length, file);
+    fclose(file);
+    data[length] = '\0';  
+
+    cJSON *json = cJSON_Parse(data);
+
+    free(data);
+
+    return json;
 }
