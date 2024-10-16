@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-
+#include "cJSON.h"
 /************************************
  * MACROS AND DEFINES
  ************************************/
@@ -42,6 +42,11 @@ typedef struct
 
 int load_server_config(ServerConfig *config);
 
-bool isValidSudoku(int board[SIZE][SIZE]);
+bool isValidSudoku(int **board);
 bool isValidGroup(int group[SIZE]);
-int wrongCellsCounter(int board[SIZE][SIZE]);
+int wrongCellsCounter(int **board);
+
+cJSON* update_sudoku_board(cJSON *currentBoard, int value, int x, int y);
+int** getMatrixFromJSON(cJSON *board);
+
+cJSON* matrix_to_JSON(int **matrix);

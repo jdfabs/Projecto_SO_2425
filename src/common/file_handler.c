@@ -14,7 +14,6 @@
 #include <time.h>
 #include <string.h>
 #include "common.h"
-#include "cJSON.h"
 
 /************************************
  * EXTERN VARIABLES
@@ -43,10 +42,9 @@
 /************************************
  * STATIC FUNCTIONS
  ************************************/
-void testFunction(){
-    printf("000\n");
-}
 
+
+//LOG EVENT FUNCTIONS
 int log_event(const char *file_path, const char *message){
     FILE *file = fopen(file_path, "a");
     if (file == NULL) {
@@ -64,11 +62,14 @@ int log_event(const char *file_path, const char *message){
     return 0;
 }
 
-char* readBoards(const char* filename){
-    FILE* file = fopen(filename, "r");
+
+
+//GET cJSON OBJECTS
+char* get_board_file_string(){
+    FILE* file = fopen("./boards/boards.json", "r");
     if (file == NULL){
         printf("Erro ao abrir o ficheiro.\n");
-        return -1;
+        return NULL;
     }
 
     fseek(file, 0, SEEK_END);
@@ -78,9 +79,9 @@ char* readBoards(const char* filename){
     char* content = (char*)malloc(length+1);
     if (content == NULL)
     {
-        printf("Erro ao alocar memóroa.\n");
+        printf("Erro ao alocar memória.\n");
         fclose(file);
-        return -1;
+        return NULL;
     }
     
     fread(content, 1, length, file);
@@ -88,60 +89,143 @@ char* readBoards(const char* filename){
     content[length] = '\0';
 
     return content;
-    
 }
 
-int** getMatrizFromJSON (const char* jsonString, const char* boardName, const char* matrixType){
-    cJSON* json = cJON_Parse(jsonString);
-    if (json == NULL){
-        printf("Erro ao encontrar 'boards'.\n");
-        return -1;
+cJSON* get_json_from_string(const char* json_string) {
+    cJSON *json = cJSON_Parse(json_string);
+    return json;
+}
+
+cJSON* get_boards_json_from_file() {
+    return cJSON_GetObjectItem(get_json_from_string(get_board_file_string()),"boards");
+}
+
+cJSON* get_board_by_id(int id) {
+    return cJSON_GetArrayItem(get_boards_json_from_file(),id);
+
+}
+
+cJSON* get_board_state_by_id(int id, int state) {
+    switch (state) {
+        case STARTING_STATE:
+            return cJSON_GetObjectItem(get_board_by_id(id), "new");
+        case CURRENT_STATE:
+            return cJSON_GetObjectItem(get_board_by_id(id), "current");
+        case END_STATE:
+            return cJSON_GetObjectItem(get_board_by_id(id), "solution");
+        default:
+            printf("Invalid state.\n");
+            break;
+    }
+    return NULL;
+
+}
+
+//UPDATE cJSON OBJECTS
+
+cJSON* update_boards_with_new_board(cJSON *newBoard, int index, int state) {
+    cJSON *boards = get_boards_json_from_file();
+
+    int boardCount = cJSON_GetArraySize(boards);
+    if (index < 0 || index >= boardCount) {
+        fprintf(stderr, "Invalid index: %d\n", index);
+        return NULL;
     }
 
-    cJSON* boards = cJSON_GetObjectItem(json, "boards"); 
-
-    if (boards == NULL) {
-        printf("Erro ao encontrar 'borads'.\n");
-        cJSON_Delete(json);
-        return -1; 
+    cJSON *boardToUpdate = cJSON_GetArrayItem(boards, index);
+    if (!boardToUpdate) {
+        fprintf(stderr, "Failed to get board at index: %d\n", index);
+        return NULL;
     }
-    
-    cJSON* board = NULL;
 
-    cJSON_ArrayForEach(board, boards) {
-        cJSON* boardID = cJSON_GetObjectItem(board, boardName);
-        
-        if (boardID) {
-            cJSON* matrix = cJSON_GetObjectItem(boardID, matrixType); // Obter a matriz com o tipo correto
-            
-            if (matrix) {
-                int** matriz = (int**)malloc(9 * sizeof(int*));
-                for (int i = 0; i < 9; i++) {
-                    matriz[i] = (int*)malloc(9 * sizeof(int));
-                    cJSON* row = cJSON_GetArrayItem(matrix, i);
-                    if (row == NULL) {
-                        printf("Erro ao obter linha %d da matriz.\n", i);
-                        // Liberar a memória antes de retornar
-                        for (int j = 0; j < i; j++) {
-                            free(matriz[j]);
-                        }
-                        free(matriz);
-                        cJSON_Delete(json);
-                        return NULL; // Retorna NULL se houver erro
-                    }
-                    for (int j = 0; j < 9; j++) { // Alterado de count para 9
-                        matriz[i][j] = cJSON_GetArrayItem(row, j)->valueint; // Corrigido GetArrayIte para GetArrayItem
-                    }
-                }
-                cJSON_Delete(json);
-                return matriz; // Retorna a matriz
-            }
+    switch (state) {
+        case 0: // Update 'new' state
+            cJSON_ReplaceItemInObject(boardToUpdate, "new", newBoard);
+        break;
+        case 1: // Update 'current' state
+            cJSON_ReplaceItemInObject(boardToUpdate, "current", newBoard);
+        break;
+        case 2: // Update 'solution' state
+            cJSON_ReplaceItemInObject(boardToUpdate, "solution", newBoard);
+        break;
+        default:
+            fprintf(stderr, "Invalid state: %d\n", state);
+        return NULL;
+    }
+
+    return boards;
+}
+
+//CREATE NEW cJSON BOARDS
+
+//WRITE cJSON TO FILE
+int save_boards_file(cJSON *boards_json) {
+    if (!boards_json) {
+        fprintf(stderr, "Error: NULL cJSON object provided.\n");
+        return -1; // Indicate failure due to NULL pointer
+    }
+
+    // Open the file for writing
+    FILE *file = fopen("./boards/boards.json", "w");
+    if (!file) {
+        perror("Error opening file for writing");
+        return -1; // Indicate failure to open the file
+    }
+
+    // Convert the cJSON object to a string
+    char *json_string = cJSON_Print(boards_json);
+    if (!json_string) {
+        fprintf(stderr, "Error printing cJSON object to string.\n");
+        fclose(file);
+        return -1; // Indicate failure to print JSON
+    }
+
+    // Prepare the string to prepend
+    const char *prefix = "{\"boards\":";
+    size_t prefix_length = strlen(prefix);
+    size_t json_string_length = strlen(json_string);
+
+    // Allocate memory for the new string
+    char *new_json_string = malloc(prefix_length + json_string_length + 2); // +2 for the closing brace and null terminator
+    if (!new_json_string) {
+        fprintf(stderr, "Error allocating memory for new JSON string.\n");
+        free(json_string);
+        fclose(file);
+        return -1; // Indicate failure to allocate memory
+    }
+
+    // Construct the new JSON string
+    sprintf(new_json_string, "%s%s}", prefix, json_string);
+
+    // Write the new JSON string to the file
+    fprintf(file, "%s", new_json_string);
+
+    // Free allocated memory
+    free(json_string); // Free the string allocated by cJSON_Print
+    free(new_json_string); // Free the new JSON string
+    fclose(file); // Close the file
+    return 0; // Indicate success
+}
+
+
+cJSON* matrix_to_JSON(int **matrix) {
+
+    cJSON *matrix_json = cJSON_CreateArray();
+    for (int i = 0; i < 9; i++) {
+        // Create a new cJSON array for the current row
+        cJSON *row = cJSON_CreateArray();
+
+        // Loop to add elements to the current row
+        for (int j = 0; j < 9; j++) {
+            cJSON_AddItemToArray(row, cJSON_CreateNumber(matrix[i][j]));
         }
-    }
 
-    cJSON_Delete(json);
-    return -1;
+        // Add the row to the main matrix array
+        cJSON_AddItemToArray(matrix_json, row);
+    }
+    return matrix_json;
 }
+
 
 /************************************
  * GLOBAL FUNCTIONS

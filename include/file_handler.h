@@ -10,6 +10,9 @@
  * INCLUDES
  ************************************/
 
+#include "cJSON.h"
+
+
 /************************************
  * MACROS AND DEFINES
  ************************************/
@@ -18,6 +21,10 @@
  * TYPEDEFS
  ************************************/
 
+
+#define STARTING_STATE 0
+#define CURRENT_STATE 1
+#define END_STATE 2
 /************************************
  * EXPORTED VARIABLES
  ************************************/
@@ -28,3 +35,8 @@
 
 
 void testFunction();
+cJSON* get_board_state_by_id(int id, int state);
+
+int save_boards_file(cJSON *boards_json);
+
+cJSON* update_boards_with_new_board(cJSON *newBoard, int index, int state);
