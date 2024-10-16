@@ -49,6 +49,33 @@ void solve_by_brute_force(int **matrix, int **solution);
 
 int main(int argc, char *argv[]) {
 
+    if(argc == 1) {
+        printf("Usage: ./server [CONFIG_FILE_NAME]\n");
+        exit(-1);
+    }
+
+    printf("Starting server...\n");
+
+    if(argc > 0 && load_server_config(&config,argv[1]) >= 0) {
+        printf("Client IP: %s\n", config.ip);
+        printf("LogFile: %s\n", config.log_file);
+        printf("LogLevel: %d\n", config.log_level);
+        printf("Logging: %d\n", config.logging);
+        printf("Max_Clients: %d\n", config.max_clients);
+        printf("Port: %d\n", config.port);
+    } else {
+        fprintf(stderr, "Failed to load server configuration.\n");
+        exit(-1);
+    }
+
+    log_event(config.log_file, "Server Started");
+
+    log_event(config.log_file, "Server Config Loaded");
+
+
+
+
+
     int **matrix;
     matrix = getMatrixFromJSON(get_board_state_by_id(0,STARTING_STATE));
 
@@ -77,25 +104,7 @@ int main(int argc, char *argv[]) {
     //printf(cJSON_Print(get_board_state_by_id(0,CURRENT_STATE)));
     exit(0);
 
-    if
-    (load_server_config(&config)
-     >=
-     0
-    ) {
-        printf("Client IP: %s\n", config.ip);
-        printf("LogFile: %s\n", config.log_file);
-        printf("LogLevel: %d\n", config.log_level);
-        printf("Logging: %d\n", config.logging);
-        printf("Max_Clients: %d\n", config.max_clients);
-        printf("Port: %d\n", config.port);
-    } else {
-        fprintf(stderr, "Failed to load server configuration.\n");
-        exit(-1);
-    }
 
-    log_event(config.log_file, "Server Started");
-
-    log_event(config.log_file, "Server Config Loaded");
 
     int testBoard[SIZE][SIZE] =
     {
@@ -166,6 +175,7 @@ void solve_by_brute_force(int **matrix, int **solution) {
                         matrix[i][j] = k;
                         printf("Correct number found\n");
                         printBoard(matrix);
+                        
                         break;
                     }
                 }

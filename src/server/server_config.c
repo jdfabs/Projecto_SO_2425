@@ -42,12 +42,17 @@
 /************************************
  * GLOBAL FUNCTIONS
  ************************************/
-int load_server_config(ServerConfig *config){
-    FILE *file = fopen("./config/server.json", "r");
+int load_server_config(ServerConfig *config,  char *path){
+
+    char configLoc[255];
+    snprintf(configLoc, sizeof(configLoc),"./config/%s.json", path );
+
+
+    FILE *file = fopen(configLoc, "r");
     if (!file) {
         //load default
         printf("No config file found - Loading Default configs\n");
-        strcpy(config->ip ,"127.0.0.1");
+        strcpy(config->ip ,"127.0.1.1");
         config->port = 8080;
         config->logging = true;
         strcpy(config->log_file ,"./logs/server_log.txt");
