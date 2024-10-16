@@ -29,39 +29,74 @@
 /************************************
  * GLOBAL VARIABLES
  ************************************/
- ServerConfig config;
+ServerConfig config;
 /************************************
  * STATIC FUNCTION PROTOTYPES
  ************************************/
 ServerConfig load_default_config();
-int validadeBoard(int board[SIZE][SIZE]);
 
+int validateBoard(int **board);
+
+void printBoard(int **matrix);
+void solve_by_brute_force(int **matrix, int **solution);
 
 /************************************
  * STATIC FUNCTIONS
  ************************************/
 
-int main(int argc, char *argv[]) {
-    
-   
 
-    if(load_server_config(&config)>=0){
+
+int main(int argc, char *argv[]) {
+
+    int **matrix;
+    matrix = getMatrixFromJSON(get_board_state_by_id(0,STARTING_STATE));
+
+    cJSON *startingStateMatrix = matrix_to_JSON(matrix);
+    printf("Reset current state\n");
+    save_boards_file(update_boards_with_new_board(startingStateMatrix,0,CURRENT_STATE));
+
+    printf("FICHEIRO JSON CURRENT STATE\n");
+    printf(cJSON_Print(get_board_state_by_id(0,CURRENT_STATE)));
+
+    int **solution;
+    solution = getMatrixFromJSON(get_board_state_by_id(0,END_STATE));
+
+    printBoard(matrix);
+    printf("\nStarting to solve from initial state");
+    solve_by_brute_force(matrix, solution);
+
+    cJSON *finishedMatrix = matrix_to_JSON(matrix);
+    printf("saving matrix to file\n");
+    save_boards_file(update_boards_with_new_board(finishedMatrix, 0, CURRENT_STATE));
+
+
+    //cJSON *board = get_board_state_by_id(0,STARTING_STATE);
+    //printf("Board state:\n");
+    //save_boards_file(update_boards_with_new_board(update_sudoku_board(board,9,2,0),0,CURRENT_STATE));
+    //printf(cJSON_Print(get_board_state_by_id(0,CURRENT_STATE)));
+    exit(0);
+
+    if
+    (load_server_config(&config)
+     >=
+     0
+    ) {
         printf("Client IP: %s\n", config.ip);
         printf("LogFile: %s\n", config.log_file);
         printf("LogLevel: %d\n", config.log_level);
         printf("Logging: %d\n", config.logging);
         printf("Max_Clients: %d\n", config.max_clients);
         printf("Port: %d\n", config.port);
-
     } else {
         fprintf(stderr, "Failed to load server configuration.\n");
         exit(-1);
     }
 
-    log_event(config.log_file,"Server Started");
-    log_event(config.log_file,"Server Config Loaded");
+    log_event(config.log_file, "Server Started");
 
-    int testBoard[SIZE][SIZE] = 
+    log_event(config.log_file, "Server Config Loaded");
+
+    int testBoard[SIZE][SIZE] =
     {
         {1, 3, 4, 6, 7, 8, 9, 1, 2},
         {6, 7, 2, 1, 9, 5, 3, 4, 8},
@@ -74,14 +109,13 @@ int main(int argc, char *argv[]) {
         {3, 4, 5, 2, 8, 6, 1, 7, 9}
     };
 
-    validadeBoard(testBoard);
-    
+    validateBoard(testBoard);
+
 
     exit(0);
-     
 }
 
-int validadeBoard(int board[SIZE][SIZE]){
+int validateBoard(int **board) {
     //Validation Function is less computationaly expensive
     //So it's first checked if it's valid and only if not checked how many cells are possibly wrong
     int wrong = 0;
@@ -99,6 +133,44 @@ int validadeBoard(int board[SIZE][SIZE]){
 
     log_event(config.log_file, log_message);
     return wrong;
+}
+
+void printBoard(int **matrix) {
+    printf("The Sudoku board is:\n");
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            printf("%d ", matrix[i][j]); // Print the number
+            // Print a vertical separator for the 3x3 blocks
+            if ((j + 1) % 3 == 0 && j != 8) {
+                printf("| ");
+            }
+        }
+        printf("\n"); // Move to a new line after each row
+        // Print a horizontal separator for the 3x3 blocks
+        if ((i + 1) % 3 == 0 && i != 8) {
+            printf("---------------------\n");
+        }
+    }
+}
+
+
+void solve_by_brute_force(int **matrix, int **solution) {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (matrix[i][j] == 0) {
+                printf("cell (%d,%d) is empty\n", i, j);
+                for (int k = 1; k <= SIZE; k++) {
+                    printf("trying %d\n", k);
+                    if(k == solution[i][j]) {
+                        matrix[i][j] = k;
+                        printf("Correct number found\n");
+                        printBoard(matrix);
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }
 
 
