@@ -26,3 +26,4 @@
  ************************************/
 
 int log_event(const char *file_path, const char *message);
+

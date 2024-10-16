@@ -10,6 +10,7 @@
  ************************************/
 #include "server.h"
 #include "../common/common.h"
+#include "file_handler.h"
 /************************************
  * EXTERN VARIABLES
  ************************************/

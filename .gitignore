@@ -53,5 +53,7 @@ dkms.conf
 
 client
 server
-.vscode
-.idea
+.vscode/
+.idea/
+.xml
+.idea/editor.xml

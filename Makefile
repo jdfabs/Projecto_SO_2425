@@ -14,7 +14,7 @@ CLIENT_EXEC = client
 SERVER_EXEC = server
 
 # Source files
-CLIENT_SOURCES = $(CLIENT_DIR)/client.c $(CLIENT_DIR)/client_config.c $(SHARED_DIR)/file_handler.c
+CLIENT_SOURCES = $(CLIENT_DIR)/client.c $(CLIENT_DIR)/client_config.c $(SHARED_DIR)/file_handler.c $(SHARED_DIR)/cJSON.c
 SERVER_SOURCES = $(SERVER_DIR)/server.c $(SERVER_DIR)/server_config.c $(SERVER_DIR)/sudoku_utils.c $(SHARED_DIR)/file_handler.c $(SHARED_DIR)/cJSON.c
 
 # Object files
