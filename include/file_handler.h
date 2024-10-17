@@ -37,6 +37,7 @@
 void testFunction();
 cJSON* get_board_state_by_id(int id, int state);
 
-int save_boards_file(cJSON *boards_json);
+int save_board_to_file(cJSON *board_json, int id);
+
 
 cJSON* update_boards_with_new_board(cJSON *newBoard, int index, int state);

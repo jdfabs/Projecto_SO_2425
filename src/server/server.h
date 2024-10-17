@@ -40,7 +40,8 @@ typedef struct
  * GLOBAL FUNCTION PROTOTYPES
  ************************************/
 
-int load_server_config(ServerConfig *config, char *config_file);
+int load_server_config(ServerConfig *config,  char *path);
+
 
 bool isValidSudoku(int **board);
 bool isValidGroup(int group[SIZE]);

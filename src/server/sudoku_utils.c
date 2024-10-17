@@ -180,7 +180,7 @@ int** getMatrixFromJSON(cJSON *board) {
     for (int i = 0; i < 9; i++) {
         matrix[i] = (int *)malloc(9 * sizeof(int));
     }
-
+    printf(cJSON_Print(board));
     // Iterate over the cJSON array
     for (int i = 0; i < 9; i++) {
         // Get the i-th element (which is also an array)

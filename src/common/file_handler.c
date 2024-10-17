@@ -65,8 +65,13 @@ int log_event(const char *file_path, const char *message){
 
 
 //GET cJSON OBJECTS
-char* get_board_file_string(){
-    FILE* file = fopen("./boards/boards.json", "r");
+char* get_board_file_string(int id){
+    
+    char filepath[100];  
+    sprintf(filepath, "./boards/%d.json", id);
+
+    printf(filepath);
+    FILE *file = fopen(filepath, "r");
     if (file == NULL){
         printf("Erro ao abrir o ficheiro.\n");
         return NULL;
@@ -96,12 +101,8 @@ cJSON* get_json_from_string(const char* json_string) {
     return json;
 }
 
-cJSON* get_boards_json_from_file() {
-    return cJSON_GetObjectItem(get_json_from_string(get_board_file_string()),"boards");
-}
-
 cJSON* get_board_by_id(int id) {
-    return cJSON_GetArrayItem(get_boards_json_from_file(),id);
+    return get_json_from_string(get_board_file_string(id));
 
 }
 
@@ -124,88 +125,67 @@ cJSON* get_board_state_by_id(int id, int state) {
 //UPDATE cJSON OBJECTS
 
 cJSON* update_boards_with_new_board(cJSON *newBoard, int index, int state) {
-    cJSON *boards = get_boards_json_from_file();
-
-    int boardCount = cJSON_GetArraySize(boards);
-    if (index < 0 || index >= boardCount) {
-        fprintf(stderr, "Invalid index: %d\n", index);
-        return NULL;
-    }
-
-    cJSON *boardToUpdate = cJSON_GetArrayItem(boards, index);
-    if (!boardToUpdate) {
-        fprintf(stderr, "Failed to get board at index: %d\n", index);
-        return NULL;
-    }
-
+    cJSON *boardToUpdate = get_board_by_id(index);
+    printf("000\n");
     switch (state) {
         case 0: // Update 'new' state
             cJSON_ReplaceItemInObject(boardToUpdate, "new", newBoard);
-        break;
+            break;
         case 1: // Update 'current' state
             cJSON_ReplaceItemInObject(boardToUpdate, "current", newBoard);
-        break;
+            break;
         case 2: // Update 'solution' state
             cJSON_ReplaceItemInObject(boardToUpdate, "solution", newBoard);
-        break;
+            break;
         default:
             fprintf(stderr, "Invalid state: %d\n", state);
         return NULL;
     }
+    printf(cJSON_Print(boardToUpdate));
 
-    return boards;
+    return boardToUpdate;
 }
 
 //CREATE NEW cJSON BOARDS
 
 //WRITE cJSON TO FILE
-int save_boards_file(cJSON *boards_json) {
-    if (!boards_json) {
+int save_board_to_file(cJSON *board_json, int id) {
+    printf("Saving board %d\n", id);
+    if (!board_json) {
         fprintf(stderr, "Error: NULL cJSON object provided.\n");
         return -1; // Indicate failure due to NULL pointer
     }
 
-    // Open the file for writing
-    FILE *file = fopen("./boards/boards.json", "w");
+    char filepath[100];
+    sprintf(filepath, "./boards/%d.json", id);
+    FILE *file = fopen(filepath, "w");
     if (!file) {
         perror("Error opening file for writing");
         return -1; // Indicate failure to open the file
     }
 
     // Convert the cJSON object to a string
-    char *json_string = cJSON_Print(boards_json);
+    char *json_string = cJSON_Print(board_json);
     if (!json_string) {
         fprintf(stderr, "Error printing cJSON object to string.\n");
         fclose(file);
         return -1; // Indicate failure to print JSON
     }
 
-    // Prepare the string to prepend
-    const char *prefix = "{\"boards\":";
-    size_t prefix_length = strlen(prefix);
-    size_t json_string_length = strlen(json_string);
-
-    // Allocate memory for the new string
-    char *new_json_string = malloc(prefix_length + json_string_length + 2); // +2 for the closing brace and null terminator
-    if (!new_json_string) {
-        fprintf(stderr, "Error allocating memory for new JSON string.\n");
-        free(json_string);
-        fclose(file);
-        return -1; // Indicate failure to allocate memory
+    // Write the JSON string to the file
+    if (fputs(json_string, file) == EOF) {
+        fprintf(stderr, "Error writing JSON string to file.\n");
+        free(json_string); // Free the string allocated by cJSON_Print
+        fclose(file); // Close the file
+        return -1; // Indicate failure to write to the file
     }
-
-    // Construct the new JSON string
-    sprintf(new_json_string, "%s%s}", prefix, json_string);
-
-    // Write the new JSON string to the file
-    fprintf(file, "%s", new_json_string);
 
     // Free allocated memory
     free(json_string); // Free the string allocated by cJSON_Print
-    free(new_json_string); // Free the new JSON string
     fclose(file); // Close the file
     return 0; // Indicate success
 }
+
 
 
 cJSON* matrix_to_JSON(int **matrix) {

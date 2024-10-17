@@ -77,17 +77,17 @@ int main(int argc, char *argv[]) {
 
 
     int **matrix;
-    matrix = getMatrixFromJSON(get_board_state_by_id(0,STARTING_STATE));
+    matrix = getMatrixFromJSON(get_board_state_by_id(1,STARTING_STATE));
 
     cJSON *startingStateMatrix = matrix_to_JSON(matrix);
-    printf("Reset current state\n");
-    save_boards_file(update_boards_with_new_board(startingStateMatrix,0,CURRENT_STATE));
+    printf("\nReset current state\n");
+    save_board_to_file(update_boards_with_new_board(startingStateMatrix,1,CURRENT_STATE),1);
 
-    printf("FICHEIRO JSON CURRENT STATE\n");
-    printf(cJSON_Print(get_board_state_by_id(0,CURRENT_STATE)));
+    printf("\nFICHEIRO JSON CURRENT STATE\n");
+    printf(cJSON_Print(get_board_state_by_id(1,CURRENT_STATE)));
 
     int **solution;
-    solution = getMatrixFromJSON(get_board_state_by_id(0,END_STATE));
+    solution = getMatrixFromJSON(get_board_state_by_id(1,END_STATE));
 
     printBoard(matrix);
     printf("\nStarting to solve from initial state");
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
 
     cJSON *finishedMatrix = matrix_to_JSON(matrix);
     printf("saving matrix to file\n");
-    save_boards_file(update_boards_with_new_board(finishedMatrix, 0, CURRENT_STATE));
+    save_board_to_file(update_boards_with_new_board(finishedMatrix, 1, CURRENT_STATE),1);
 
 
     //cJSON *board = get_board_state_by_id(0,STARTING_STATE);
