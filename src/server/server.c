@@ -49,6 +49,7 @@ void solve_by_brute_force(int **matrix, int **solution);
 
 int main(int argc, char *argv[]) {
 
+    // Helper To how to run the server
     if(argc == 1) {
         printf("Usage: ./server [CONFIG_FILE_NAME]\n");
         exit(-1);
@@ -90,11 +91,11 @@ int main(int argc, char *argv[]) {
     solution = getMatrixFromJSON(get_board_state_by_id(1,END_STATE));
 
     printBoard(matrix);
-    printf("\nStarting to solve from initial state");
+    printf("\nStarting to solve from initial state\n");
     solve_by_brute_force(matrix, solution);
 
     cJSON *finishedMatrix = matrix_to_JSON(matrix);
-    printf("saving matrix to file\n");
+    printf("\nsaving matrix to file\n");
     save_board_to_file(update_boards_with_new_board(finishedMatrix, 1, CURRENT_STATE),1);
 
 
@@ -105,7 +106,7 @@ int main(int argc, char *argv[]) {
     exit(0);
 
 
-
+    /*
     int testBoard[SIZE][SIZE] =
     {
         {1, 3, 4, 6, 7, 8, 9, 1, 2},
@@ -120,7 +121,7 @@ int main(int argc, char *argv[]) {
     };
 
     validateBoard(testBoard);
-
+    */
 
     exit(0);
 }
@@ -139,14 +140,14 @@ int validateBoard(int **board) {
     printf("has %d possibly wrong cells\n", wrong);
 
     char log_message[100];
-    sprintf(log_message, "Sudoku board verified without success. %d possibly wrong cells", wrong);
+    sprintf(log_message, "Sudoku board verified without success. %d possibly wrong cells\n", wrong);
 
     log_event(config.log_file, log_message);
     return wrong;
 }
 
 void printBoard(int **matrix) {
-    printf("The Sudoku board is:\n");
+    printf("\nThe Sudoku board is:\n");
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
             printf("%d ", matrix[i][j]); // Print the number

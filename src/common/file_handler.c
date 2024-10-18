@@ -70,7 +70,7 @@ char* get_board_file_string(int id){
     char filepath[100];  
     sprintf(filepath, "./boards/%d.json", id);
 
-    printf(filepath);
+    //printf(filepath,"\n");
     FILE *file = fopen(filepath, "r");
     if (file == NULL){
         printf("Erro ao abrir o ficheiro.\n");
@@ -126,7 +126,6 @@ cJSON* get_board_state_by_id(int id, int state) {
 
 cJSON* update_boards_with_new_board(cJSON *newBoard, int index, int state) {
     cJSON *boardToUpdate = get_board_by_id(index);
-    printf("000\n");
     switch (state) {
         case 0: // Update 'new' state
             cJSON_ReplaceItemInObject(boardToUpdate, "new", newBoard);
@@ -141,14 +140,14 @@ cJSON* update_boards_with_new_board(cJSON *newBoard, int index, int state) {
             fprintf(stderr, "Invalid state: %d\n", state);
         return NULL;
     }
-    printf(cJSON_Print(boardToUpdate));
+    //printf(cJSON_Print(boardToUpdate));
 
     return boardToUpdate;
 }
 
 //CREATE NEW cJSON BOARDS
 
-//WRITE cJSON TO FILE
+//WRITE cJSON INTO THE FILE
 int save_board_to_file(cJSON *board_json, int id) {
     printf("Saving board %d\n", id);
     if (!board_json) {
@@ -175,14 +174,14 @@ int save_board_to_file(cJSON *board_json, int id) {
     // Write the JSON string to the file
     if (fputs(json_string, file) == EOF) {
         fprintf(stderr, "Error writing JSON string to file.\n");
-        free(json_string); // Free the string allocated by cJSON_Print
-        fclose(file); // Close the file
+        free(json_string); 
+        fclose(file); 
         return -1; // Indicate failure to write to the file
     }
 
     // Free allocated memory
-    free(json_string); // Free the string allocated by cJSON_Print
-    fclose(file); // Close the file
+    free(json_string); 
+    fclose(file); 
     return 0; // Indicate success
 }
 

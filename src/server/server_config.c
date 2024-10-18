@@ -110,6 +110,4 @@ int load_server_config(ServerConfig *config,  char *path){
     free(data);
     return 0; // Success
 
-
-
 }

@@ -118,7 +118,7 @@ bool isValidGroup(int group[SIZE]){ // 0 implies not filled in
     return true; 
 }
 
-// Helpers To Wrong Cell counter
+// Helpers To Know Wrong Cells counter
 bool isCellValidInRow(int **board, int row, int col) {
     int num = board[row][col];
     for (int i = 0; i < SIZE; i++) { //for each cell in row
@@ -161,7 +161,7 @@ cJSON* update_sudoku_board(cJSON *currentBoard, int value, int x, int y) {
         return NULL;
     }
 
-    // Get the current cell value at index x and update it
+    // Get the current cell value at index x and evaluate it
     cJSON *cell = cJSON_GetArrayItem(row, x);
     if (!cJSON_IsNumber(cell)) {
         printf("Error: Cell at (%d, %d) is not a number\n", x, y);
@@ -180,10 +180,8 @@ int** getMatrixFromJSON(cJSON *board) {
     for (int i = 0; i < 9; i++) {
         matrix[i] = (int *)malloc(9 * sizeof(int));
     }
-    printf(cJSON_Print(board));
-    // Iterate over the cJSON array
+    // printf(cJSON_Print(board));
     for (int i = 0; i < 9; i++) {
-        // Get the i-th element (which is also an array)
         cJSON *row = cJSON_GetArrayItem(board, i);
         if (row == NULL || !cJSON_IsArray(row)) {
             fprintf(stderr, "Row %d is not an array\n", i);
