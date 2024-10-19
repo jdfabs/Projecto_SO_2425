@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    log_event(config.log_file, "Servidor começou");
+
     printf("Starting server...\n");
 
     if(load_server_config(argv[1],&config) >= 0) {
@@ -72,11 +72,10 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Failed to load server configuration.\n");
         exit(EXIT_FAILURE);
     }
+    log_event(config.log_file, "Servidor começou");
 
 
 
-
-/*
 
 
     int **matrix;
@@ -100,56 +99,13 @@ int main(int argc, char *argv[]) {
     printf("\nsaving matrix to file\n");
     save_board_to_file(update_boards_with_new_board(finishedMatrix, 1, CURRENT_STATE),1);
 
-
-    //cJSON *board = get_board_state_by_id(0,STARTING_STATE);
-    //printf("Board state:\n");
-    //save_boards_file(update_boards_with_new_board(update_sudoku_board(board,9,2,0),0,CURRENT_STATE));
-    //printf(cJSON_Print(get_board_state_by_id(0,CURRENT_STATE)));
     exit(0);
-
-
-    /*
-    int testBoard[SIZE][SIZE] =
-    {
-        {1, 3, 4, 6, 7, 8, 9, 1, 2},
-        {6, 7, 2, 1, 9, 5, 3, 4, 8},
-        {0, 9, 8, 3, 4, 2, 5, 6, 7},
-        {8, 5, 9, 7, 6, 1, 4, 2, 3},
-        {4, 2, 6, 8, 5, 3, 7, 9, 1},
-        {7, 1, 3, 9, 2, 4, 8, 5, 6},
-        {9, 6, 1, 5, 3, 7, 2, 8, 4},
-        {2, 8, 7, 4, 1, 9, 6, 3, 5},
-        {3, 4, 5, 2, 8, 6, 1, 7, 9}
-    };
-
-    validateBoard(testBoard);
-
-    exit(0);
-*/
 }
 
-int validateBoard(int **board) {
-    //Validation Function is less computationaly expensive
-    //So it's first checked if it's valid and only if not checked how many cells are possibly wrong
-    int wrong = 0;
-    if (isValidSudoku(board)) {
-        printf("The Sudoku board is valid!\n");
-        log_event(config.log_file, "Sudoku board verified with success");
-        return wrong;
-    }
-    printf("The Sudoku board is invalid!\n");
-    wrong = wrongCellsCounter(board);
-    printf("has %d possibly wrong cells\n", wrong);
-
-    char log_message[100];
-    sprintf(log_message, "Sudoku board verified without success. %d possibly wrong cells\n", wrong);
-
-    log_event(config.log_file, log_message);
-    return wrong;
-}
+//TEMPORARIO PARA DEMONSTRAÇÂO !!!! vai mudar para cliente
 
 void printBoard(int **matrix) {
-    printf("\nThe Sudoku board is:\n");
+    printf("\nQuadro de Sudoku:\n");
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
             printf("%d ", matrix[i][j]); // Print the number
@@ -164,6 +120,7 @@ void printBoard(int **matrix) {
             printf("---------------------\n");
         }
     }
+    printf("\n");
 }
 
 
@@ -171,12 +128,12 @@ void solve_by_brute_force(int **matrix, int **solution) {
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             if (matrix[i][j] == 0) {
-                printf("cell (%d,%d) is empty\n", i, j);
+                printf("celula (%d,%d) está vazia\n", i, j);
                 for (int k = 1; k <= SIZE; k++) {
-                    printf("trying %d\n", k);
+                    printf("a tentar %d\n", k);
                     if(k == solution[i][j]) {
                         matrix[i][j] = k;
-                        printf("Correct number found\n");
+                        printf("Numero correto encontrado\n");
                         printBoard(matrix);
                         
                         break;

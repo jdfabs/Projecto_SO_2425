@@ -26,6 +26,8 @@
 /************************************
  * PRIVATE TYPEDEFS
  ************************************/
+#define BOARD_DIR "./boards/"
+#define MAX_PATH_LENGTH 100
 
 /************************************
  * STATIC VARIABLES
@@ -63,170 +65,26 @@ int log_event(const char *file_path, const char *message){
 }
 
 
+// Utility function to construct file path
+void construct_file_path(char *buffer, int id) {
+    snprintf(buffer, MAX_PATH_LENGTH, "%s%d.json", BOARD_DIR, id);
+}
 
-//GET cJSON OBJECTS
-char* get_board_file_string(int id){
-    
-    char filepath[100];  
-    sprintf(filepath, "./boards/%d.json", id);
-
-    //printf(filepath,"\n");
+// Utility function to read file into string
+int read_file_to_string( char *filepath, char **data) {
     FILE *file = fopen(filepath, "r");
-    if (file == NULL){
-        printf("Erro ao abrir o ficheiro.\n");
-        return NULL;
+    if (!file) {
+        printf("File not found: %s\n", filepath);
+        return -1;
     }
 
     fseek(file, 0, SEEK_END);
     long length = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    char* content = (char*)malloc(length+1);
-    if (content == NULL)
-    {
-        printf("Erro ao alocar memória.\n");
-        fclose(file);
-        return NULL;
-    }
-    
-    fread(content, 1, length, file);
-    fclose(file);
-    content[length] = '\0';
-
-    return content;
-}
-
-cJSON* get_json_from_string(const char* json_string) {
-    cJSON *json = cJSON_Parse(json_string);
-    return json;
-}
-
-cJSON* get_board_by_id(int id) {
-    return get_json_from_string(get_board_file_string(id));
-
-}
-
-cJSON* get_board_state_by_id(int id, int state) {
-    switch (state) {
-        case STARTING_STATE:
-            return cJSON_GetObjectItem(get_board_by_id(id), "new");
-        case CURRENT_STATE:
-            return cJSON_GetObjectItem(get_board_by_id(id), "current");
-        case END_STATE:
-            return cJSON_GetObjectItem(get_board_by_id(id), "solution");
-        default:
-            printf("Invalid state.\n");
-            break;
-    }
-    return NULL;
-
-}
-
-//UPDATE cJSON OBJECTS
-
-cJSON* update_boards_with_new_board(cJSON *newBoard, int index, int state) {
-    cJSON *boardToUpdate = get_board_by_id(index);
-    switch (state) {
-        case 0: // Update 'new' state
-            cJSON_ReplaceItemInObject(boardToUpdate, "new", newBoard);
-            break;
-        case 1: // Update 'current' state
-            cJSON_ReplaceItemInObject(boardToUpdate, "current", newBoard);
-            break;
-        case 2: // Update 'solution' state
-            cJSON_ReplaceItemInObject(boardToUpdate, "solution", newBoard);
-            break;
-        default:
-            fprintf(stderr, "Invalid state: %d\n", state);
-        return NULL;
-    }
-    //printf(cJSON_Print(boardToUpdate));
-
-    return boardToUpdate;
-}
-
-//CREATE NEW cJSON BOARDS
-
-//WRITE cJSON INTO THE FILE
-int save_board_to_file(cJSON *board_json, int id) {
-    printf("Saving board %d\n", id);
-    if (!board_json) {
-        fprintf(stderr, "Error: NULL cJSON object provided.\n");
-        return -1; // Indicate failure due to NULL pointer
-    }
-
-    char filepath[100];
-    sprintf(filepath, "./boards/%d.json", id);
-    FILE *file = fopen(filepath, "w");
-    if (!file) {
-        perror("Error opening file for writing");
-        return -1; // Indicate failure to open the file
-    }
-
-    // Convert the cJSON object to a string
-    char *json_string = cJSON_Print(board_json);
-    if (!json_string) {
-        fprintf(stderr, "Error printing cJSON object to string.\n");
-        fclose(file);
-        return -1; // Indicate failure to print JSON
-    }
-
-    // Write the JSON string to the file
-    if (fputs(json_string, file) == EOF) {
-        fprintf(stderr, "Error writing JSON string to file.\n");
-        free(json_string); 
-        fclose(file); 
-        return -1; // Indicate failure to write to the file
-    }
-
-    // Free allocated memory
-    free(json_string); 
-    fclose(file); 
-    return 0; // Indicate success
-}
-
-
-
-cJSON* matrix_to_JSON(int **matrix) {
-
-    cJSON *matrix_json = cJSON_CreateArray();
-    for (int i = 0; i < 9; i++) {
-        // Create a new cJSON array for the current row
-        cJSON *row = cJSON_CreateArray();
-
-        // Loop to add elements to the current row
-        for (int j = 0; j < 9; j++) {
-            cJSON_AddItemToArray(row, cJSON_CreateNumber(matrix[i][j]));
-        }
-
-        // Add the row to the main matrix array
-        cJSON_AddItemToArray(matrix_json, row);
-    }
-    return matrix_json;
-}
-
-
-/************************************
- * GLOBAL FUNCTIONS
- ************************************/
-
-/*REFACTORED SHIT*/
-
-int read_file_to_string(char *filepath, char **data) {
-    FILE *file = fopen(filepath, "r");
-
-    if (!file) {
-        printf("Ficheiro nao encontrado! : %s\n", filepath);
-        return -1;
-    }
-
-    fseek(file, 0, SEEK_END);
-    const long length = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    *data = (char*)malloc(length+1);
-    if(!*data) {
-        printf("Erro ao alocar memoria para ler ficheiro: %s\n", filepath );
+    *data = (char *)malloc(length + 1);
+    if (!*data) {
+        printf("Error allocating memory to read file: %s\n", filepath);
         fclose(file);
         return -2;
     }
@@ -234,18 +92,129 @@ int read_file_to_string(char *filepath, char **data) {
     fread(*data, 1, length, file);
     (*data)[length] = '\0';
     fclose(file);
-    printf("ficheiro lido para string com sucesso\n");
+    printf("File read to string successfully\n");
     return 0;
 }
 
+// Function to get JSON string from file
+char *get_board_file_string(int id) {
+    char filepath[MAX_PATH_LENGTH];
+    construct_file_path(filepath, id);
 
-int parse_json(const char *data, cJSON **json) {
-    *json = cJSON_Parse(data);
-    if (!*json) {
+    char *content = NULL;
+    if (read_file_to_string(filepath, &content) != 0) {
+        return NULL;
+    }
+    return content;
+}
 
-        printf("ERRO a dar parse ao JSON: \n");
+// Function to parse JSON string into cJSON object
+cJSON *get_json_from_string(const char *json_string) {
+    cJSON *json = cJSON_Parse(json_string);
+    if (!json) {
+        printf("Error parsing JSON string.\n");
+    }
+    return json;
+}
+
+// Function to get board by ID
+cJSON *get_board_by_id(int id) {
+    char *json_string = get_board_file_string(id);
+    if (!json_string) {
+        return NULL;
+    }
+    cJSON *json = get_json_from_string(json_string);
+    free(json_string); // Free the JSON string after parsing
+    return json;
+}
+
+// Function to get board state by ID
+cJSON *get_board_state_by_id(int id, int state) {
+    cJSON *board = get_board_by_id(id);
+    if (!board) {
+        return NULL;
+    }
+
+    const char *state_keys[] = {"new", "current", "solution"};
+    if (state < 0 || state > 2) {
+        printf("Invalid state.\n");
+        return NULL;
+    }
+
+    return cJSON_GetObjectItem(board, state_keys[state]);
+}
+
+// Function to update boards with new board
+cJSON *update_boards_with_new_board(cJSON *newBoard, int index, int state) {
+    cJSON *boardToUpdate = get_board_by_id(index);
+    if (!boardToUpdate) {
+        return NULL;
+    }
+
+    const char *state_keys[] = {"new", "current", "solution"};
+    if (state < 0 || state > 2) {
+        fprintf(stderr, "Invalid state: %d\n", state);
+        return NULL;
+    }
+
+    cJSON_ReplaceItemInObject(boardToUpdate, state_keys[state], newBoard);
+    return boardToUpdate;
+}
+
+// Function to save cJSON object to file
+int save_board_to_file(cJSON *board_json, int id) {
+    if (!board_json) {
+        fprintf(stderr, "Error: NULL cJSON object provided.\n");
         return -1;
     }
-    printf("JSON parsed com sucesso\n");
-    return 0;
+
+    char filepath[MAX_PATH_LENGTH];
+    construct_file_path(filepath, id);
+
+    FILE *file = fopen(filepath, "w");
+    if (!file) {
+        perror("Error opening file for writing");
+        return -1;
+    }
+
+    char *json_string = cJSON_Print(board_json);
+    if (!json_string) {
+        fprintf(stderr, "Error printing cJSON object to string.\n");
+        fclose(file);
+        return -1;
+    }
+
+    if (fputs(json_string, file) == EOF) {
+        fprintf(stderr, "Error writing JSON string to file.\n");
+        free(json_string);
+        fclose(file);
+        return -1;
+    }
+
+    free(json_string);
+    fclose(file);
+    return 0; // Indicate success
+}
+
+// Function to convert a matrix to cJSON
+cJSON *matrix_to_JSON(int **matrix) {
+    cJSON *matrix_json = cJSON_CreateArray();
+    for (int i = 0; i < 9; i++) {
+        cJSON *row = cJSON_CreateArray();
+        for (int j = 0; j < 9; j++) {
+            cJSON_AddItemToArray(row, cJSON_CreateNumber(matrix[i][j]));
+        }
+        cJSON_AddItemToArray(matrix_json, row);
+    }
+    return matrix_json;
+}
+
+// Function to parse JSON data
+int parse_json(const char *data, cJSON **json) {
+    *json = get_json_from_string(data);
+    if (!*json) {
+        return -1; // Indicate parsing error
+    }
+    printf("JSON parsed successfully\n");
+    return 0; // Indicate success
 }

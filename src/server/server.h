@@ -43,11 +43,8 @@ typedef struct
 int load_server_config(const char *filename, ServerConfig *config);
 
 
-bool isValidSudoku(int **board);
 bool isValidGroup(int group[SIZE]);
-int wrongCellsCounter(int **board);
 
-cJSON* update_sudoku_board(cJSON *currentBoard, int value, int x, int y);
 int** getMatrixFromJSON(cJSON *board);
 
 cJSON* matrix_to_JSON(int **matrix);
