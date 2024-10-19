@@ -41,3 +41,9 @@ int save_board_to_file(cJSON *board_json, int id);
 
 
 cJSON* update_boards_with_new_board(cJSON *newBoard, int index, int state);
+
+
+
+
+int read_file_to_string(char *filepath, char **data);
+int parse_json(const char *data, cJSON **json);

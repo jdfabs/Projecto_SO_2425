@@ -34,7 +34,6 @@ ServerConfig config;
 /************************************
  * STATIC FUNCTION PROTOTYPES
  ************************************/
-ServerConfig load_default_config();
 
 int validateBoard(int **board);
 
@@ -52,29 +51,32 @@ int main(int argc, char *argv[]) {
     // Helper To how to run the server
     if(argc == 1) {
         printf("Usage: ./server [CONFIG_FILE_NAME]\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
+    log_event(config.log_file, "Servidor começou");
     printf("Starting server...\n");
 
-    if(argc > 0 && load_server_config(&config,argv[1]) >= 0) {
-        printf("Client IP: %s\n", config.ip);
-        printf("LogFile: %s\n", config.log_file);
-        printf("LogLevel: %d\n", config.log_level);
-        printf("Logging: %d\n", config.logging);
-        printf("Max_Clients: %d\n", config.max_clients);
+    if(load_server_config(argv[1],&config) >= 0) {
+        printf("............................................\n");
+        printf("Config Servidor Carregado Correctamente:\n");
+        printf("Server IP: %s\n", config.ip);
         printf("Port: %d\n", config.port);
+        printf("Logging: %d\n", config.logging);
+        printf("Log File: %s\n", config.log_file);
+        printf("Log Level: %d\n", config.log_level);
+        printf("Max Clients: %d\n", config.max_clients);
+        printf("Backup Interval: %d\n", config.backup_interval);
+        printf("............................................\n");
     } else {
         fprintf(stderr, "Failed to load server configuration.\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
-    log_event(config.log_file, "Server Started");
-
-    log_event(config.log_file, "Server Config Loaded");
 
 
 
+/*
 
 
     int **matrix;
@@ -121,9 +123,9 @@ int main(int argc, char *argv[]) {
     };
 
     validateBoard(testBoard);
-    */
 
     exit(0);
+*/
 }
 
 int validateBoard(int **board) {

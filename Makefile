@@ -8,14 +8,15 @@ SRC_DIR = ./src
 CLIENT_DIR = $(SRC_DIR)/client
 SERVER_DIR = $(SRC_DIR)/server
 SHARED_DIR = $(SRC_DIR)/common
+EXTERNAL_SRC = $(SRC_DIR)/.external
 
 # Executables
 CLIENT_EXEC = client
 SERVER_EXEC = server
 
 # Source files
-CLIENT_SOURCES = $(CLIENT_DIR)/client.c $(CLIENT_DIR)/client_config.c $(SHARED_DIR)/file_handler.c $(SHARED_DIR)/cJSON.c
-SERVER_SOURCES = $(SERVER_DIR)/server.c $(SERVER_DIR)/server_config.c $(SERVER_DIR)/sudoku_utils.c $(SHARED_DIR)/file_handler.c $(SHARED_DIR)/cJSON.c
+CLIENT_SOURCES = $(CLIENT_DIR)/client.c $(SHARED_DIR)/file_handler.c $(EXTERNAL_SRC)/cJSON.c $(SHARED_DIR)/config_loader.c
+SERVER_SOURCES = $(SERVER_DIR)/server.c $(SERVER_DIR)/sudoku_utils.c $(SHARED_DIR)/file_handler.c $(EXTERNAL_SRC)/cJSON.c $(SHARED_DIR)/config_loader.c
 
 # Object files
 CLIENT_OBJS = $(CLIENT_SOURCES:.c=.o)  #files .o

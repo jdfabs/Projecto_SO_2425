@@ -10,7 +10,7 @@
  ************************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include <file_handler.h>
+#include "file_handler.h"
 #include <time.h>
 #include <string.h>
 #include "common.h"
@@ -210,3 +210,42 @@ cJSON* matrix_to_JSON(int **matrix) {
  * GLOBAL FUNCTIONS
  ************************************/
 
+/*REFACTORED SHIT*/
+
+int read_file_to_string(char *filepath, char **data) {
+    FILE *file = fopen(filepath, "r");
+
+    if (!file) {
+        printf("Ficheiro nao encontrado! : %s\n", filepath);
+        return -1;
+    }
+
+    fseek(file, 0, SEEK_END);
+    const long length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    *data = (char*)malloc(length+1);
+    if(!*data) {
+        printf("Erro ao alocar memoria para ler ficheiro: %s\n", filepath );
+        fclose(file);
+        return -2;
+    }
+
+    fread(*data, 1, length, file);
+    (*data)[length] = '\0';
+    fclose(file);
+    printf("ficheiro lido para string com sucesso\n");
+    return 0;
+}
+
+
+int parse_json(const char *data, cJSON **json) {
+    *json = cJSON_Parse(data);
+    if (!*json) {
+
+        printf("ERRO a dar parse ao JSON: \n");
+        return -1;
+    }
+    printf("JSON parsed com sucesso\n");
+    return 0;
+}
