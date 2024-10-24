@@ -18,6 +18,7 @@
  ************************************/
 #define SERVER_LOG_PATH "logs/server.log"
 #define CLIENT_LOG_PATH "logs/client.log"
+#define SIZE 9
 /************************************
  * EXPORTED VARIABLES
  ************************************/

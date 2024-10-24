@@ -96,71 +96,6 @@ int read_file_to_string( char *filepath, char **data) {
     return 0;
 }
 
-// Function to get JSON string from file
-char *get_board_file_string(int id) {
-    char filepath[MAX_PATH_LENGTH];
-    construct_file_path(filepath, id);
-
-    char *content = NULL;
-    if (read_file_to_string(filepath, &content) != 0) {
-        return NULL;
-    }
-    return content;
-}
-
-// Function to parse JSON string into cJSON object
-cJSON *get_json_from_string(const char *json_string) {
-    cJSON *json = cJSON_Parse(json_string);
-    if (!json) {
-        printf("Error parsing JSON string.\n");
-    }
-    return json;
-}
-
-// Function to get board by ID
-cJSON *get_board_by_id(int id) {
-    char *json_string = get_board_file_string(id);
-    if (!json_string) {
-        return NULL;
-    }
-    cJSON *json = get_json_from_string(json_string);
-    free(json_string); // Free the JSON string after parsing
-    return json;
-}
-
-// Function to get board state by ID
-cJSON *get_board_state_by_id(int id, int state) {
-    cJSON *board = get_board_by_id(id);
-    if (!board) {
-        return NULL;
-    }
-
-    const char *state_keys[] = {"new", "current", "solution"};
-    if (state < 0 || state > 2) {
-        printf("Invalid state.\n");
-        return NULL;
-    }
-
-    return cJSON_GetObjectItem(board, state_keys[state]);
-}
-
-// Function to update boards with new board
-cJSON *update_boards_with_new_board(cJSON *newBoard, int index, int state) {
-    cJSON *boardToUpdate = get_board_by_id(index);
-    if (!boardToUpdate) {
-        return NULL;
-    }
-
-    const char *state_keys[] = {"new", "current", "solution"};
-    if (state < 0 || state > 2) {
-        fprintf(stderr, "Invalid state: %d\n", state);
-        return NULL;
-    }
-
-    cJSON_ReplaceItemInObject(boardToUpdate, state_keys[state], newBoard);
-    return boardToUpdate;
-}
-
 // Function to save cJSON object to file
 int save_board_to_file(cJSON *board_json, int id) {
     if (!board_json) {
@@ -209,9 +144,47 @@ cJSON *matrix_to_JSON(int **matrix) {
     return matrix_json;
 }
 
-// Function to parse JSON data
+cJSON *load_boards(char *path) {
+    FILE *file = fopen(path, "r");
+    if (file == NULL) {
+        printf("Error: Could not open file %s\n", path);
+        return NULL;
+    }
+
+    // Determine the file size
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    // Allocate memory for the file content
+    char *file_content = (char *)malloc(file_size + 1);
+    if (file_content == NULL) {
+        printf("Error: Could not allocate memory\n");
+        fclose(file);
+        return NULL;
+    }
+
+    // Read the file content into memory
+    fread(file_content, 1, file_size, file);
+    file_content[file_size] = '\0'; // Null-terminate the string
+    fclose(file);
+
+    // Parse the JSON content
+    cJSON *boards_json = cJSON_Parse(file_content);
+    if (boards_json == NULL) {
+        printf("Error: Could not parse JSON\n");
+        free(file_content);
+        return NULL;
+    }
+
+    // Clean up
+    free(file_content);
+    return boards_json;
+}
+
+
 int parse_json(const char *data, cJSON **json) {
-    *json = get_json_from_string(data);
+    *json = cJSON_Parse(data);
     if (!*json) {
         return -1; // Indicate parsing error
     }

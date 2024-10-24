@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "cJSON.h"
+#include "../common/common.h"
 /************************************
  * MACROS AND DEFINES
  ************************************/
@@ -30,7 +31,7 @@ typedef struct
     int backup_interval;
 } ServerConfig;
 
-#define SIZE 9
+
 
 /************************************
  * EXPORTED VARIABLES

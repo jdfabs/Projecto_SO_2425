@@ -75,6 +75,46 @@ int main(int argc, char *argv[]) {
     exit(0);
 }
 
+void printBoard(int **matrix) {
+ printf("\nQuadro de Sudoku:\n");
+ for (int i = 0; i < 9; i++) {
+  for (int j = 0; j < 9; j++) {
+   printf("%d ", matrix[i][j]); // Print the number
+   // Print a vertical separator for the 3x3 blocks
+   if ((j + 1) % 3 == 0 && j != 8) {
+    printf("| ");
+   }
+  }
+  printf("\n"); // Move to a new line after each row
+  // Print a horizontal separator for the 3x3 blocks
+  if ((i + 1) % 3 == 0 && i != 8) {
+   printf("---------------------\n");
+  }
+ }
+ printf("\n");
+}
+
+
+
+void solve_by_brute_force(int **matrix, int **solution) {
+ for (int i = 0; i < SIZE; i++) {
+  for (int j = 0; j < SIZE; j++) {
+   if (matrix[i][j] == 0) {
+    printf("celula (%d,%d) está vazia\n", i, j);
+    for (int k = 1; k <= SIZE; k++) {
+     printf("a tentar %d\n", k);
+     if(k == solution[i][j]) {
+      matrix[i][j] = k;
+      printf("Numero correto encontrado\n");
+      printBoard(matrix);
+
+      break;
+     }
+    }
+   }
+  }
+ }
+}
 /************************************
  * GLOBAL FUNCTIONS
  ************************************/
