@@ -47,7 +47,7 @@
  ************************************/
 
 
-//LOG EVENT FUNCTIONS
+//LOG EVENT FUNCTIONS - CHECKED
 int log_event(const char *file_path, const char *message){
     FILE *file = fopen(file_path, "a");
     if (file == NULL) {
@@ -71,7 +71,7 @@ void construct_file_path(char *buffer, int id) {
     snprintf(buffer, MAX_PATH_LENGTH, "%s%d.json", BOARD_DIR, id);
 }
 
-// Utility function to read file into string
+//CHECKED
 int read_file_to_string( char *filepath, char **data) {
     FILE *file = fopen(filepath, "r");
     if (!file) {
@@ -97,7 +97,7 @@ int read_file_to_string( char *filepath, char **data) {
     return 0;
 }
 
-// Function to save cJSON object to file
+/*
 int save_board_to_file(cJSON *board_json, int id) {
     if (!board_json) {
         fprintf(stderr, "Error: NULL cJSON object provided.\n");
@@ -143,7 +143,7 @@ cJSON *matrix_to_JSON(int **matrix) {
         cJSON_AddItemToArray(matrix_json, row);
     }
     return matrix_json;
-}
+}*/
 
 cJSON *load_boards(char *path) {
     FILE *file = fopen(path, "r");

@@ -34,9 +34,6 @@
  ************************************/
 
 
-void testFunction();
-int save_board_to_file(cJSON *board_json, int id);
-cJSON* update_boards_with_new_board(cJSON *newBoard, int index, int state);
 
 
 
@@ -47,5 +44,4 @@ int parse_json(const char *data, cJSON **json);
 
 
 cJSON *load_boards(char *path);
-//cJSON *get_board_by_id(cJSON *boards, int id);
 cJSON *get_board_state_by_id(cJSON *boards, int state, int id );

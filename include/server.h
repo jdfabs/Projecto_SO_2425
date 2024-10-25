@@ -12,7 +12,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "cJSON.h"
-#include "../common/common.h"
+#include "common.h"
 /************************************
  * MACROS AND DEFINES
  ************************************/
@@ -29,6 +29,7 @@ typedef struct
     int log_level;
     int max_clients;
     int backup_interval;
+    char board_file_path[255];
 } ServerConfig;
 
 

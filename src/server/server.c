@@ -72,9 +72,11 @@ int main(int argc, char *argv[]) {
 	}
 
 	log_event(config.log_file, "Servidor começou");
-	boards = load_boards("./boards/boards.json");
 
-	get_board_state_by_id(boards,INITIAL_STATE,1);
+
+	boards = load_boards(config.board_file_path);
+
+	printf(cJSON_Print(get_board_state_by_id(boards,INITIAL_STATE,1)));
 
 
 	exit(0);
