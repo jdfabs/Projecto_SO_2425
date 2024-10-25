@@ -1,12 +1,8 @@
-//
-// Created by skipper on 25-10-2024.
-//
-
 /*********************************************************************************
- * file_handler.c
+ * json_utils.c
  * Skipper
- * 11/10/2024
- * file handling logic
+ * 25/10/2025
+ * cJSON aux crap
  *********************************************************************************/
 
 /************************************
@@ -74,3 +70,7 @@ cJSON *get_board_state_by_id(cJSON *boards, int state, int id ) {
     }
     return cJSON_GetObjectItem(board, "solution");
 }
+
+/************************************
+ * GLOBAL FUNCTIONS
+ ************************************/
