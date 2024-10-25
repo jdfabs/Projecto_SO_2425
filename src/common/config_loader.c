@@ -41,6 +41,43 @@
  * STATIC FUNCTIONS
  ************************************/
 
+
+int parse_json(const char *data, cJSON **json) {
+	*json = cJSON_Parse(data);
+	if (!*json) {
+		return -1; // Indicate parsing error
+	}
+	printf("JSON parsed successfully\n");
+	return 0; // Indicate success
+}
+
+//CHECKED
+int read_file_to_string(char *filepath, char **data) {
+	FILE *file = fopen(filepath, "r");
+	if (!file) {
+		printf("File not found: %s\n", filepath);
+		return -1;
+	}
+
+	fseek(file, 0, SEEK_END);
+	long length = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	*data = (char *) malloc(length + 1);
+	if (!*data) {
+		printf("Error allocating memory to read file: %s\n", filepath);
+		fclose(file);
+		return -2;
+	}
+
+	fread(*data, 1, length, file);
+	(*data)[length] = '\0';
+	fclose(file);
+	printf("File read to string successfully\n");
+	return 0;
+}
+
+
 void load_default_client_config(ClientConfig *client_config) {
 	strcpy(client_config->id, "default_client");
 	strcpy(client_config->server_ip, "127.0.0.1");
@@ -56,8 +93,9 @@ void load_default_server_config(ServerConfig *server_config) {
 	server_config->log_level = 1;
 	server_config->max_clients = 5;
 	server_config->backup_interval = 15;
-	server_config->board_file_path,  "./boards/boards.json";
+	server_config->board_file_path, "./boards/boards.json";
 }
+
 
 int load_client_config(const char *filename, ClientConfig *config) {
 	char *data = NULL;

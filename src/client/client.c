@@ -9,8 +9,8 @@
 /************************************
  * INCLUDES
  ************************************/
- #include "client.h"
- #include "../common/common.h"
+#include "client.h"
+#include "common.h"
 
 /************************************
  * EXTERN VARIABLES
@@ -40,39 +40,38 @@
  * STATIC FUNCTIONS
  ************************************/
 int main(int argc, char *argv[]) {
-    ClientConfig config;
+ ClientConfig config;
 
 
-    log_event(config.log_file, "Client Started");
-    if(argc > 1){
-        if(load_client_config(argv[1], &config)>=0){
-             printf("Client ID: %s\n", config.id);
-             printf("Server IP: %s\n", config.server_ip);
-             printf("Server Port: %d\n", config.server_port);
-             printf("Log File: %s\n", config.log_file);
-        } else {
-             fprintf(stderr, "Failed to load client configuration.\n");
-             exit(-1);
-        }
-    }
-    else{
-        printf("NO SPECIFIC CONFIG FILE PROVIVED, GOING FOR DEFAULT FILE\n");
-        if(load_client_config("client_1", &config)>=0){
-             printf("Client ID: %s\n", config.id);
-             printf("Server IP: %s\n", config.server_ip);
-             printf("Server Port: %d\n", config.server_port);
-             printf("Log File: %s\n", config.log_file);
-        } else {
-             fprintf(stderr, "Failed to load client configuration.\n");
-             exit(-1);
-        }
-    }
+ log_event(config.log_file, "Client Started");
+ if (argc > 1) {
+  if (load_client_config(argv[1], &config) >= 0) {
+   printf("Client ID: %s\n", config.id);
+   printf("Server IP: %s\n", config.server_ip);
+   printf("Server Port: %d\n", config.server_port);
+   printf("Log File: %s\n", config.log_file);
+  } else {
+   fprintf(stderr, "Failed to load client configuration.\n");
+   exit(-1);
+  }
+ } else {
+  printf("NO SPECIFIC CONFIG FILE PROVIVED, GOING FOR DEFAULT FILE\n");
+  if (load_client_config("client_1", &config) >= 0) {
+   printf("Client ID: %s\n", config.id);
+   printf("Server IP: %s\n", config.server_ip);
+   printf("Server Port: %d\n", config.server_port);
+   printf("Log File: %s\n", config.log_file);
+  } else {
+   fprintf(stderr, "Failed to load client configuration.\n");
+   exit(-1);
+  }
+ }
 
 
-    log_event(config.log_file, "Client Config Loaded");
+ log_event(config.log_file, "Client Config Loaded");
 
-    
-    exit(0);
+
+ exit(0);
 }
 
 void printBoard(int **matrix) {
@@ -95,7 +94,6 @@ void printBoard(int **matrix) {
 }
 
 
-
 void solve_by_brute_force(int **matrix, int **solution) {
  for (int i = 0; i < SIZE; i++) {
   for (int j = 0; j < SIZE; j++) {
@@ -103,7 +101,7 @@ void solve_by_brute_force(int **matrix, int **solution) {
     printf("celula (%d,%d) está vazia\n", i, j);
     for (int k = 1; k <= SIZE; k++) {
      printf("a tentar %d\n", k);
-     if(k == solution[i][j]) {
+     if (k == solution[i][j]) {
       matrix[i][j] = k;
       printf("Numero correto encontrado\n");
       printBoard(matrix);
@@ -115,6 +113,7 @@ void solve_by_brute_force(int **matrix, int **solution) {
   }
  }
 }
+
 /************************************
  * GLOBAL FUNCTIONS
  ************************************/

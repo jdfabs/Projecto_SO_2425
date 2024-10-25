@@ -8,7 +8,7 @@
 /************************************
  * INCLUDES
  ************************************/
-
+#include "cJSON.h"
 /************************************
  * MACROS AND DEFINES
  ************************************/
@@ -32,3 +32,4 @@
 
 int log_event(const char *file_path, const char *message);
 
+cJSON *get_board_state_by_id(cJSON *boards, int state, int id);
