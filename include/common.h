@@ -22,6 +22,8 @@
 
 #define INITIAL_STATE 0
 #define SOLUTION_STATE 1
+
+#define BUFFER_SIZE 1024
 /************************************
  * EXPORTED VARIABLES
  ************************************/

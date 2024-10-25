@@ -74,7 +74,7 @@ bool isValidSudoku(int **board){
                 square[counter++] = board[startRow + r][startCol + c];
             }
         }
-        if (!isValidGroup(square)) return false;
+        if (isValidGroup(square)) return false;
         //printf("square %d valid\n", i+1);
     } 
     return true;

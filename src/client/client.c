@@ -11,6 +11,12 @@
  ************************************/
 #include "client.h"
 #include "common.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
 
 /************************************
  * EXTERN VARIABLES
@@ -31,50 +37,63 @@
 /************************************
  * GLOBAL VARIABLES
  ************************************/
-
+ClientConfig config;
+int board[BOARD_SIZE][BOARD_SIZE];
 /************************************
  * STATIC FUNCTION PROTOTYPES
  ************************************/
-
+void client_init(int argc, char *argv[], ClientConfig *config);
 /************************************
  * STATIC FUNCTIONS
  ************************************/
 int main(int argc, char *argv[]) {
-	ClientConfig config;
+	client_init(argc, argv, &config);
 
+	int sock = 0;
+	struct sockaddr_in serv_addr;
 
-	log_event(config.log_file, "Client Started");
-	if (argc > 1) {
-		if (load_client_config(argv[1], &config) >= 0) {
-			printf("Client ID: %s\n", config.id);
-			printf("Server IP: %s\n", config.server_ip);
-			printf("Server Port: %d\n", config.server_port);
-			printf("Log File: %s\n", config.log_file);
-		} else {
-			fprintf(stderr, "Failed to load client configuration.\n");
-			exit(-1);
-		}
-	} else {
-		printf("NO SPECIFIC CONFIG FILE PROVIVED, GOING FOR DEFAULT FILE\n");
-		if (load_client_config("client_1", &config) >= 0) {
-			printf("Client ID: %s\n", config.id);
-			printf("Server IP: %s\n", config.server_ip);
-			printf("Server Port: %d\n", config.server_port);
-			printf("Log File: %s\n", config.log_file);
-		} else {
-			fprintf(stderr, "Failed to load client configuration.\n");
-			exit(-1);
-		}
+	char buffer[BUFFER_SIZE] = {0};
+	const char *hello = "Hello from client";
+
+	// 1. Create socket
+	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		printf("Socket creation error\n");
+		return -1;
 	}
 
+	// 2. Set up the server address
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(config.server_port);
 
-	log_event(config.log_file, "Client Config Loaded");
+	// Convert IPv4 address from text to binary
+	if (inet_pton(AF_INET, config.server_ip, &serv_addr.sin_addr) <= 0) {
+		printf("Invalid address/Address not supported\n");
+		return -1;
+	}
 
+	// 3. Connect to the server
+	if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+		printf("Connection Failed\n");
+		return -1;
+	}
+
+	// 4. Send data
+	send(sock, hello, strlen(hello), 0);
+	printf("Hello message sent\n");
+
+	// 5. Receive data
+	int valread = read(sock, buffer, BUFFER_SIZE);
+	printf("Server: %s\n", buffer);
+
+	// 6. Close the socket
+	close(sock);
+
+	solve_by_brute_force(board,board);
 
 	exit(0);
 }
 
-void printBoard(int **matrix) {
+void printBoard(int matrix[][BOARD_SIZE]) {
 	printf("\nQuadro de Sudoku:\n");
 	for (int i = 0; i < 9; i++) {
 		for (int j = 0; j < 9; j++) {
@@ -93,7 +112,25 @@ void printBoard(int **matrix) {
 	printf("\n");
 }
 
+void client_init(int argc, char *argv[], ClientConfig *config) {
+	const char *config_file = (argc > 1) ? argv[1] : "client_1";
+	if (load_client_config(config_file, config) < 0) {
+		fprintf(stderr, "Failed to load client configuration.\n");
+		exit(-1);
+	}
+	if (argc <= 1) {
+		printf("NO SPECIFIC CONFIG FILE PROVIDED, USING DEFAULT FILE\n");
+	}
 
+	log_event(config->log_file, "Client Started");
+
+	printf("Client ID: %s\n", config->id);
+	printf("Server IP: %s\n", config->server_ip);
+	printf("Server Port: %d\n", config->server_port);
+	printf("Log File: %s\n", config->log_file);
+
+	log_event(config->log_file, "Client Config Loaded");
+}
 
 
 /************************************

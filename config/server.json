@@ -1,6 +1,6 @@
 {
   "ip": "127.0.0.1",
-  "port": 8080,
+  "port": 9346,
   "enable_logging": 1,
   "log_file": "./logs/server.log",
   "log_level": 1,

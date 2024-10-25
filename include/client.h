@@ -25,6 +25,8 @@ typedef struct  {
     char log_file[254];
 } ClientConfig;
 
+#define BOARD_SIZE 9
+
 /************************************
  * EXPORTED VARIABLES
  ************************************/
@@ -34,4 +36,5 @@ typedef struct  {
  ************************************/
 
 int load_client_config(const char *filename, ClientConfig *config);
-void printBoard(int **matrix);
+void solve_by_brute_force(int matrix[][BOARD_SIZE], int solution[][BOARD_SIZE]);
+void printBoard(int matrix[][BOARD_SIZE]);
