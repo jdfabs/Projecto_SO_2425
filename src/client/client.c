@@ -1,4 +1,4 @@
-/*********************************************************************************
+/******************************SERVER_DIR***************************************************
  * client.c
  * Skipper
  * 11/10/2024
@@ -94,25 +94,7 @@ void printBoard(int **matrix) {
 }
 
 
-void solve_by_brute_force(int **matrix, int **solution) {
-	for (int i = 0; i < SIZE; i++) {
-		for (int j = 0; j < SIZE; j++) {
-			if (matrix[i][j] == 0) {
-				printf("celula (%d,%d) está vazia\n", i, j);
-				for (int k = 1; k <= SIZE; k++) {
-					printf("a tentar %d\n", k);
-					if (k == solution[i][j]) {
-						matrix[i][j] = k;
-						printf("Numero correto encontrado\n");
-						printBoard(matrix);
 
-						break;
-					}
-				}
-			}
-		}
-	}
-}
 
 /************************************
  * GLOBAL FUNCTIONS

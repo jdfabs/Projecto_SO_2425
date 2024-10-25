@@ -32,8 +32,6 @@ typedef struct
     char board_file_path[255];
 } ServerConfig;
 
-
-
 /************************************
  * EXPORTED VARIABLES
  ************************************/
@@ -44,9 +42,5 @@ typedef struct
 
 int load_server_config(const char *filename, ServerConfig *config);
 
-
 bool isValidGroup(int group[SIZE]);
 
-int** getMatrixFromJSON(cJSON *board);
-
-cJSON* matrix_to_JSON(int **matrix);

@@ -24,6 +24,7 @@ typedef struct  {
     int server_port;
     char log_file[254];
 } ClientConfig;
+
 /************************************
  * EXPORTED VARIABLES
  ************************************/
@@ -33,3 +34,4 @@ typedef struct  {
  ************************************/
 
 int load_client_config(const char *filename, ClientConfig *config);
+void printBoard(int **matrix);

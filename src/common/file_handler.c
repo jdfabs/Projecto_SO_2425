@@ -10,10 +10,10 @@
  ************************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include "file_handler.h"
+#include "../../include/file_handler.h"
 #include <time.h>
 #include <string.h>
-#include "common.h"
+#include "../../include/common.h"
 
 /************************************
  * EXTERN VARIABLES
