@@ -44,13 +44,17 @@ int server_fd ;
 struct sockaddr_in address;
 int addrlen = sizeof(address);
 
+int total_clients_connected_counter = 0;
 /************************************
  * STATIC FUNCTION PROTOTYPES
  ************************************/
 
 void server_init(int argc, char **argv);
 void setup_socket(void);
+
 void *client_handler(void *arg);
+void client_handshake(int client_socket);
+
 /************************************
  * STATIC FUNCTIONS
  ************************************/
@@ -68,13 +72,14 @@ int main(int argc, char *argv[]) {
 			close(server_fd);
 			exit(EXIT_FAILURE);
 		}
-		// Create a thread for each new connection
+		log_event(config.log_file,"A receber pedido de conecção");
+		// thread cliente
 		pthread_t thread_id;
 		if (pthread_create(&thread_id, NULL, client_handler, (void *)&new_socket) != 0) {
 			perror("Failed to create thread");
+			log_event(config.log_file,"Criação de thread para connecção falhou!!");
 			close(new_socket);
 		} else {
-			// Detach the thread so that resources are released when it finishes
 			pthread_detach(thread_id);
 		}
 		//printf(cJSON_Print(get_board_state_by_id(boards,INITIAL_STATE,1)));
@@ -148,6 +153,7 @@ void server_init(int argc, char **argv) {
 	log_event(config.log_file,"Boards carregados para memoria com sucesso");
 }
 void setup_socket(void) {
+	log_event(config.log_file, "A começar setup do socket de connecção");
 	if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
 		perror("Socket falhou");
 		log_event(config.log_file, "Criação do socket falhou!");
@@ -162,34 +168,37 @@ void setup_socket(void) {
 	//reutilizar o binding address caso já esteja em uso
 	int opt = 1;
 	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-		perror("setsockopt failed");
+		log_event(config.log_file,"Opções do socket falharam");
 		close(server_fd);
 		exit(EXIT_FAILURE);
 	}
+	log_event(config.log_file,"Opções do socket aplicadas com sucesso");
 
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
 	address.sin_port = htons(config.port);
 
 	if(bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-		perror("Socket falhou bind");
+		log_event(config.log_file,"Socket falhou bind");
 		close(server_fd);
 		exit(EXIT_FAILURE);
 	}
-
+	log_event(config.log_file,"Socket deu bind com sucesso");
 	//Ouvir pedidos de connecção
 	if(listen(server_fd, 5) < 0) { //5 = queue de conecções a se conectar
-		perror("Listen falhou");
+		log_event(config.log_file,"Listen falhou");
 		close(server_fd);
 		exit(EXIT_FAILURE);
 	}
+	log_event(config.log_file,"Server começou a ouvir conecções ao servidor");
 }
 
-
 void *client_handler(void *arg) {
-	int client_socket = *(int *)arg;
+	log_event(config.log_file, "Thread para cliente criado");
+	const int client_socket = *(int *)arg;
 	char buffer[BUFFER_SIZE];
-	const char *connection_message = "Hello from server";
+
+	client_handshake(client_socket);
 
 	while (1) {
 		int valread = read(client_socket, buffer, BUFFER_SIZE);
@@ -202,9 +211,16 @@ void *client_handler(void *arg) {
 		buffer[valread] = '\0'; // Null-terminate the buffer to make it a proper string
 		printf("Received: %s\n", buffer);
 
-		// Send a response back to the client
-		send(client_socket, connection_message, strlen(connection_message), 0);
 	}
 
-	printf("Client disconnected\n");
+	printf("Cliente desconnectado -- Thread %lu acabando\n", pthread_self());
+	return NULL;
+}
+
+void client_handshake(int client_socket) {
+	total_clients_connected_counter++;
+	const char *connection_message = "Hello from server";
+	send(client_socket, connection_message, strlen(connection_message), 0);
+
+
 }

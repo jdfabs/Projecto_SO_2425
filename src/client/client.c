@@ -52,7 +52,7 @@ char buffer[BUFFER_SIZE] = {0};
  ************************************/
 void client_init(int argc, char *argv[], ClientConfig *config);
 void connect_to_server();
-
+void server_handshake();
 
 /************************************
  * STATIC FUNCTIONS
@@ -64,18 +64,16 @@ int main(int argc, char *argv[]) {
 
 	connect_to_server();
 
-	while (1) {
-		// 4. Send data
-		send(sock, message, strlen(message), 0);
-		//printf("Hello message sent\n");
+	int valread = read(sock, buffer, BUFFER_SIZE);
+	printf("Server: %s\n", buffer);
 
-		// 5. Receive data
-		int valread = read(sock, buffer, BUFFER_SIZE);
-		printf("Server: %s\n", buffer);
+	while (1) {
+		log_event(config.log_file, "A Enviar Mensagem");
+		send(sock, message, strlen(message), 0);
+
 		sleep(1);
 	}
 
-	// 6. Close the socket
 	close(sock);
 
 	//solve_by_brute_force(board,board);
@@ -101,7 +99,6 @@ void printBoard(int matrix[][BOARD_SIZE]) {
 	}
 	printf("\n");
 }
-
 void client_init(int argc, char *argv[], ClientConfig *config) {
 	const char *config_file = (argc > 1) ? argv[1] : "client_1";
 	if (load_client_config(config_file, config) < 0) {
@@ -126,29 +123,35 @@ void client_init(int argc, char *argv[], ClientConfig *config) {
 }
 
 void connect_to_server() {
-	// 1. Create socket
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		printf("Socket creation error\n");
-		return;
+		log_event(config.log_file,"Erro ao criar socket!! EXIT\n");
+		exit(EXIT_FAILURE);
 	}
+	log_event(config.log_file, "Socket criado com sucesso");
 
-	// 2. Set up the server address
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(config.server_port);
 
-	// Convert IPv4 address from text to binary
 	if (inet_pton(AF_INET, config.server_ip, &serv_addr.sin_addr) <= 0) {
-		printf("Invalid address/Address not supported\n");
-		return;
+		log_event(config.log_file,"IP invalido! EXIT\n");
+		exit(EXIT_FAILURE);
 	}
+	log_event(config.log_file, "IP valido");
 
-	// 3. Connect to the server
 	if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-		printf("Connection Failed\n");
-		return;
+		log_event(config.log_file,"Pedido de conecção falhou! EXIT\n");
+		exit(EXIT_FAILURE);
 	}
+	log_event(config.log_file, "Conectado ao servidor");
+
+	server_handshake();
+
+
 }
 
+void server_handshake() {
+
+}
 
 /************************************
  * GLOBAL FUNCTIONS
