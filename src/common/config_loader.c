@@ -85,7 +85,7 @@ void load_default_client_config(ClientConfig *client_config) {
 	strcpy(client_config->log_file, "./logs/client_default.log");
 }
 
-void load_default_server_config(ServerConfig *server_config) {
+void load_default_server_config(server_config *server_config) {
 	strcpy(server_config->ip, "127.0.1.1");
 	server_config->port = 8080;
 	server_config->logging = 1;
@@ -157,7 +157,7 @@ int load_client_config(const char *filename, ClientConfig *config) {
 	return 0; // Success
 }
 
-int load_server_config(const char *filename, ServerConfig *config) {
+int load_server_config(const char *filename, server_config *config) {
 	printf("A Carregar Config File Do Server\n");
 	char *data = NULL;
 	cJSON *json = NULL;

@@ -1,5 +1,5 @@
 # Compiler and flags
-CC = gcc
+CC = gcc -pthread
 CFLAGS = -g -I./include #debug flag + auto includes
 LDFLAGS = 
 
