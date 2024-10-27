@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
+
 /************************************
  * EXTERN VARIABLES
  ************************************/
@@ -55,6 +56,7 @@ void setup_socket(void);
 void *client_handler(void *arg);
 void client_handshake(int client_socket);
 
+
 /************************************
  * STATIC FUNCTIONS
  ************************************/
@@ -84,9 +86,17 @@ int main(int argc, char *argv[]) {
 		}
 		//printf(cJSON_Print(get_board_state_by_id(boards,INITIAL_STATE,1)));
 	}
+	/* para implementar novos boards 
+	int **new_board;
+	srand(time(0));
+	new_board = generate_sudoku();
+	*/
+
 	close(server_fd);
 
 	exit(EXIT_SUCCESS);
+
+
 }
 
 

@@ -48,3 +48,4 @@ typedef struct client_info {
 int load_server_config(const char *filename, server_config *config);
 
 bool isValidGroup(int group[SIZE]);
+int **generate_sudoku();

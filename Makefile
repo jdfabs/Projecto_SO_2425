@@ -16,7 +16,7 @@ SERVER_EXEC = server
 
 # Source files
 CLIENT_SOURCES = $(CLIENT_DIR)/client.c $(SHARED_DIR)/file_handler.c $(EXTERNAL_SRC)/cJSON.c $(SHARED_DIR)/config_loader.c $(SHARED_DIR)/json_utils.c $(CLIENT_DIR)/sudoku_solver_utils.c
-SERVER_SOURCES = $(SERVER_DIR)/server.c $(SERVER_DIR)/sudoku_utils.c $(SHARED_DIR)/file_handler.c $(EXTERNAL_SRC)/cJSON.c $(SHARED_DIR)/json_utils.c $(SHARED_DIR)/config_loader.c
+SERVER_SOURCES = $(SERVER_DIR)/server.c $(SERVER_DIR)/sudoku_utils.c $(SHARED_DIR)/file_handler.c $(EXTERNAL_SRC)/cJSON.c $(SHARED_DIR)/json_utils.c $(SHARED_DIR)/config_loader.c 
 
 # Object files
 CLIENT_OBJS = $(CLIENT_SOURCES:.c=.o)  #files .o
