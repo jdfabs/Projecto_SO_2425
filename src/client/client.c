@@ -20,6 +20,9 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistr.h>
 
 /************************************
  * EXTERN VARIABLES
@@ -40,38 +43,51 @@
 /************************************
  * GLOBAL VARIABLES
  ************************************/
-ClientConfig config;
+client_config config;
 int board[BOARD_SIZE][BOARD_SIZE];
 
 int sock = 0;
-struct sockaddr_in serv_addr;
+struct sockaddr_un server_address;
 char buffer[BUFFER_SIZE] = {0};
 
 /************************************
  * STATIC FUNCTION PROTOTYPES
  ************************************/
-void client_init(int argc, char *argv[], ClientConfig *config);
+void client_init(int argc, char *argv[], client_config *config);
 void connect_to_server();
-void server_handshake();
 
 /************************************
  * STATIC FUNCTIONS
  ************************************/
 int main(int argc, char *argv[]) {
-	client_init(argc, argv, &config);
+	client_init(argc, argv, &config); // Client data structures setup
+	connect_to_server(); //Connect to server
 
-	const char *message = "Hello from client";
 
-	connect_to_server();
 
-	int valread = read(sock, buffer, BUFFER_SIZE);
-	printf("Server: %s\n", buffer);
+
+	char buffer[BUFFER_SIZE];
+	recv(sock, buffer, BUFFER_SIZE, 0);
+	int counter = atoi(buffer)*100;
 
 	while (1) {
-		log_event(config.log_file, "A Enviar Mensagem");
-		send(sock, message, strlen(message), 0);
 
-		sleep(1);
+
+		/*
+		printf("Enter message: ");
+		fgets(message, sizeof(message), stdin);
+		//sprintf(message, "%d", counter);*/
+		sprintf(buffer, "%d", counter);
+		send(sock, buffer, strlen(buffer), 0);
+		printf("Request sent: %d ---- WAITING\n", counter);
+		counter++;
+
+
+		ssize_t bytes_received = recv(sock, buffer, sizeof(buffer) - 1, 0);
+		if (bytes_received > 0) {
+			buffer[bytes_received] = '\0'; // Null-terminate the received string
+			printf("Received from server: %s\n", buffer);
+		}
 	}
 
 	close(sock);
@@ -99,7 +115,8 @@ void printBoard(int matrix[][BOARD_SIZE]) {
 	}
 	printf("\n");
 }
-void client_init(int argc, char *argv[], ClientConfig *config) {
+
+void client_init(int argc, char *argv[], client_config *config) {
 	const char *config_file = (argc > 1) ? argv[1] : "client_1";
 	if (load_client_config(config_file, config) < 0) {
 		fprintf(stderr, "Failed to load client configuration.\n");
@@ -121,37 +138,23 @@ void client_init(int argc, char *argv[], ClientConfig *config) {
 
 	log_event(config->log_file, "Client Config Loaded");
 }
-
 void connect_to_server() {
-	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
 		log_event(config.log_file,"Erro ao criar socket!! EXIT\n");
 		exit(EXIT_FAILURE);
 	}
 	log_event(config.log_file, "Socket criado com sucesso");
 
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(config.server_port);
+	server_address.sun_family = AF_UNIX;
+	strncpy(server_address.sun_path, "/tmp/local_socket", sizeof(server_address.sun_path)-1);
 
-	if (inet_pton(AF_INET, config.server_ip, &serv_addr.sin_addr) <= 0) {
+	if (connect(sock, (struct sockaddr *) &server_address, sizeof(server_address)) < 0) {
 		log_event(config.log_file,"IP invalido! EXIT\n");
 		exit(EXIT_FAILURE);
 	}
-	log_event(config.log_file, "IP valido");
-
-	if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-		log_event(config.log_file,"Pedido de conecção falhou! EXIT\n");
-		exit(EXIT_FAILURE);
-	}
 	log_event(config.log_file, "Conectado ao servidor");
-
-	server_handshake();
-
-
 }
 
-void server_handshake() {
-
-}
 
 /************************************
  * GLOBAL FUNCTIONS

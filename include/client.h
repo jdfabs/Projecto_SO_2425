@@ -23,7 +23,7 @@ typedef struct  {
     char server_ip[15];
     int server_port;
     char log_file[254];
-} ClientConfig;
+} client_config;
 
 #define BOARD_SIZE 9
 
@@ -35,6 +35,6 @@ typedef struct  {
  * GLOBAL FUNCTION PROTOTYPES
  ************************************/
 
-int load_client_config(const char *filename, ClientConfig *config);
+int load_client_config(const char *filename, client_config *config);
 void solve_by_brute_force(int matrix[][BOARD_SIZE], int solution[][BOARD_SIZE]);
 void printBoard(int matrix[][BOARD_SIZE]);

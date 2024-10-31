@@ -11,7 +11,6 @@
 #include "common.h"
 #include "server.h"
 #include "client.h"
-#include "file_handler.h"
 
 /************************************
  * EXTERN VARIABLES
@@ -34,7 +33,7 @@
  ************************************/
 
 /************************************
- * STATIC FUNCTION PROTOTYPES
+ * STATIC FUNCTION PROTOTYPE
  ************************************/
 
 /************************************
@@ -50,8 +49,6 @@ int parse_json(const char *data, cJSON **json) {
 	printf("JSON parsed successfully\n");
 	return 0; // Indicate success
 }
-
-//CHECKED
 int read_file_to_string(char *filepath, char **data) {
 	FILE *file = fopen(filepath, "r");
 	if (!file) {
@@ -77,14 +74,12 @@ int read_file_to_string(char *filepath, char **data) {
 	return 0;
 }
 
-
-void load_default_client_config(ClientConfig *client_config) {
+void load_default_client_config(client_config *client_config) {
 	strcpy(client_config->id, "default_client");
 	strcpy(client_config->server_ip, "127.0.0.1");
 	client_config->server_port = 8080;
 	strcpy(client_config->log_file, "./logs/client_default.log");
 }
-
 void load_default_server_config(server_config *server_config) {
 	strcpy(server_config->ip, "127.0.1.1");
 	server_config->port = 8080;
@@ -94,10 +89,11 @@ void load_default_server_config(server_config *server_config) {
 	server_config->max_clients = 5;
 	server_config->backup_interval = 15;
 	server_config->board_file_path, "./boards/boards.json";
+	server_config->task_queue_size = 10;
+	server_config->event_handler_threads = 5;
 }
 
-
-int load_client_config(const char *filename, ClientConfig *config) {
+int load_client_config(const char *filename, client_config *config) {
 	char *data = NULL;
 	cJSON *json = NULL;
 
@@ -156,7 +152,6 @@ int load_client_config(const char *filename, ClientConfig *config) {
 	cJSON_Delete(json);
 	return 0; // Success
 }
-
 int load_server_config(const char *filename, server_config *config) {
 	printf("A Carregar Config File Do Server\n");
 	char *data = NULL;
@@ -204,13 +199,14 @@ int load_server_config(const char *filename, server_config *config) {
 	config->max_clients = cJSON_GetObjectItem(json, "max_clients")->valueint;
 	config->backup_interval = cJSON_GetObjectItem(json, "backup_interval")->valueint;
 	strcpy(config->board_file_path, cJSON_GetObjectItem(json, "board_file_path")->valuestring);
+	config->task_queue_size = cJSON_GetObjectItem(json, "task_queue_size")->valueint;
+	config->event_handler_threads = cJSON_GetObjectItem(json, "event_handler_threads")->valueint;
 	// Cleanup
 	cJSON_Delete(json);
 	free(filePath);
 	log_event(SERVER_LOG_PATH, "Config server carregada.");
 	return 0; // Success
 }
-
 /************************************
  * GLOBAL FUNCTIONS
  ************************************/

@@ -6,5 +6,7 @@
   "log_level": 1,
   "max_clients": 5,
   "backup_interval": 15,
-  "board_file_path": "./boards/boards.json"
+  "board_file_path": "./boards/boards.json",
+  "task_queue_size": 1,
+  "event_handler_threads": 2
 }

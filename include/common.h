@@ -8,6 +8,8 @@
 /************************************
  * INCLUDES
  ************************************/
+#include <semaphore.h>
+
 #include "cJSON.h"
 /************************************
  * MACROS AND DEFINES
@@ -24,6 +26,13 @@
 #define SOLUTION_STATE 1
 
 #define BUFFER_SIZE 1024
+#define MESSAGE_SIZE 256
+
+
+typedef struct {
+ int client_socket;
+ char message[MESSAGE_SIZE];
+} client_data;
 /************************************
  * EXPORTED VARIABLES
  ************************************/
@@ -33,5 +42,3 @@
  ************************************/
 
 int log_event(const char *file_path, const char *message);
-
-cJSON *get_board_state_by_id(cJSON *boards, int state, int id);

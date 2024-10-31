@@ -30,12 +30,10 @@ typedef struct {
 	int max_clients;
 	int backup_interval;
 	char board_file_path[255];
+	int task_queue_size;
+	int event_handler_threads;
 } server_config;
 
-typedef struct client_info {
- int socket;
- struct sockaddr_in address;
-};
 
 /************************************
  * EXPORTED VARIABLES
