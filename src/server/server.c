@@ -61,7 +61,7 @@ sem_t sem_task_creators, sem_task_reader;
 void server_init(int argc, char **argv, Task *task_queue);
 void setup_socket();
 void *client_handler(void *arg);
-void *solution_checker ();
+void *task_handler ();
 
 /************************************
  * STATIC FUNCTIONS
@@ -82,12 +82,12 @@ int main(int argc, char *argv[]) {
 
 
 	pthread_t thread_id;
-	pthread_create(&thread_id, NULL, solution_checker ,NULL);
+	pthread_create(&thread_id, NULL, task_handler ,NULL);
 	//pthread_create(&thread_id, NULL, solution_checker ,NULL);
 
 
 	while (true) {
-		client_data *client_info = malloc(sizeof(client_data));
+		client_message *client_info = malloc(sizeof(client_message));
 		if (!client_info) {
 			perror("Failed to allocate memory for client_data");
 			continue; // handle error
@@ -146,7 +146,7 @@ printf("\nsaving matrix to file\n");
 save_board_to_file(update_boards_with_new_board(finishedMatrix, 0, CURRENT_STATE),1);
 */
 
-
+//SETUP FUNCTIONS
 void server_init(int argc, char **argv, Task *task_queue) {
 	if (argc == 1) {
 		printf("Usage: ./server [CONFIG_FILE_NAME]\n");
@@ -160,17 +160,6 @@ void server_init(int argc, char **argv, Task *task_queue) {
 		log_event("./logs/server_default.json","Carregamento de configs falhado -- A FECHAR SERVER");
 		exit(EXIT_FAILURE);
 	}
-
-	printf("............................................\n");
-	printf("Config Servidor Carregado Correctamente:\n");
-	printf("Server IP: %s\n", config.ip);
-	printf("Port: %d\n", config.port);
-	printf("Logging: %d\n", config.logging);
-	printf("Log File: %s\n", config.log_file);
-	printf("Log Level: %d\n", config.log_level);
-	printf("Max Clients: %d\n", config.max_clients);
-	printf("Backup Interval: %d\n", config.backup_interval);
-	printf("............................................\n");
 	log_event(config.log_file, "Servidor começou");
 
 
@@ -234,24 +223,36 @@ void setup_socket() {
 	log_event(config.log_file,"Server começou a ouvir conecções ao servidor");
 }
 
+//CLIENT HANDLER FUNCTIONS
+void client_handshake(int socket) {
+	char socket_str[20];
+	sprintf(socket_str, "%d", socket);
+	send(socket, socket_str, sizeof(socket_str), 0); //envia o socket do cliente
+}
+int receive_message(client_message *message) {
+	ssize_t bytes_read = recv(message->client_socket, message->message, sizeof(message->message)-1, 0);
+	if (bytes_read <= 0) {
+		//printf("Erro ao receber mensagem com sucesso");
+		return -1;
+	}
+	message->message[bytes_read] = '\0';
+	return 0;
+}
 
 void *client_handler(void *arg) {
-	client_data *client_info = (client_data *)arg;
-	char socket_str[20];
-	sprintf(socket_str, "%d", client_info->client_socket);
-	send(client_info->client_socket,  socket_str, sizeof(socket_str), 0);
+	char log_var_aux[255];
+	client_message *client_info = (client_message *)arg;
+	client_handshake(client_info->client_socket); // Handshake entre cliente e server
+
 
 	while (1) { //Vai Receber todas as mensagens que o cliente mandar
-		ssize_t bytes_read = recv(client_info->client_socket, client_info->message, sizeof(client_info->message)-1, 0);
-		if (bytes_read <= 0) {
+		if (receive_message(client_info)== -1) {
 			log_event(config.log_file, "Erro a rebecer mensagem/ cliente desligado!");
-			//4printf("Erro ao receber mensagem com sucesso");
-			return NULL;
+			return NULL; //erro com cliente, acabar com thread
 		}
-		client_info->message[bytes_read] = '\0';
-		//printf("Task From Client in socket %d: %s\n", client_info->client_socket, client_info->message);
 
-		//send(client_info->client_socket, client_info->message_to_client, bytes_read, 0);
+		sprintf(log_var_aux, "Mensagem recebida de %d: %s", client_info->client_socket ,client_info->message);
+		log_event(config.log_file, log_var_aux);
 
 		//PROBLEMA LEITORES ESCRITORES --- ESCRITOR
 		printf("CLIENT_HANDLER socket: %d task recebida -- esperar para escrever\n", client_info->client_socket);
@@ -263,9 +264,14 @@ void *client_handler(void *arg) {
 		task_queue[task_creator_ptr].client_socket = client_info->client_socket;
 		sprintf(task_queue[task_creator_ptr].request, "%s", client_info->message);
 		task_creator_ptr = (task_creator_ptr + 1) % config.task_queue_size;
-
+		//FIM ZONA CRITICA
 		pthread_mutex_unlock(&mutex_task_creators);
 		sem_post(&sem_task_reader);
+
+		//TO-ASK como isto fica fora da zona critica, pode ser que fique logged fora de ordem 🤔 era de mudar isto?
+		sprintf(log_var_aux, "Nova task de %d adicionada na fila.",client_info->client_socket);
+		log_event(config.log_file, log_var_aux);
+
 	}
 /*
 	log_event(config.log_file, "Thread para cliente criado");
@@ -291,7 +297,9 @@ void *client_handler(void *arg) {
 	return NULL;*/
 }
 
-void *solution_checker () {
+
+//TASK MANAGERS
+void *task_handler () {
 	//PROBLEMA LEITORES ESCRITORES ---- LEITOR!!
 	while (1) {
 		printf("SOLUTION_CHECKER -- Waiting for something to read\n");

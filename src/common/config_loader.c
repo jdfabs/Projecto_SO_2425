@@ -81,16 +81,10 @@ void load_default_client_config(client_config *client_config) {
 	strcpy(client_config->log_file, "./logs/client_default.log");
 }
 void load_default_server_config(server_config *server_config) {
-	strcpy(server_config->ip, "127.0.1.1");
-	server_config->port = 8080;
-	server_config->logging = 1;
 	strcpy(server_config->log_file, "./logs/server_default.log");
-	server_config->log_level = 1;
-	server_config->max_clients = 5;
-	server_config->backup_interval = 15;
 	server_config->board_file_path, "./boards/boards.json";
 	server_config->task_queue_size = 10;
-	server_config->event_handler_threads = 5;
+	server_config->task_handler_threads = 5;
 }
 
 int load_client_config(const char *filename, client_config *config) {
@@ -189,18 +183,12 @@ int load_server_config(const char *filename, server_config *config) {
 	}
 	free(data); // Free the allocated memory for data
 
-
+	//TODO -- FIX CONFIG WITH NEW ATTRIBUTES!!
 	// Extracting values from the JSON object
-	strcpy(config->ip, cJSON_GetObjectItem(json, "ip")->valuestring);
-	config->port = cJSON_GetObjectItem(json, "port")->valueint;
-	config->logging = cJSON_GetObjectItem(json, "enable_logging")->valueint;
 	strcpy(config->log_file, cJSON_GetObjectItem(json, "log_file")->valuestring);
-	config->log_level = cJSON_GetObjectItem(json, "log_level")->valueint;
-	config->max_clients = cJSON_GetObjectItem(json, "max_clients")->valueint;
-	config->backup_interval = cJSON_GetObjectItem(json, "backup_interval")->valueint;
 	strcpy(config->board_file_path, cJSON_GetObjectItem(json, "board_file_path")->valuestring);
 	config->task_queue_size = cJSON_GetObjectItem(json, "task_queue_size")->valueint;
-	config->event_handler_threads = cJSON_GetObjectItem(json, "event_handler_threads")->valueint;
+	config->task_handler_threads = cJSON_GetObjectItem(json, "event_handler_threads")->valueint;
 	// Cleanup
 	cJSON_Delete(json);
 	free(filePath);

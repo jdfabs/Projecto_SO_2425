@@ -8,9 +8,8 @@
 /************************************
  * INCLUDES
  ************************************/
-#include <semaphore.h>
 
-#include "cJSON.h"
+
 /************************************
  * MACROS AND DEFINES
  ************************************/
@@ -18,6 +17,7 @@
 /************************************
  * TYPEDEFS
  ************************************/
+#pragma once
 #define SERVER_LOG_PATH "logs/server.log"
 #define CLIENT_LOG_PATH "logs/client.log"
 #define SIZE 9
@@ -32,7 +32,7 @@
 typedef struct {
  int client_socket;
  char message[MESSAGE_SIZE];
-} client_data;
+} client_message;
 /************************************
  * EXPORTED VARIABLES
  ************************************/

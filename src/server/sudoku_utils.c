@@ -245,7 +245,7 @@ int **getMatrixFromJSON(cJSON *board)
 }
 
 
-bool is_safe(int grid[SIZE][SIZE], int row, int col, int num) {
+bool is_safe(int **grid, int row, int col, int num) {
     for (int x = 0; x < SIZE; x++) {
         if (grid[row][x] == num) {
             return false;
@@ -271,7 +271,7 @@ bool is_safe(int grid[SIZE][SIZE], int row, int col, int num) {
     return true;
 }
 
-bool fill_sudoku(int grid[SIZE][SIZE], int row, int col) {
+bool fill_sudoku(int **grid, int row, int col) {
     if (row == SIZE - 1 && col == SIZE) {
         return true;
     }
@@ -296,7 +296,7 @@ bool fill_sudoku(int grid[SIZE][SIZE], int row, int col) {
     return false;
 }
 
-void print_grid(int grid[SIZE][SIZE]) {
+void print_grid(int **grid) {
     for (int row = 0; row < SIZE; row++) {
         for (int col = 0; col < SIZE; col++) {
             printf("%2d ", grid[row][col]);
@@ -305,7 +305,7 @@ void print_grid(int grid[SIZE][SIZE]) {
     }
 }
 
-void fill_diagonal(int grid[SIZE][SIZE]) {
+void fill_diagonal(int **grid) {
     for (int i = 0; i < SIZE; i += 3) {
         int num;
         bool used[SIZE + 1] = {false};
@@ -321,32 +321,39 @@ void fill_diagonal(int grid[SIZE][SIZE]) {
     }
 }
 
-int **generate_sudoku() {
-    int grid[9][9];
+int **generate_sudoku() { // TODO FALTA TIRAR OS NUMEROS 👌
+    // Allocate memory for the grid dynamically
+    int **grid = malloc(SIZE * sizeof(int *));
+    for (int i = 0; i < SIZE; i++) {
+        grid[i] = malloc(SIZE * sizeof(int));
+    }
+
+    // Initialize the grid with zeros
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             grid[i][j] = 0;
         }
     }
+
+    // Fill the grid as required
     fill_diagonal(grid);
     fill_sudoku(grid, 0, 0);
 
+    // Print the Sudoku grid
     printf("\nQuadro de Sudoku:\n");
-	for (int i = 0; i < 9; i++) {
-		for (int j = 0; j < 9; j++) {
-			printf("%d ", grid[i][j]); // Print the number
-			// Print a vertical separator for the 3x3 blocks
-			if ((j + 1) % 3 == 0 && j != 8) {
-				printf("| ");
-			}
-		}
-		printf("\n"); // Move to a new line after each row
-		// Print a horizontal separator for the 3x3 blocks
-		if ((i + 1) % 3 == 0 && i != 8) {
-			printf("---------------------\n");
-		}
-	}
-	printf("\n");
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            printf("%d ", grid[i][j]);
+            if ((j + 1) % 3 == 0 && j != 8) {
+                printf("| ");
+            }
+        }
+        printf("\n");
+        if ((i + 1) % 3 == 0 && i != 8) {
+            printf("---------------------\n");
+        }
+    }
+    printf("\n");
 
     return grid;
 }
