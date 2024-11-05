@@ -74,13 +74,13 @@ int read_file_to_string(char *filepath, char **data) {
 	return 0;
 }
 
-void load_default_client_config(client_config *client_config) {
+void load_default_client_config(client_config *client_config) { //TODO -- fix
 	strcpy(client_config->id, "default_client");
 	strcpy(client_config->server_ip, "127.0.0.1");
 	client_config->server_port = 8080;
 	strcpy(client_config->log_file, "./logs/client_default.log");
 }
-void load_default_server_config(server_config *server_config) {
+void load_default_server_config(server_config *server_config) { //TODO -- fix
 	strcpy(server_config->log_file, "./logs/server_default.log");
 	server_config->board_file_path, "./boards/boards.json";
 	server_config->task_queue_size = 10;
@@ -141,7 +141,7 @@ int load_client_config(const char *filename, client_config *config) {
 	strcpy(config->server_ip, cJSON_GetObjectItem(client, "server_ip")->valuestring);
 	config->server_port = cJSON_GetObjectItem(client, "server_port")->valueint;
 	strcpy(config->log_file, cJSON_GetObjectItem(client, "log_file")->valuestring);
-
+	config->game_type = cJSON_GetObjectItem(client, "game_type")->valueint;
 	// Cleanup
 	cJSON_Delete(json);
 	return 0; // Success

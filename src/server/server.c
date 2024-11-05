@@ -82,7 +82,10 @@ int main(int argc, char *argv[]) {
 
 
 	pthread_t thread_id;
-	pthread_create(&thread_id, NULL, task_handler ,NULL);
+	for(int i = 0; i < config.task_handler_threads; i++) {
+		pthread_create(&thread_id, NULL, task_handler , (int *)i);
+	}
+
 	//pthread_create(&thread_id, NULL, solution_checker ,NULL);
 
 
@@ -162,7 +165,6 @@ void server_init(int argc, char **argv, Task *task_queue) {
 	}
 	log_event(config.log_file, "Servidor começou");
 
-
 	task_queue = (Task *)malloc(config.task_queue_size * sizeof(Task));
 	if (task_queue == NULL) {
 		fprintf(stderr, "Memory allocation failed\n");
@@ -228,6 +230,9 @@ void client_handshake(int socket) {
 	char socket_str[20];
 	sprintf(socket_str, "%d", socket);
 	send(socket, socket_str, sizeof(socket_str), 0); //envia o socket do cliente
+	recv(socket, socket_str, sizeof(socket_str), 0);
+	printf("game type: %s\n", socket_str);
+
 }
 int receive_message(client_message *message) {
 	ssize_t bytes_read = recv(message->client_socket, message->message, sizeof(message->message)-1, 0);
@@ -244,8 +249,8 @@ void *client_handler(void *arg) {
 	client_message *client_info = (client_message *)arg;
 	client_handshake(client_info->client_socket); // Handshake entre cliente e server
 
-
-	while (1) { //Vai Receber todas as mensagens que o cliente mandar
+	printf("Cliente  com sucesso\n");
+	while (1) { //Vai Receber todas as mensagens que o cliente mandar e mete-las na queue
 		if (receive_message(client_info)== -1) {
 			log_event(config.log_file, "Erro a rebecer mensagem/ cliente desligado!");
 			return NULL; //erro com cliente, acabar com thread
@@ -254,7 +259,7 @@ void *client_handler(void *arg) {
 		sprintf(log_var_aux, "Mensagem recebida de %d: %s", client_info->client_socket ,client_info->message);
 		log_event(config.log_file, log_var_aux);
 
-		//PROBLEMA LEITORES ESCRITORES --- ESCRITOR
+		//PROBLEMA PRODUTORES CONSUMIDORES--- PRODUTOR
 		printf("CLIENT_HANDLER socket: %d task recebida -- esperar para escrever\n", client_info->client_socket);
 		sem_wait(&sem_task_creators);
 		pthread_mutex_lock(&mutex_task_creators);
@@ -271,38 +276,15 @@ void *client_handler(void *arg) {
 		//TO-ASK como isto fica fora da zona critica, pode ser que fique logged fora de ordem 🤔 era de mudar isto?
 		sprintf(log_var_aux, "Nova task de %d adicionada na fila.",client_info->client_socket);
 		log_event(config.log_file, log_var_aux);
-
 	}
-/*
-	log_event(config.log_file, "Thread para cliente criado");
-	const int client_socket = *(int *)arg;
-
-	printf("client socket: %d\n", client_socket);
-	char buffer[BUFFER_SIZE];
-
-	while (1) {
-		int valread = read(client_socket, buffer, BUFFER_SIZE);
-		if (valread <= 0) {
-			// Client disconnected or error occurred
-			close(client_socket);
-			break;
-		}
-
-		buffer[valread] = '\0'; // Null-terminate the buffer to make it a proper string
-		printf("Received: %s\n", buffer);
-
-	}
-
-	printf("Cliente desconnectado -- Thread %lu acabando\n", pthread_self());
-	return NULL;*/
 }
 
 
 //TASK MANAGERS
-void *task_handler () {
-	//PROBLEMA LEITORES ESCRITORES ---- LEITOR!!
+void *task_handler (int id) {
+	//PROBLEMA PRODUTORES CONSUMIDORES--- CONSUMIDOR
 	while (1) {
-		printf("SOLUTION_CHECKER -- Waiting for something to read\n");
+		printf("TASK_HANDLER%d -- Waiting for something to read\n", id);
 
 		sem_wait(&sem_task_reader);
 		pthread_mutex_lock(&mutex_task_reader);
@@ -314,10 +296,12 @@ void *task_handler () {
 		pthread_mutex_unlock(&mutex_task_reader);
 		sem_post(&sem_task_creators);
 		printf("SOLUTION_CHECKER -- Processing (sleep 10secs) from: %d\n", task.client_socket);
-		//sleep(10);
+		sleep(11);
 		char temp[255];
 		sprintf(temp, "request %s processed!", task.request);
 		send(task.client_socket,temp, strlen(temp), 0);
 
 	}
 }
+
+

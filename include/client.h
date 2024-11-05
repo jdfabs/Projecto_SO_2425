@@ -1,4 +1,4 @@
-/*********************************************************************************
+/**********************************************ODO***********************************
  * client.h
  * Skipper
  * 11/10/2024
@@ -23,6 +23,7 @@ typedef struct  {
     char server_ip[15];
     int server_port;
     char log_file[254];
+    int game_type;
 } client_config;
 
 #define BOARD_SIZE 9

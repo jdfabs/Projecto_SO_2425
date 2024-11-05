@@ -22,7 +22,7 @@
 
 #include <sys/socket.h>
 #include <sys/un.h>
-#include <unistr.h>
+//#include <unistr.h>
 
 /************************************
  * EXTERN VARIABLES
@@ -50,9 +50,10 @@ int sock = 0;
 struct sockaddr_un server_address;
 char buffer[BUFFER_SIZE] = {0};
 
+
 /************************************
  * STATIC FUNCTION PROTOTYPES
- ************************************/
+ ***********************************/
 void client_init(int argc, char *argv[], client_config *config);
 void connect_to_server();
 
@@ -63,20 +64,25 @@ int main(int argc, char *argv[]) {
 	client_init(argc, argv, &config); // Client data structures setup
 	connect_to_server(); //Connect to server
 
-
-
-
+	//HANDSHAKE WITH SERVER
 	char buffer[BUFFER_SIZE];
 	recv(sock, buffer, BUFFER_SIZE, 0);
 	int counter = atoi(buffer)*100;
 
+	printf("%d\n",config.game_type );
+	sprintf(buffer, "%d", config.game_type);
+	send(sock,buffer , sizeof(buffer), 0);
+
+
+	//TODO -- fix handshake
+	//hand shake them de informar o servidor se o jogo é individual ou competição -- 2 comportamentos distintos
+	//if (config.game_mode == individual) -> função x
+	//else -> função y
+	//HANDSHAKE END
+
+	printBoard(board);
+//exit(0);
 	while (1) {
-
-
-		/*
-		printf("Enter message: ");
-		fgets(message, sizeof(message), stdin);
-		//sprintf(message, "%d", counter);*/
 		sprintf(buffer, "%d", counter);
 		send(sock, buffer, strlen(buffer), 0);
 		printf("Request sent: %d ---- WAITING\n", counter);
@@ -153,6 +159,12 @@ void connect_to_server() {
 		exit(EXIT_FAILURE);
 	}
 	log_event(config.log_file, "Conectado ao servidor");
+}
+
+//TODO -- enviar e receber quadros
+void send_solution() {
+}
+void receive_answer() {
 }
 
 
