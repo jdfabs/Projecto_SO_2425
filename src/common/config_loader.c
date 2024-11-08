@@ -46,7 +46,7 @@ int parse_json(const char *data, cJSON **json) {
 	if (!*json) {
 		return -1; // Indicate parsing error
 	}
-	printf("JSON parsed successfully\n");
+	//printf("JSON parsed successfully\n");
 	return 0; // Indicate success
 }
 int read_file_to_string(char *filepath, char **data) {
@@ -70,7 +70,7 @@ int read_file_to_string(char *filepath, char **data) {
 	fread(*data, 1, length, file);
 	(*data)[length] = '\0';
 	fclose(file);
-	printf("File read to string successfully\n");
+	//printf("File read to string successfully\n");
 	return 0;
 }
 
@@ -147,7 +147,7 @@ int load_client_config(const char *filename, client_config *config) {
 	return 0; // Success
 }
 int load_server_config(const char *filename, server_config *config) {
-	printf("A Carregar Config File Do Server\n");
+	//printf("A Carregar Config File Do Server\n");
 	char *data = NULL;
 	cJSON *json = NULL;
 

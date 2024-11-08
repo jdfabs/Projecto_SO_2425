@@ -11,6 +11,7 @@
  ************************************/
 #include "client.h"
 
+#include <cJSON.h>
 #include <stdbool.h>
 
 #include "common.h"
@@ -22,7 +23,10 @@
 
 #include <sys/socket.h>
 #include <sys/un.h>
-//#include <unistr.h>
+#include <semaphore.h>
+#include <sys/mman.h>
+#include <unistr.h>
+#include <fcntl.h>
 
 /************************************
  * EXTERN VARIABLES
@@ -62,32 +66,65 @@ void connect_to_server();
  ************************************/
 int main(int argc, char *argv[]) {
 	client_init(argc, argv, &config); // Client data structures setup
-	connect_to_server(); //Connect to server
+	connect_to_server(); // Connect to server
 
-	//HANDSHAKE WITH SERVER
-	char buffer[BUFFER_SIZE];
-	recv(sock, buffer, BUFFER_SIZE, 0);
-	int counter = atoi(buffer)*100;
+	srand(time(NULL));
 
-	printf("%d\n",config.game_type );
-	sprintf(buffer, "%d", config.game_type);
-	send(sock,buffer , sizeof(buffer), 0);
+	int room_shared_memory_fd = shm_open("room_one", O_RDWR, 0666);
+	if (room_shared_memory_fd == -1) {
+		perror("shm_open FAIL");
+		exit(EXIT_FAILURE);
+	}
+
+	multiplayer_room_shared_data_t *shared_data = mmap(NULL, sizeof(multiplayer_room_shared_data_t),PROT_READ|PROT_WRITE, MAP_SHARED, room_shared_memory_fd, 0);
+	if(shared_data == MAP_FAILED) {
+		perror("mmap FAIL");
+		exit(EXIT_FAILURE);
+	}
+
+	sem_post(&shared_data->sem_room_full);// assinala que tem mais um cliente no room
+	sem_wait(&shared_data->sem_game_start);// espera que o jogo comece
+
+	int **board = getMatrixFromJSON(cJSON_Parse(shared_data->starting_board));
+
+	// SOLUCIONAR BOARD
+	for (int i = 0; i < BOARD_SIZE; i++) {
+		for (int j = 0; j < BOARD_SIZE; j++) {
+			if (board[i][j] == 0) {
+				printf("celula (%d,%d) está vazia\n", i, j);
+				for (int k = 1; k <= BOARD_SIZE; k++) {
 
 
-	//TODO -- fix handshake
-	//hand shake them de informar o servidor se o jogo é individual ou competição -- 2 comportamentos distintos
-	//if (config.game_mode == individual) -> função x
-	//else -> função y
-	//HANDSHAKE END
+					if (k == solution[i][j]) {
+						board[i][j] = k;
+						printf("Numero correto encontrado\n");
+						printBoard(board);
+						break;
+					}
+				}
+			}
+		}
+	}
 
-	printBoard(board);
-//exit(0);
+
+/*
+	int random_time = rand() % 10;
+	printf("random time = %d\n", random_time);
+	sleep(random_time);// random wait
+	printf("found sol\n");
+	sem_post(&shared_data->sem_found_solution);
+*/
+
+	munmap(shared_data, sizeof(multiplayer_room_shared_data_t));
+
+
+	/*
+	int counter = atoi(buffer) * 100; // Initialize the counter for future use
 	while (1) {
 		sprintf(buffer, "%d", counter);
 		send(sock, buffer, strlen(buffer), 0);
 		printf("Request sent: %d ---- WAITING\n", counter);
 		counter++;
-
 
 		ssize_t bytes_received = recv(sock, buffer, sizeof(buffer) - 1, 0);
 		if (bytes_received > 0) {
@@ -95,11 +132,8 @@ int main(int argc, char *argv[]) {
 			printf("Received from server: %s\n", buffer);
 		}
 	}
-
+	*/
 	close(sock);
-
-	//solve_by_brute_force(board,board);
-
 	exit(0);
 }
 
@@ -163,6 +197,7 @@ void connect_to_server() {
 
 //TODO -- enviar e receber quadros
 void send_solution() {
+
 }
 void receive_answer() {
 }

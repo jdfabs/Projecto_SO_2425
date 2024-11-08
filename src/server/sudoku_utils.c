@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "server.h"
+#include "common.h"
 
 /************************************
  * EXTERN VARIABLES

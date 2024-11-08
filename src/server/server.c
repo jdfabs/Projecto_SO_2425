@@ -16,9 +16,11 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-
+#include <fcntl.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <sys/mman.h>
+#include <time.h>
 
 /************************************
  * EXTERN VARIABLES
@@ -40,6 +42,7 @@
  ************************************/
 server_config config;
 cJSON *boards;
+int num_boards;
 
 int server_fd ;
 struct sockaddr_un address;
@@ -62,6 +65,7 @@ void server_init(int argc, char **argv, Task *task_queue);
 void setup_socket();
 void *client_handler(void *arg);
 void *task_handler ();
+void *multiplayer_room_handler(void *arg);
 
 /************************************
  * STATIC FUNCTIONS
@@ -76,21 +80,24 @@ void *task_handler ();
 }*/
 
 int main(int argc, char *argv[]) {
+	pthread_t multiplayer_rooms[10];
+
 	server_init(argc, argv, task_queue); // Server data structures setup
 	setup_socket(); // Ready to accept connections
 
-
-
 	pthread_t thread_id;
+
+	//SETUP SOLUTION CHECKERS!!
 	for(int i = 0; i < config.task_handler_threads; i++) {
-		pthread_create(&thread_id, NULL, task_handler , (int *)i);
+		pthread_create(&thread_id, NULL,task_handler, (int *)i);
 	}
 
-	//pthread_create(&thread_id, NULL, solution_checker ,NULL);
-
+	//TODO -- SETUP MORE ROOMS
+	//Setup multiplayer rooms
+	pthread_create(&multiplayer_rooms[0], NULL, multiplayer_room_handler, NULL);
 
 	while (true) {
-		client_message *client_info = malloc(sizeof(client_message));
+		client_message_t *client_info = malloc(sizeof(client_message_t));
 		if (!client_info) {
 			perror("Failed to allocate memory for client_data");
 			continue; // handle error
@@ -105,8 +112,7 @@ int main(int argc, char *argv[]) {
 			continue; // handle error
 		}
 
-		//printf("Client %d connected\n", client_info->client_socket);
-
+		printf("Client %d connected\n", client_info->client_socket);
 
 		// Create a new thread for the client
 		if (pthread_create(&thread_id, NULL, client_handler, (void *)client_info) != 0) {
@@ -117,7 +123,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		pthread_detach(thread_id); // Detach the thread so it cleans up after itself
-	}
+	} //Aceitar connectões e criar threads para cada cliente
 
 	close(server_fd);
 	exit(EXIT_SUCCESS);
@@ -186,6 +192,15 @@ void server_init(int argc, char **argv, Task *task_queue) {
 		log_event(config.log_file, "Erro ao carregar boards!");
 		exit(EXIT_FAILURE);
 	}
+
+	cJSON *child = boards->child;
+	while (child !=NULL) {
+		num_boards++;
+		child = child->child;
+	}
+
+
+
 	log_event(config.log_file,"Boards carregados para memoria com sucesso");
 }
 void setup_socket() {
@@ -227,14 +242,32 @@ void setup_socket() {
 
 //CLIENT HANDLER FUNCTIONS
 void client_handshake(int socket) {
-	char socket_str[20];
-	sprintf(socket_str, "%d", socket);
-	send(socket, socket_str, sizeof(socket_str), 0); //envia o socket do cliente
-	recv(socket, socket_str, sizeof(socket_str), 0);
-	printf("game type: %s\n", socket_str);
+	// Send a prompt to the client for selecting the game type
+	char message[] = "Please select game type:\n1 - Single Player\n2 - Multiplayer\n";
+	send(socket, message, sizeof(message), 0);
+
+	// Receive client's response
+	char response[BUFFER_SIZE];
+	recv(socket, response, sizeof(response), 0);
+
+	// Convert the response to an integer
+	int game_type = atoi(response);
+
+	if (game_type == 2) {
+		printf("Client %d chose Multiplayer mode.\n", socket);
+		// TODO -- envia semafero partilhado de um game manager
+		send(socket, "TUA PRIMA", sizeof("TUA PRIMA"), 0);
+	}
+	else  {
+		printf("Client %d chose Single Player mode.\n", socket);
+		//TODO -- começa jogo individual
+		send(socket, "-1", sizeof("-1"), 0);
+	}
+
+
 
 }
-int receive_message(client_message *message) {
+int receive_message(client_message_t *message) {
 	ssize_t bytes_read = recv(message->client_socket, message->message, sizeof(message->message)-1, 0);
 	if (bytes_read <= 0) {
 		//printf("Erro ao receber mensagem com sucesso");
@@ -243,38 +276,42 @@ int receive_message(client_message *message) {
 	message->message[bytes_read] = '\0';
 	return 0;
 }
-
 void *client_handler(void *arg) {
 	char log_var_aux[255];
-	client_message *client_info = (client_message *)arg;
-	client_handshake(client_info->client_socket); // Handshake entre cliente e server
+	client_message_t *client_info = (client_message_t *)arg;
 
-	printf("Cliente  com sucesso\n");
-	while (1) { //Vai Receber todas as mensagens que o cliente mandar e mete-las na queue
-		if (receive_message(client_info)== -1) {
-			log_event(config.log_file, "Erro a rebecer mensagem/ cliente desligado!");
-			return NULL; //erro com cliente, acabar com thread
+	// Perform handshake to establish game type
+	//client_handshake(client_info->client_socket);
+	//printf("Client handshake successful\n");
+
+
+	while (1) {
+		// Handle client messages and add them to the task queue
+		if (receive_message(client_info) == -1) {
+			log_event(config.log_file, "Error receiving message / client disconnected!");
+			return NULL;
 		}
 
-		sprintf(log_var_aux, "Mensagem recebida de %d: %s", client_info->client_socket ,client_info->message);
+		// Log the received message
+		sprintf(log_var_aux, "Message received from %d: %s", client_info->client_socket, client_info->message);
 		log_event(config.log_file, log_var_aux);
 
-		//PROBLEMA PRODUTORES CONSUMIDORES--- PRODUTOR
-		printf("CLIENT_HANDLER socket: %d task recebida -- esperar para escrever\n", client_info->client_socket);
+		// Producer-Consumer Problem -- Producer Part
+		printf("CLIENT_HANDLER socket: %d task received -- waiting to write\n", client_info->client_socket);
 		sem_wait(&sem_task_creators);
 		pthread_mutex_lock(&mutex_task_creators);
 
-		//ZONA CRITICA -- criar a tasks
-		printf("CLIENT_HANDLER socket: %d a escrever task\n",client_info->client_socket);
+		// Critical Section -- Create task
+		printf("CLIENT_HANDLER socket: %d writing task\n", client_info->client_socket);
 		task_queue[task_creator_ptr].client_socket = client_info->client_socket;
 		sprintf(task_queue[task_creator_ptr].request, "%s", client_info->message);
 		task_creator_ptr = (task_creator_ptr + 1) % config.task_queue_size;
-		//FIM ZONA CRITICA
+
 		pthread_mutex_unlock(&mutex_task_creators);
 		sem_post(&sem_task_reader);
 
-		//TO-ASK como isto fica fora da zona critica, pode ser que fique logged fora de ordem 🤔 era de mudar isto?
-		sprintf(log_var_aux, "Nova task de %d adicionada na fila.",client_info->client_socket);
+		// Log new task
+		sprintf(log_var_aux, "New task from %d added to the queue.", client_info->client_socket);
 		log_event(config.log_file, log_var_aux);
 	}
 }
@@ -292,16 +329,112 @@ void *task_handler (int id) {
 		Task task = task_queue[task_reader_ptr];
 		task_reader_ptr = (task_reader_ptr + 1) % config.task_queue_size;
 
-		printf("SOLUTION_CHECKER -- Something to read from: %d\n", task.client_socket);
+		printf("TASK_HANDLER -- Something to read from: %d\n", task.client_socket);
 		pthread_mutex_unlock(&mutex_task_reader);
 		sem_post(&sem_task_creators);
-		printf("SOLUTION_CHECKER -- Processing (sleep 10secs) from: %d\n", task.client_socket);
+		printf("TASK_HANDLER -- Processing (sleep 10secs) from: %d\n", task.client_socket);
 		sleep(11);
 		char temp[255];
 		sprintf(temp, "request %s processed!", task.request);
 		send(task.client_socket,temp, strlen(temp), 0);
 
 	}
+}
+
+
+void setup_shared_memory(char room_name[100], multiplayer_room_shared_data_t **shared_data) {
+	int room_shared_memory = shm_open(room_name, O_CREAT | O_RDWR,0666);
+	if(room_shared_memory == -1) {
+		perror("shm_open falhou");
+		exit(EXIT_FAILURE);
+	}
+	if(ftruncate(room_shared_memory, sizeof(multiplayer_room_shared_data_t)) == -1) {
+		perror("ftruncate falhou");
+		exit(EXIT_FAILURE);
+	}
+
+	*shared_data = mmap(NULL, sizeof( multiplayer_room_shared_data_t), PROT_READ | PROT_WRITE, MAP_SHARED,room_shared_memory, 0);
+
+	sem_init(&(*shared_data)->sem_game_start, 1, 0);
+	sem_init(&(*shared_data)->sem_room_full, 1, 0);
+	sem_init(&(*shared_data)->sem_found_solution, 1,0);
+
+	pthread_mutexattr_t attr; //TODO
+	pthread_mutexattr_init(&attr);
+	pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
+	pthread_mutex_init(&(*shared_data)->mutex1, &attr);//TODO
+	pthread_mutex_init(&(*shared_data)->mutex2, &attr);//TODO
+
+	(*shared_data)->board_id = 0;
+	strcpy((*shared_data)->starting_board, "Hello from Server!"); //TODO
+}
+void shared_memory_clean_up(char room_name[100], multiplayer_room_shared_data_t *shared_data) {
+	sem_destroy(&shared_data->sem_game_start);
+	sem_destroy(&shared_data->sem_room_full);
+	pthread_mutex_destroy(&shared_data->mutex1);
+	pthread_mutex_destroy(&shared_data->mutex2);
+	munmap(shared_data, sizeof(multiplayer_room_shared_data_t));
+	shm_unlink(room_name);
+}
+void wait_for_full_room(sem_t *sem, int slots) {
+	int value;
+	sem_getvalue(sem,&value);
+	if(value <= slots) {
+		for(int i = 0; i < slots; i++) {
+			sem_wait(sem);
+		}
+	}
+
+}
+
+
+
+void *multiplayer_room_handler(void *arg) {
+	char room_name[100] = "/room_one";
+	int max_player = 2;
+	printf("MULTIPLAYER ROOM %s started with a max of %d players\n", room_name, max_player);
+	struct timespec start,end;
+
+
+	multiplayer_room_shared_data_t *shared_data;
+	setup_shared_memory(room_name, &shared_data);
+
+	wait_for_full_room(&shared_data->sem_room_full, max_player);
+	printf("Multiplayer room_handler: Full room - game starting\n");
+
+	cJSON *round_board;
+
+	//TODO
+	//get new board
+	srand(time(NULL));
+	int random_board = rand()% num_boards;
+	round_board = cJSON_GetArrayItem(boards, random_board);
+	//broadcast new board
+	strcpy(shared_data->starting_board,cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
+
+	//Start round
+	clock_gettime(CLOCK_MONOTONIC, &start);
+
+	for(int i = 0; i < max_player; i++) {
+		sem_post(&shared_data->sem_game_start);
+	}
+	printf("Multiplayer Room Handler: game start has been signaled \n");
+
+	//wait for correct solutions
+	for(int i = 0; i < max_player; i++) {
+		sem_wait(&shared_data->sem_found_solution);
+		clock_gettime(CLOCK_MONOTONIC, &end);
+		printf("%.5f\n", (double)(end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000 );
+	}
+	for(;;);
+
+	//wait until all clients are done
+	//dump stats
+
+	// Clean up (done when server shuts down)
+	shared_memory_clean_up(room_name, shared_data);
+
+	return 0;
 }
 
 

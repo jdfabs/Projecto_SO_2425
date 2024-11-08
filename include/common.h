@@ -8,7 +8,8 @@
 /************************************
  * INCLUDES
  ************************************/
-
+#include <pthread.h>
+#include <semaphore.h>
 
 /************************************
  * MACROS AND DEFINES
@@ -29,10 +30,20 @@
 #define MESSAGE_SIZE 256
 
 
-typedef struct {
+typedef struct client_message{
  int client_socket;
  char message[MESSAGE_SIZE];
-} client_message;
+} client_message_t;
+
+typedef struct multiplayer_room_shared_data {
+ sem_t sem_game_start;
+ sem_t sem_room_full;
+ sem_t sem_found_solution;
+ pthread_mutex_t mutex1;
+ pthread_mutex_t mutex2;
+ int board_id;
+ char starting_board[BUFFER_SIZE];
+} multiplayer_room_shared_data_t;
 /************************************
  * EXPORTED VARIABLES
  ************************************/
@@ -42,3 +53,4 @@ typedef struct {
  ************************************/
 
 int log_event(const char *file_path, const char *message);
+int **getMatrixFromJSON(cJSON *board);
