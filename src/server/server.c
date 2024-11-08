@@ -5,9 +5,6 @@
  * Server entry-point
  *********************************************************************************/
 
-/************************************
- * INCLUDES
- ************************************/
 #include "server.h"
 #include "file_handler.h"
 #include <stdio.h>
@@ -22,102 +19,48 @@
 #include <sys/mman.h>
 #include <time.h>
 
-/************************************
- * EXTERN VARIABLES
- ************************************/
+typedef struct {
+	int max_players;
+	char *room_name;
+} room_config_t;
 
-/************************************
- * PRIVATE MACROS AND DEFINES
- ************************************/
 
-/************************************
- * PRIVATE TYPEDEFS
- ************************************/
-/************************************
- * STATIC VARIABLES
- ************************************/
 
-/************************************
- * GLOBAL VARIABLES
- ************************************/
 server_config config;
 cJSON *boards;
 int num_boards;
 
 int server_fd ;
 struct sockaddr_un address;
-
-
+pthread_t multiplayer_rooms[10];
 /************************************
  * STATIC FUNCTION PROTOTYPES
  ************************************/
 
 void server_init(int argc, char **argv);
 void setup_socket();
-void *client_handler(void *arg);
-void *task_handler ();
-void *multiplayer_room_handler(void *arg);
+void accept_clients(void);
 
-/************************************
- * STATIC FUNCTIONS
- ************************************/
+void *task_handler (void *arg);
+void create_new_room(int max_players, char *room_name );
+void *room_handler(void *arg);
 
 
 int main(int argc, char *argv[]) {
-	pthread_t multiplayer_rooms[10];
-
 	server_init(argc, argv); // Server data structures setup
 	setup_socket(); // Ready to accept connections
 
 	//TODO -- SETUP MORE ROOMS
 	//Setup multiplayer rooms
-	pthread_create(&multiplayer_rooms[0], NULL, multiplayer_room_handler, NULL);
+	create_new_room(2, "room_1");
 
-	while (true) {
-		int client_socket;
-		// Accept a new client connection
-		socklen_t addr_len = sizeof(address);
-		client_socket = accept(server_fd, (struct sockaddr *)&address, &addr_len);
-		if (client_socket  < 0) {
-			perror("Accept failed");
-			// handle error
-		}
-		char aux[100];
-		sprintf(aux, "%d", client_socket);
-		send(client_socket, aux, sizeof(aux), 0);
-	} //Aceitar connectões e criar threads para cada cliente
+	while (true) accept_clients(); //Aceitar connectões e handshake
 
 	close(server_fd);
 	exit(EXIT_SUCCESS);
-
-
 }
 
-
-/************************************
- * GLOBAL FUNCTIONS
- ************************************/
-/*matrix = getMatrixFromJSON(get_board_state_by_id(0,STARTING_STATE));
-
-cJSON *startingStateMatrix = matrix_to_JSON(matrix);
-printf("\nReset current state\n");
-save_board_to_file(update_boards_with_new_board(startingStateMatrix,0,CURRENT_STATE),1);
-
-printf("\nFICHEIRO JSON CURRENT STATE\n");
-printf(cJSON_Print(get_board_state_by_id(0,CURRENT_STATE)));
-
-int **solution;
-solution = getMatrixFromJSON(get_board_state_by_id(0,END_STATE));
-
-printBoard(matrix);
-printf("\nStarting to solve from initial state\n");
-
-cJSON *finishedMatrix = matrix_to_JSON(matrix);
-printf("\nsaving matrix to file\n");
-save_board_to_file(update_boards_with_new_board(finishedMatrix, 0, CURRENT_STATE),1);
-*/
-
-//SETUP FUNCTIONS
+//BASIC SERVER AUX FUNCTIONS
 void server_init(int argc, char **argv) {
 	if (argc == 1) {
 		printf("Usage: ./server [CONFIG_FILE_NAME]\n");
@@ -188,6 +131,25 @@ void setup_socket() {
 	}
 	log_event(config.log_file,"Server começou a ouvir conecções ao servidor");
 }
+void accept_clients(void) {
+	socklen_t addr_len = sizeof(address);
+	int client_socket = accept(server_fd, (struct sockaddr *) &address, &addr_len);
+	if (client_socket  < 0) {
+		perror("Accept failed");
+	}
+	char aux[100];
+	sprintf(aux, "%d-%s", client_socket,"room_1");
+	send(client_socket, aux, sizeof(aux), 0); //Informa o cliente qual é o seu socket (para efeitos de retornar mensagem ao cliente certo)
+}
+void create_new_room(int max_players, char *room_name ){
+	room_config_t *room_config;
+	room_config = malloc(sizeof(room_config_t));
+	room_config->max_players = max_players;
+
+	sprintf(room_config->room_name,"%s", room_name);
+	pthread_create(&multiplayer_rooms[0], NULL, room_handler, (void *) room_config);
+}
+
 
 
 //TASK MANAGERS
@@ -195,8 +157,8 @@ void *task_handler(void *arg) {
 	// Cast the void pointer to the appropriate type
 	multiplayer_room_shared_data_t *shared_data = (multiplayer_room_shared_data_t *)arg;
 
-	sem_t *sem_prod = sem_open("/sem_room_one_producer", O_CREAT | O_RDWR, 0666,5);
-	sem_t *sem_cons = sem_open("/sem_room_one_consumer", O_CREAT | O_RDWR, 0666, 0);
+	sem_t *sem_prod = sem_open("/sem_room_1_producer", O_CREAT | O_RDWR, 0666,5);
+	sem_t *sem_cons = sem_open("/sem_room_1_consumer", O_CREAT | O_RDWR, 0666, 0);
 
 
 	int **solution;
@@ -236,7 +198,7 @@ void *task_handler(void *arg) {
 	}
 }
 
-
+//ROOM FUNCTIONS
 void setup_shared_memory(char room_name[100], multiplayer_room_shared_data_t **shared_data) {
 	int room_shared_memory = shm_open(room_name, O_CREAT | O_RDWR,0666);
 	if(room_shared_memory == -1) {
@@ -250,28 +212,39 @@ void setup_shared_memory(char room_name[100], multiplayer_room_shared_data_t **s
 
 	*shared_data = mmap(NULL, sizeof( multiplayer_room_shared_data_t), PROT_READ | PROT_WRITE, MAP_SHARED,room_shared_memory, 0);
 
+	sprintf((*shared_data)->room_name,room_name);
+	(*shared_data)->board_id = -1;
+	strcpy((*shared_data)->starting_board, "");
+
 	sem_init(&(*shared_data)->sem_game_start, 1, 0);
 	sem_init(&(*shared_data)->sem_room_full, 1, 0);
 	sem_init(&(*shared_data)->sem_found_solution, 1,0);
 
-	(*shared_data)->board_id = 0;
-	strcpy((*shared_data)->starting_board, ""); //TODO
-
-	for (int i = 0; i < 5; i++) { //inicializar os valores do array
+	for (int i = 0; i < 5; i++) { //inicializar os valores da fila de espera
 		(*shared_data)->task_queue[i].client_socket = -1;
 		sprintf((*shared_data)->task_queue[i].request, "\0");
 	}
+
 	(*shared_data)->task_consumer_ptr = 0;
 	(*shared_data)->task_productor_ptr = 0;
 	pthread_mutex_init(&(*shared_data)->mutex_task_creators, NULL);
 	pthread_mutex_init(&(*shared_data)->mutex_task_reader, NULL);
 }
-void shared_memory_clean_up(char room_name[100], multiplayer_room_shared_data_t *shared_data) { //TODO -- MISSING PROD_CONS VARS
-	sem_destroy(&shared_data->sem_game_start);
-	sem_destroy(&shared_data->sem_room_full);
-	munmap(shared_data, sizeof(multiplayer_room_shared_data_t));
-	shm_unlink(room_name);
+void room_setup(void *arg, char(*room_name)[100], int *max_player, struct timespec *start, struct timespec *end, multiplayer_room_shared_data_t **shared_data, sem_t **sem_solucao_encontrada, pthread_t *soltution_checker) {
+	room_config_t *room_config =arg;
+	sprintf(*room_name,"%s",room_config->room_name);
+	*max_player = room_config->max_players;
+
+	setup_shared_memory(*room_name, &*shared_data);
+	char temp[255];
+	sprintf(temp, "/sem_%s_solucao", *room_name);
+	*sem_solucao_encontrada = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
+
+	pthread_create(&*soltution_checker, NULL, task_handler, (void *)*shared_data);
+
+	printf("MULTIPLAYER ROOM %s started with a max of %d players\n", *room_name, *max_player);
 }
+
 void wait_for_full_room(sem_t *sem, int slots) {
 	int value;
 	sem_getvalue(sem,&value);
@@ -282,27 +255,9 @@ void wait_for_full_room(sem_t *sem, int slots) {
 	}
 
 }
-
-void *multiplayer_room_handler(void *arg) {
-	char room_name[100] = "/room_one";
-	int max_player = 5;
-	printf("MULTIPLAYER ROOM %s started with a max of %d players\n", room_name, max_player);
-	struct timespec start,end;
-
-	multiplayer_room_shared_data_t *shared_data;
-	sem_t *sem_solucao_encontrada = sem_open("sem_room_one_solucao", O_CREAT | O_RDWR, 0666, 0);
-	setup_shared_memory(room_name, &shared_data);
-
-	pthread_t soltution_checker;
-	pthread_create(&soltution_checker, NULL, task_handler, (void *)shared_data);
-
-	wait_for_full_room(&shared_data->sem_room_full, max_player);
-	printf("Multiplayer room_handler: Full room - game starting\n");
-
+void select_new_board_and_share(multiplayer_room_shared_data_t *shared_data) {
 	cJSON *round_board;
 
-	//TODO
-	//get new board
 	srand(time(NULL));
 	shared_data->board_id = rand()% num_boards;
 	int random_board = shared_data->board_id;
@@ -310,33 +265,51 @@ void *multiplayer_room_handler(void *arg) {
 	round_board = cJSON_GetArrayItem(boards, random_board);
 	//broadcast new board
 	strcpy(shared_data->starting_board,cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
+}
+
+void shared_memory_clean_up(char room_name[100], multiplayer_room_shared_data_t *shared_data) { //TODO -- MISSING PROD_CONS VARS
+	sem_destroy(&shared_data->sem_game_start);
+	sem_destroy(&shared_data->sem_room_full);
+	munmap(shared_data, sizeof(multiplayer_room_shared_data_t));
+	shm_unlink(room_name);
+}
 
 
-	//Start round
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	for(int i = 0; i < max_player; i++) {
-		sem_post(&shared_data->sem_game_start);
+void *room_handler(void *arg) {
+	char room_name[100];
+	int max_player;
+	struct timespec start;
+	struct timespec end;
+	multiplayer_room_shared_data_t *shared_data;
+	sem_t *sem_solucao_encontrada;
+	pthread_t soltution_checker;
+	room_setup(arg, &room_name, &max_player, &start, &end, &shared_data, &sem_solucao_encontrada, &soltution_checker);
+
+
+	wait_for_full_room(&shared_data->sem_room_full, max_player); // Espera que o room encha
+	printf("ROOM_HANDLER %s: Full room - games are starting\n",room_name);
+
+	for(;;) {
+		printf("ROOM_HANDLER %s: NEW GAME!!",room_name);
+		sleep(5);
+		select_new_board_and_share(shared_data);
+
+		//Start round
+		clock_gettime(CLOCK_MONOTONIC, &start);
+		for(int i = 0; i < max_player; i++) {
+			sem_post(&shared_data->sem_game_start);
+		}
+		printf("Multiplayer Room Handler: game start has been signaled \n");
+
+		for(int i = 0; i < max_player; i++) {
+			sem_wait(sem_solucao_encontrada);
+			clock_gettime(CLOCK_MONOTONIC, &end);
+			printf("%.2f\n",(end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) ;
+		}
+
 	}
-	printf("Multiplayer Room Handler: game start has been signaled \n");
 
-	//wait for correct solutions
-
-
-	for(int i = 0; i < max_player; i++) {
-		sem_wait(sem_solucao_encontrada);
-		clock_gettime(CLOCK_MONOTONIC, &end);
-		printf("%.5f\n", (double)(end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000 );
-	}
-
-	pthread_join(soltution_checker, NULL);
-
-	//wait until all clients are done
-	//dump stats
-
-	// Clean up (done when server shuts down)
 	shared_memory_clean_up(room_name, shared_data);
-
-	return 0;
 }
 
 

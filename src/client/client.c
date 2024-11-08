@@ -59,6 +59,7 @@ char buffer[BUFFER_SIZE] = {0};
  * STATIC FUNCTION PROTOTYPES
  ***********************************/
 void client_init(int argc, char *argv[], client_config *config);
+
 void connect_to_server();
 
 /************************************
@@ -68,83 +69,92 @@ int main(int argc, char *argv[]) {
 	client_init(argc, argv, &config); // Client data structures setup
 	connect_to_server(); // Connect to server
 
-
-
-	sem_t *sem_prod = sem_open("/sem_room_one_producer", 0);
-	sem_t *sem_cons = sem_open("/sem_room_one_consumer", 0);
-	sem_t *sem_solucao = sem_open("/sem_room_one_solucao", 0);
-
 	int client_socket;
+	char room_name[100];
 	recv(sock, buffer, BUFFER_SIZE, 0);
-	client_socket = atoi(buffer);
+	sscanf(buffer, "%d-%99s", &client_socket, room_name);
+
 	printf("Client socket is %d\n", client_socket);
+	printf("Room name: %s\n", room_name);
+
+	char temp[255];
+	sprintf(temp, "/sem_%s_producer", room_name);
+	sem_t *sem_prod = sem_open(temp, 0);
+	sprintf(temp, "/sem_%s_consumer", room_name);
+	sem_t *sem_cons = sem_open(temp, 0);
+	sprintf(temp, "/sem_%s_solucao", room_name);
+	sem_t *sem_solucao = sem_open(temp, 0);
+
 
 	srand(time(NULL));
 
-	int room_shared_memory_fd = shm_open("room_one", O_RDWR, 0666);
+	int room_shared_memory_fd = shm_open(room_name, O_RDWR, 0666);
 	if (room_shared_memory_fd == -1) {
 		perror("shm_open FAIL");
 		exit(EXIT_FAILURE);
 	}
 
-	multiplayer_room_shared_data_t *shared_data = mmap(NULL, sizeof(multiplayer_room_shared_data_t),PROT_READ|PROT_WRITE, MAP_SHARED, room_shared_memory_fd, 0);
-	if(shared_data == MAP_FAILED) {
+	multiplayer_room_shared_data_t *shared_data = mmap(NULL, sizeof(multiplayer_room_shared_data_t),
+														PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory_fd, 0);
+	if (shared_data == MAP_FAILED) {
 		perror("mmap FAIL");
 		exit(EXIT_FAILURE);
 	}
 
-	sem_post(&shared_data->sem_room_full);// assinala que tem mais um cliente no room
-	sem_wait(&shared_data->sem_game_start);// espera que o jogo comece
+	sem_post(&shared_data->sem_room_full); // assinala que tem mais um cliente no room
 
-	int **board = getMatrixFromJSON(cJSON_Parse(shared_data->starting_board));
+	for (;;) {
+		sem_wait(&shared_data->sem_game_start); // espera que o jogo comece
 
-	// SOLUCIONAR BOARD
-	for (int i = 0; i < BOARD_SIZE; i++) {
-		for (int j = 0; j < BOARD_SIZE; j++) {
-			if (board[i][j] == 0) {
-				printf("celula (%d,%d) está vazia\n", i, j);
-				for (int k = 1; k <= BOARD_SIZE; k++) {
+		int **board = getMatrixFromJSON(cJSON_Parse(shared_data->starting_board));
 
-					char message[255];
-					sprintf(message, "0-%d,%d,%d", i, j, k);
+		// SOLUCIONAR BOARD
+		for (int i = 0; i < BOARD_SIZE; i++) {
+			for (int j = 0; j < BOARD_SIZE; j++) {
+				if (board[i][j] == 0) {
+					printf("celula (%d,%d) está vazia\n", i, j);
+					for (int k = 1; k <= BOARD_SIZE; k++) {
+						char message[255];
+						sprintf(message, "0-%d,%d,%d", i, j, k);
 
 
-					//PREPROTOCOLO
-					sem_wait(sem_prod);
-					pthread_mutex_lock(&shared_data->mutex_task_reader);
+						//PREPROTOCOLO
+						sem_wait(sem_prod);
+						pthread_mutex_lock(&shared_data->mutex_task_reader);
 
-					//ZONA CRITICA PARA CRIAR TASK
-					shared_data->task_queue[shared_data->task_productor_ptr].client_socket = client_socket;
-					sprintf(shared_data->task_queue[shared_data->task_productor_ptr].request,message);
-					shared_data-> task_productor_ptr = (shared_data->task_productor_ptr + 1) % 5;
+						//ZONA CRITICA PARA CRIAR TASK
+						shared_data->task_queue[shared_data->task_productor_ptr].client_socket = client_socket;
+						sprintf(shared_data->task_queue[shared_data->task_productor_ptr].request, message);
+						shared_data->task_productor_ptr = (shared_data->task_productor_ptr + 1) % 5;
 
-					printf("Pedido colocado na fila\n");
-					//POS PROTOCOLO
-					pthread_mutex_unlock(&shared_data->mutex_task_reader);
-					sem_post(sem_cons);
-					recv(sock, buffer, BUFFER_SIZE, 0);
+						printf("Pedido colocado na fila\n");
+						//POS PROTOCOLO
+						pthread_mutex_unlock(&shared_data->mutex_task_reader);
+						sem_post(sem_cons);
+						recv(sock, buffer, BUFFER_SIZE, 0);
 
-					if (buffer[0]=='1') {
-						board[i][j] = k;
-						printf("Numero correto encontrado\n");
-						break;
+						if (buffer[0] == '1') {
+							board[i][j] = k;
+							printf("Numero correto encontrado\n");
+							break;
+						}
+						usleep((rand() % 150000));
 					}
-					sleep((rand()%200)/100.0f);
 				}
 			}
 		}
-	}
 	//Solução encontrada
 	sem_post(sem_solucao);
 
+	}
 
-/*
-	int random_time = rand() % 10;
-	printf("random time = %d\n", random_time);
-	sleep(random_time);// random wait
-	printf("found sol\n");
-	sem_post(&shared_data->sem_found_solution);
-*/
+	/*
+		int random_time = rand() % 10;
+		printf("random time = %d\n", random_time);
+		sleep(random_time);// random wait
+		printf("found sol\n");
+		sem_post(&shared_data->sem_found_solution);
+	*/
 
 	munmap(shared_data, sizeof(multiplayer_room_shared_data_t));
 
@@ -200,7 +210,7 @@ void client_init(int argc, char *argv[], client_config *config) {
 	log_event(config->log_file, "Client Started");
 
 
-	if(false) {
+	if (false) {
 		printf("Client ID: %s\n", config->id);
 		printf("Server IP: %s\n", config->server_ip);
 		printf("Server Port: %d\n", config->server_port);
@@ -209,18 +219,19 @@ void client_init(int argc, char *argv[], client_config *config) {
 
 	log_event(config->log_file, "Client Config Loaded");
 }
+
 void connect_to_server() {
 	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-		log_event(config.log_file,"Erro ao criar socket!! EXIT\n");
+		log_event(config.log_file, "Erro ao criar socket!! EXIT\n");
 		exit(EXIT_FAILURE);
 	}
 	log_event(config.log_file, "Socket criado com sucesso");
 
 	server_address.sun_family = AF_UNIX;
-	strncpy(server_address.sun_path, "/tmp/local_socket", sizeof(server_address.sun_path)-1);
+	strncpy(server_address.sun_path, "/tmp/local_socket", sizeof(server_address.sun_path) - 1);
 
 	if (connect(sock, (struct sockaddr *) &server_address, sizeof(server_address)) < 0) {
-		log_event(config.log_file,"IP invalido! EXIT\n");
+		log_event(config.log_file, "IP invalido! EXIT\n");
 		exit(EXIT_FAILURE);
 	}
 	log_event(config.log_file, "Conectado ao servidor");
@@ -228,8 +239,8 @@ void connect_to_server() {
 
 //TODO -- enviar e receber quadros
 void send_solution() {
-
 }
+
 void receive_answer() {
 }
 

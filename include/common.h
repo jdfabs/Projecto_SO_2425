@@ -37,7 +37,7 @@ typedef struct {
 
 typedef struct multiplayer_room_shared_data {
  int board_id;
- char starting_board[BUFFER_SIZE];
+ char starting_board[BUFFER_SIZE], room_name[BUFFER_SIZE];
 
  Task task_queue[5];
  int task_productor_ptr, task_consumer_ptr;
