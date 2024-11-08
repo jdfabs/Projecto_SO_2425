@@ -48,7 +48,7 @@
  * GLOBAL VARIABLES
  ************************************/
 client_config config;
-int board[BOARD_SIZE][BOARD_SIZE];
+int **board;
 
 int sock = 0;
 struct sockaddr_un server_address;
@@ -67,6 +67,17 @@ void connect_to_server();
 int main(int argc, char *argv[]) {
 	client_init(argc, argv, &config); // Client data structures setup
 	connect_to_server(); // Connect to server
+
+
+
+	sem_t *sem_prod = sem_open("/sem_room_one_producer", 0);
+	sem_t *sem_cons = sem_open("/sem_room_one_consumer", 0);
+	sem_t *sem_solucao = sem_open("/sem_room_one_solucao", 0);
+
+	int client_socket;
+	recv(sock, buffer, BUFFER_SIZE, 0);
+	client_socket = atoi(buffer);
+	printf("Client socket is %d\n", client_socket);
 
 	srand(time(NULL));
 
@@ -94,17 +105,37 @@ int main(int argc, char *argv[]) {
 				printf("celula (%d,%d) está vazia\n", i, j);
 				for (int k = 1; k <= BOARD_SIZE; k++) {
 
+					char message[255];
+					sprintf(message, "0-%d,%d,%d", i, j, k);
 
-					if (k == solution[i][j]) {
+
+					//PREPROTOCOLO
+					sem_wait(sem_prod);
+					pthread_mutex_lock(&shared_data->mutex_task_reader);
+
+					//ZONA CRITICA PARA CRIAR TASK
+					shared_data->task_queue[shared_data->task_productor_ptr].client_socket = client_socket;
+					sprintf(shared_data->task_queue[shared_data->task_productor_ptr].request,message);
+					shared_data-> task_productor_ptr = (shared_data->task_productor_ptr + 1) % 5;
+
+					printf("Pedido colocado na fila\n");
+					//POS PROTOCOLO
+					pthread_mutex_unlock(&shared_data->mutex_task_reader);
+					sem_post(sem_cons);
+					recv(sock, buffer, BUFFER_SIZE, 0);
+
+					if (buffer[0]=='1') {
 						board[i][j] = k;
 						printf("Numero correto encontrado\n");
-						printBoard(board);
 						break;
 					}
+					sleep((rand()%200)/100.0f);
 				}
 			}
 		}
 	}
+	//Solução encontrada
+	sem_post(sem_solucao);
 
 
 /*
@@ -137,7 +168,7 @@ int main(int argc, char *argv[]) {
 	exit(0);
 }
 
-void printBoard(int matrix[][BOARD_SIZE]) {
+void printBoard(int **matrix) {
 	printf("\nQuadro de Sudoku:\n");
 	for (int i = 0; i < 9; i++) {
 		for (int j = 0; j < 9; j++) {

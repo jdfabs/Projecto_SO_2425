@@ -10,7 +10,7 @@
  ************************************/
 #include <pthread.h>
 #include <semaphore.h>
-
+#include "cJSON.h"
 /************************************
  * MACROS AND DEFINES
  ************************************/
@@ -30,19 +30,19 @@
 #define MESSAGE_SIZE 256
 
 
-typedef struct client_message{
- int client_socket;
- char message[MESSAGE_SIZE];
-} client_message_t;
+typedef struct {
+	int client_socket;
+	char request[BUFFER_SIZE];
+} Task;
 
 typedef struct multiplayer_room_shared_data {
- sem_t sem_game_start;
- sem_t sem_room_full;
- sem_t sem_found_solution;
- pthread_mutex_t mutex1;
- pthread_mutex_t mutex2;
  int board_id;
  char starting_board[BUFFER_SIZE];
+
+ Task task_queue[5];
+ int task_productor_ptr, task_consumer_ptr;
+ pthread_mutex_t mutex_task_creators, mutex_task_reader;
+ sem_t sem_game_start, sem_room_full, sem_found_solution;
 } multiplayer_room_shared_data_t;
 /************************************
  * EXPORTED VARIABLES

@@ -38,4 +38,4 @@ typedef struct  {
 
 int load_client_config(const char *filename, client_config *config);
 void solve_by_brute_force(int matrix[][BOARD_SIZE], int solution[][BOARD_SIZE]);
-void printBoard(int matrix[][BOARD_SIZE]);
+void printBoard(int **matrix);

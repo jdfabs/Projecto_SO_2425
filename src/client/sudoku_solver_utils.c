@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "client.h"
-
+/*
 void solve_by_brute_force(int **matrix, int **solution) {
 	for (int i = 0; i < BOARD_SIZE; i++) {
 		for (int j = 0; j < BOARD_SIZE; j++) {
@@ -25,6 +25,6 @@ void solve_by_brute_force(int **matrix, int **solution) {
 		}
 	}
 }
-
+*/
 
 
