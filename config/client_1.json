@@ -3,7 +3,6 @@
 	"id": "client1",
 	"server_ip": "127.0.0.1",
 	"server_port": 9346,
-	"log_file": "./logs/client1.log",
-	"game_type": 2
+	"log_file": "./logs/client1.log"
   }
 }

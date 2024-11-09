@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "server.h"
-#include "common.h"
 
 /************************************
  * EXTERN VARIABLES
@@ -322,7 +321,7 @@ void fill_diagonal(int **grid) {
     }
 }
 
-int **generate_sudoku() { // TODO FALTA TIRAR OS NUMEROS 👌
+int **generate_sudoku() { 
     // Allocate memory for the grid dynamically
     int **grid = malloc(SIZE * sizeof(int *));
     for (int i = 0; i < SIZE; i++) {
@@ -341,6 +340,7 @@ int **generate_sudoku() { // TODO FALTA TIRAR OS NUMEROS 👌
     fill_sudoku(grid, 0, 0);
 
     // Print the Sudoku grid
+    /*
     printf("\nQuadro de Sudoku:\n");
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
@@ -355,9 +355,63 @@ int **generate_sudoku() { // TODO FALTA TIRAR OS NUMEROS 👌
         }
     }
     printf("\n");
+    */
 
-    return grid;
+    
+    int **grid_sol = grid;
+
+    /*
+    printf("\nQuadro de Sudoku:\n");
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            printf("%d ", grid_sol[i][j]);
+            if ((j + 1) % 3 == 0 && j != 8) {
+                printf("| ");
+            }
+        }
+        printf("\n");
+        if ((i + 1) % 3 == 0 && i != 8) {
+            printf("---------------------\n");
+        }
+    }
+    printf("\n");
+    */
+
+    // 
+    for (size_t i = 0; i < SIZE; i++)
+    {
+        for (size_t j = 0; j < SIZE; j++)
+        {
+            int prob = rand() % 100;
+            
+            //printf("%d\n",prob);
+            
+            if (prob<65){
+                grid[i][j]=0;
+            }
+        }
+    }
+    
+    printf("\nQuadro de Sudoku:\n");
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            printf("%d ", grid[i][j]);
+            if ((j + 1) % 3 == 0 && j != 8) {
+                printf("| ");
+            }
+        }
+        printf("\n");
+        if ((i + 1) % 3 == 0 && i != 8) {
+            printf("---------------------\n");
+        }
+    }
+    printf("\n");
+    
+    return grid, grid_sol;
 }
+
+
+
 
 
 /*
