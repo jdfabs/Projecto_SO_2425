@@ -105,7 +105,7 @@ cJSON *load_boards(char *path) {
 }
 
 
-/*
+
 // Utility function to construct file path
 void construct_file_path(char *buffer, int id) {
     snprintf(buffer, MAX_PATH_LENGTH, "%s%d.json", BOARD_DIR, id);
@@ -155,4 +155,4 @@ cJSON *matrix_to_JSON(int **matrix) {
         cJSON_AddItemToArray(matrix_json, row);
     }
     return matrix_json;
-}*/
+}
