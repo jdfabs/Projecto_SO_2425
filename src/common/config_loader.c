@@ -91,7 +91,7 @@ int load_client_config(const char *filename, client_config *config) {
 	char *data = NULL;
 	cJSON *json = NULL;
 
-
+	printf("Construir caminho para ficheiro de config\n");
 	size_t length = strlen("./config/") + strlen(filename) + strlen(".json") + 1;
 	char *filePath = (char *) malloc(length);
 	if (!filePath) {
@@ -104,7 +104,7 @@ int load_client_config(const char *filename, client_config *config) {
 	strcat(filePath, filename);
 	strcat(filePath, ".json"); // Read file content to string
 
-
+	printf("Carregar ficheiro para memoria\n");
 	// Read file content to string
 	if (read_file_to_string(filePath, &data) < 0) {
 		printf("Loading default client configurations.\n");
@@ -113,7 +113,7 @@ int load_client_config(const char *filename, client_config *config) {
 		log_event(CLIENT_LOG_PATH, "Config default cliente carregada.");
 		return 1;
 	}
-
+	printf("Parsing ficheiro config para JSON\n");
 	// Parse the JSON data
 	if (parse_json(data, &json) < 0) {
 		free(data);
@@ -125,6 +125,7 @@ int load_client_config(const char *filename, client_config *config) {
 	}
 	free(data); // Free the allocated memory for data
 
+
 	// Get the client configuration
 	const cJSON *client = cJSON_GetObjectItem(json, "client");
 	if (!client) {
@@ -135,7 +136,7 @@ int load_client_config(const char *filename, client_config *config) {
 		cJSON_Delete(json);
 		return 1;
 	}
-
+	printf("Carregar valores da config para struct em memoria\n");
 	// Extracting values from the JSON object
 	strcpy(config->id, cJSON_GetObjectItem(client, "id")->valuestring);
 	strcpy(config->server_ip, cJSON_GetObjectItem(client, "server_ip")->valuestring);

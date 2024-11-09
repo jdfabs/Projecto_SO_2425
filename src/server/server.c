@@ -297,7 +297,7 @@ void *room_handler(void *arg) {
 		//Start round
 		clock_gettime(CLOCK_MONOTONIC, &start);
 		for(int i = 0; i < max_player; i++) {
-			sem_post(&shared_data->sem_game_start);
+			sem_post(&shared_data->sem_game_start); //TODO FIX THIS SHIT
 		}
 		printf("Multiplayer Room Handler: game start has been signaled \n");
 
