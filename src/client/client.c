@@ -50,10 +50,15 @@ int sock = 0;
 struct sockaddr_un server_address;
 char buffer[BUFFER_SIZE] = {0};
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of 7e38406 (UI Basica do Cliente)
 /************************************
  * STATIC FUNCTION PROTOTYPES
  ************************************/
 void client_init(int argc, char *argv[], client_config *config);
+
 void connect_to_server();
 
 /************************************
@@ -63,15 +68,19 @@ int main(int argc, char *argv[]) {
 	client_init(argc, argv, &config); // Client data structures setup
 	connect_to_server(); //Connect to server
 
+<<<<<<< HEAD
 
 
 
 	char buffer[BUFFER_SIZE];
+=======
 	int client_socket;
 	char room_name[100];
+>>>>>>> parent of 7e38406 (UI Basica do Cliente)
 	recv(sock, buffer, BUFFER_SIZE, 0);
 	int counter = atoi(buffer)*100;
 
+<<<<<<< HEAD
 	while (1) {
 
 
@@ -89,6 +98,7 @@ int main(int argc, char *argv[]) {
 		if (bytes_received > 0) {
 			buffer[bytes_received] = '\0'; // Null-terminate the received string
 			printf("Received from server: %s\n", buffer);
+=======
 	printf("Client socket is %d\n", client_socket);
 	printf("Room name: %s\n", room_name);
 
@@ -157,6 +167,7 @@ int main(int argc, char *argv[]) {
 					}
 				}
 			}
+>>>>>>> parent of 7e38406 (UI Basica do Cliente)
 		}
 	}
 
@@ -223,6 +234,8 @@ void client_init(int argc, char *argv[], client_config *config) {
 	}
 
 	log_event(config->log_file, "Client Started");
+<<<<<<< HEAD
+=======
 
 
 	if (false) {
@@ -234,6 +247,7 @@ void client_init(int argc, char *argv[], client_config *config) {
 
 	log_event(config->log_file, "Client Config Loaded");
 }
+>>>>>>> parent of 7e38406 (UI Basica do Cliente)
 
 
 	if(false) {
@@ -260,6 +274,7 @@ void connect_to_server() {
 		exit(EXIT_FAILURE);
 	}
 	log_event(config.log_file, "Conectado ao servidor");
+<<<<<<< HEAD
 =======
 }
 
@@ -268,6 +283,7 @@ void send_solution() {
 }
 
 void receive_answer() {
+>>>>>>> parent of 7e38406 (UI Basica do Cliente)
 }
 
 
