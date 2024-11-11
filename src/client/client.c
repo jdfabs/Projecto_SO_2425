@@ -212,18 +212,24 @@ void client_init(int argc, char *argv[], client_config *config) {
 
 void connect_to_server() {
 	printf("Criando Socket\n");
-	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		log_event(config.log_file, "Erro ao criar socket!! EXIT\n");
 		exit(EXIT_FAILURE);
 	}
 	log_event(config.log_file, "Socket criado com sucesso");
 
-	server_address.sun_family = AF_UNIX;
-	strncpy(server_address.sun_path, "/tmp/local_socket", sizeof(server_address.sun_path) - 1);
+	// Configurar endereço IP e porta do servidor
+	struct sockaddr_in server_address;
+	server_address.sin_family = AF_INET;
+	server_address.sin_port = htons(config.server_port); // Porta do servidor
+	if (inet_pton(AF_INET, config.server_ip, &server_address.sin_addr) <= 0) { // Endereço IP do servidor
+		log_event(config.log_file, "Endereço inválido! EXIT\n");
+		exit(EXIT_FAILURE);
+	}
 
-	printf("Pedindo ao Servidor a connecao\n");
-	if (connect(sock, (struct sockaddr *) &server_address, sizeof(server_address)) < 0) {
-		log_event(config.log_file, "IP invalido! EXIT\n");
+	printf("Pedindo ao Servidor a conexão\n");
+	if (connect(sock, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) {
+		log_event(config.log_file, "Conexão falhou! EXIT\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -232,6 +238,7 @@ void connect_to_server() {
 	separator();
 	sleep(3);
 }
+
 
 //TODO -- enviar e receber quadros
 void send_solution() {

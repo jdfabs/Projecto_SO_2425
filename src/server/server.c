@@ -98,7 +98,7 @@ void server_init(int argc, char **argv) {
 void setup_socket() {
 	log_event(config.log_file, "A começar setup do socket de connecção");
 
-	if((server_fd = socket(AF_UNIX, SOCK_STREAM, 0)) == 0) {
+	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
 		perror("Socket falhou");
 		log_event(config.log_file, "Criação do socket falhou!");
 		exit(EXIT_FAILURE);
@@ -108,28 +108,27 @@ void setup_socket() {
 	sprintf(temp, "Socket criado com sucesso. socket_fd: %d", server_fd);
 	log_event(config.log_file, temp);
 
-	//Definir ficheiro local para o socket
-	address.sun_family= AF_UNIX;
-	strncpy(address.sun_path, "/tmp/local_socket", sizeof(address.sun_path)-1);
+	// Configurar o endereço IP e porta do servidor
+	struct sockaddr_in address;
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = INADDR_ANY; // Aceitar conexões de qualquer IP
+	address.sin_port = htons(config.port);      // Porta do servidor
 
-	//Desconectar socket antigo (just in case)
-	unlink(address.sun_path);
-
-	//Bind ao socket local
-	if(bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-		log_event(config.log_file,"Socket falhou bind");
+	// Bind ao endereço e porta
+	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+		log_event(config.log_file, "Socket falhou bind");
 		close(server_fd);
 		exit(EXIT_FAILURE);
 	}
-	log_event(config.log_file,"Socket deu bind com sucesso");
+	log_event(config.log_file, "Socket deu bind com sucesso");
 
-	//Ouvir pedidos de connecção
-	if(listen(server_fd, 5) < 0) { //5 = queue de conecções a se conectar
-		log_event(config.log_file,"Listen falhou");
+	// Ouvir pedidos de connecção
+	if (listen(server_fd, 5) < 0) { // 5 = queue de conecções a se conectar
+		log_event(config.log_file, "Listen falhou");
 		close(server_fd);
 		exit(EXIT_FAILURE);
 	}
-	log_event(config.log_file,"Server começou a ouvir conecções ao servidor");
+	log_event(config.log_file, "Server começou a ouvir conecções ao servidor");
 }
 void accept_clients(void) {
 	socklen_t addr_len = sizeof(address);

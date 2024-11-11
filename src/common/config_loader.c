@@ -190,6 +190,8 @@ int load_server_config(const char *filename, server_config *config) {
 	strcpy(config->board_file_path, cJSON_GetObjectItem(json, "board_file_path")->valuestring);
 	config->task_queue_size = cJSON_GetObjectItem(json, "task_queue_size")->valueint;
 	config->task_handler_threads = cJSON_GetObjectItem(json, "event_handler_threads")->valueint;
+	strcpy(config->ip_address, cJSON_GetObjectItem(json, "ip_address")->valuestring);
+	config->port = cJSON_GetObjectItem(json, "port")->valueint;
 	// Cleanup
 	cJSON_Delete(json);
 	free(filePath);
