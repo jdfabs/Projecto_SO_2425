@@ -1,5 +1,5 @@
 {
-  "ip": "127.0.0.1",
+  "ip_address": "127.0.0.1",
   "port": 9346,
   "enable_logging": 1,
   "log_file": "./logs/server.log",

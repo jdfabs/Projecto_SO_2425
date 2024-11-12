@@ -26,6 +26,8 @@ typedef struct {
 	char board_file_path[255];
 	int task_queue_size;
 	int task_handler_threads;
+ char ip_address[255];
+ int port;
 } server_config;
 
 
