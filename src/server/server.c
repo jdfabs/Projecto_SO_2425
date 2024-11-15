@@ -35,9 +35,6 @@ cJSON *boards;
 int num_boards;
 
 int server_fd ;
-struct sockaddr_un address;
-pthread_t multiplayer_rooms[10];
-
 room_t rooms[20];
 int room_count = 0;
 
@@ -50,8 +47,25 @@ int main(int argc, char *argv[]) {
 	}
 }
 void graceful_shutdown() {
+	printf("Shutting down...\n");
 	log_event(config.log_file, "Server shutting down gracefully");
 	close(server_fd);
+	for (int i = 0; i < room_count; i++) {
+		char temp[100];
+		sprintf(temp, "sem_%s_game_start", rooms[i].name);
+		sem_unlink(temp);
+		sprintf(temp, "sem_%s_solucao", rooms[i].name);
+		sem_unlink(temp);
+		sprintf(temp, "sem_%s_room_full", rooms[i].name);
+		sem_unlink(temp);
+		sprintf(temp, "sem_%s_producer", rooms[i].name);
+		sem_unlink(temp);
+		sprintf(temp, "sem_%s_consumer", rooms[i].name);
+		sem_unlink(temp);
+		sprintf(temp, "mut_%s_task", rooms[i].name);
+		sem_unlink(temp);
+		
+	}
 	// Add more cleanup code if necessary
 	exit(EXIT_SUCCESS);
 }
@@ -141,6 +155,7 @@ void setup_socket() {
 }
 
 void accept_clients() {
+	struct sockaddr_un address;
 	socklen_t addr_len = sizeof(address);
 	int client_socket = accept(server_fd, (struct sockaddr *) &address, &addr_len);
 	if (client_socket  < 0) {
