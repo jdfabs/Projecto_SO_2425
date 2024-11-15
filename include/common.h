@@ -43,7 +43,7 @@ typedef struct multiplayer_room_shared_data {
  int task_productor_ptr, task_consumer_ptr;
  pthread_mutex_t mutex_task_creators, mutex_task_reader;
  sem_t sem_game_start, sem_room_full, sem_found_solution;
-} multiplayer_room_shared_data_t;
+} multiplayer_ranked_room_shared_data_t;
 /************************************
  * EXPORTED VARIABLES
  ************************************/

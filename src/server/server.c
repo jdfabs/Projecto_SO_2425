@@ -23,7 +23,7 @@
 #define MAX_PENDING_CONNECTIONS 5
 #define MAX_ROOMS 20
 #define BUFFER_SIZE 100
-#define MAX_PLAYERS_DEFAULT 1
+#define MAX_PLAYERS_DEFAULT 4
 
 typedef struct {
     int max_players;
@@ -57,13 +57,17 @@ void setup_socket();
 void accept_clients();
 void graceful_shutdown(int signum);
 void *task_handler(void *arg);
-void create_new_room(int max_players, char *room_name);
-void *room_handler(void *arg);
-void setup_shared_memory(char room_name[100], multiplayer_room_shared_data_t **shared_data);
-void room_setup(void *arg, char (*room_name)[100], int *max_player, struct timespec *start, struct timespec *end, multiplayer_room_shared_data_t **shared_data, sem_t **sem_solution_found, pthread_t *solution_checker);
+void create_new_multiplayer_ranked_room(int max_players, char *room_name);
+void *multiplayer_ranked_room_handler(void *arg);
+void setup_shared_memory(char room_name[100], multiplayer_ranked_room_shared_data_t **shared_data);
+void room_setup(void *arg, char (*room_name)[100], int *max_player, struct timespec *start, struct timespec *end, multiplayer_ranked_room_shared_data_t **shared_data, sem_t **sem_solution_found, pthread_t *solution_checker);
 void wait_for_full_room(sem_t *sem, int slots);
-void select_new_board_and_share(multiplayer_room_shared_data_t *shared_data);
-void shared_memory_clean_up(char room_name[100], multiplayer_room_shared_data_t *shared_data);
+void select_new_board_and_share(multiplayer_ranked_room_shared_data_t *shared_data);
+void shared_memory_clean_up(char room_name[100], multiplayer_ranked_room_shared_data_t *shared_data);
+void *multiplayer_casual_room_handler(void *arg);
+void *single_player_room_handler(void *arg);
+void create_new_singleplayer_room(char *room_name);
+
 
 int main(int argc, char *argv[]) {
     // Initialize server data structures and configurations
@@ -185,7 +189,7 @@ void accept_clients() {
     printf("Received: %s\n", aux);
 
     for (int i = 0; i < room_count; i++) {
-        if (rooms[i].current_players < rooms[i].max_players) {
+        if (rooms[i].current_players < rooms[i].max_players && rooms[i].type == atoi(aux)) {
             printf("ROOM WITH SPACE\n");
             snprintf(aux, sizeof(aux), "%d-%s%d", client_socket, "room_", i);
             rooms[i].current_players++;
@@ -196,21 +200,35 @@ void accept_clients() {
     }
 
     printf("NO APPROPRIATE ROOMS - CREATING NEW ROOM\n");
-    snprintf(rooms[room_count].name, sizeof(rooms[room_count].name), "room_%d", room_count);
-    rooms[room_count].current_players = 1;
-    rooms[room_count].max_players = MAX_PLAYERS_DEFAULT;
-    rooms[room_count].type = atoi(aux);
 
-    create_new_room(rooms[room_count].max_players, rooms[room_count].name);
+    if(atoi(aux) ==2 ) { // singleplayer
+        printf("000\n");
+        char temp[100];
+        sprintf(aux, "room_%d", room_count);
 
-    snprintf(aux, sizeof(aux), "%d-%s", client_socket, rooms[room_count].name);
-    room_count++;
+        create_new_singleplayer_room(temp);
+        snprintf(aux, sizeof(aux), "%d-%s", client_socket, temp);
+        room_count++;
 
+    }
+    else {
+        printf("001\n");
+        snprintf(rooms[room_count].name, sizeof(rooms[room_count].name), "room_%d", room_count);
+        rooms[room_count].current_players = 1;
+        rooms[room_count].max_players = MAX_PLAYERS_DEFAULT;
+        rooms[room_count].type = atoi(aux);
+
+        create_new_multiplayer_ranked_room(rooms[room_count].max_players, rooms[room_count].name);
+        snprintf(aux, sizeof(aux), "%d-%s", client_socket, rooms[room_count].name);
+        room_count++;
+
+
+    }
     send(client_socket, aux, strlen(aux), 0);
     close(client_socket);
 }
 
-void create_new_room(int max_players, char *room_name) {
+void create_new_multiplayer_ranked_room(int max_players, char *room_name) {
     room_config_t *room_config;
     room_config = malloc(sizeof(room_config_t));
     if (!room_config) {
@@ -232,7 +250,7 @@ void create_new_room(int max_players, char *room_name) {
     strncpy(room_config->room_name, room_name, strlen(room_name) + 1);
 
     pthread_t temp_thread;
-    int ret = pthread_create(&temp_thread, NULL, room_handler, (void *)room_config);
+    int ret = pthread_create(&temp_thread, NULL, multiplayer_ranked_room_handler, (void *)room_config);
     if (ret != 0) {
         perror("pthread_create failed");
         free(room_config->room_name); // Clean up allocated memory
@@ -243,10 +261,16 @@ void create_new_room(int max_players, char *room_name) {
     log_event(config.log_file, "New room created successfully");
 }
 
+void create_new_singleplayer_room(char *room_name) {
+    pthread_t temp_thread;
+    pthread_create(&temp_thread, NULL, single_player_room_handler, (void *)room_name);
+
+}
+
 // TASK MANAGERS
 void *task_handler(void *arg) {
     // Cast the void pointer to the appropriate type
-    multiplayer_room_shared_data_t *shared_data = (multiplayer_room_shared_data_t *)arg;
+    multiplayer_ranked_room_shared_data_t *shared_data = (multiplayer_ranked_room_shared_data_t *)arg;
 
     char aux[100];
     snprintf(aux, sizeof(aux), "/sem_%s_producer", shared_data->room_name);
@@ -270,7 +294,7 @@ void *task_handler(void *arg) {
 
     // PRODUCER-CONSUMER PROBLEM --- CONSUMER
     while (1) {
-        printf("TASK_HANDLER -- Waiting for something to read\n");
+        printf("TASK_HANDLER %s -- Waiting for something to read\n", shared_data->room_name);
 
         // PRE-PROTOCOL
         sem_wait(sem_cons);
@@ -308,19 +332,19 @@ void *task_handler(void *arg) {
 }
 
 // ROOM FUNCTIONS
-void setup_shared_memory(char room_name[100], multiplayer_room_shared_data_t **shared_data) {
+void setup_shared_memory(char room_name[100], multiplayer_ranked_room_shared_data_t **shared_data) {
     int room_shared_memory = shm_open(room_name, O_CREAT | O_RDWR, 0666);
     if (room_shared_memory == -1) {
         perror("shm_open failed");
         exit(EXIT_FAILURE);
     }
-    if (ftruncate(room_shared_memory, sizeof(multiplayer_room_shared_data_t)) == -1) {
+    if (ftruncate(room_shared_memory, sizeof(multiplayer_ranked_room_shared_data_t)) == -1) {
         perror("ftruncate failed");
         close(room_shared_memory);
         exit(EXIT_FAILURE);
     }
 
-    *shared_data = mmap(NULL, sizeof(multiplayer_room_shared_data_t), PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory, 0);
+    *shared_data = mmap(NULL, sizeof(multiplayer_ranked_room_shared_data_t), PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory, 0);
     if (*shared_data == MAP_FAILED) {
         perror("mmap failed");
         close(room_shared_memory);
@@ -346,7 +370,7 @@ void setup_shared_memory(char room_name[100], multiplayer_room_shared_data_t **s
     pthread_mutex_init(&(*shared_data)->mutex_task_reader, NULL);
 }
 
-void room_setup(void *arg, char (*room_name)[100], int *max_player, struct timespec *start, struct timespec *end, multiplayer_room_shared_data_t **shared_data, sem_t **sem_solution_found, pthread_t *solution_checker) {
+void room_setup(void *arg, char (*room_name)[100], int *max_player, struct timespec *start, struct timespec *end, multiplayer_ranked_room_shared_data_t **shared_data, sem_t **sem_solution_found, pthread_t *solution_checker) {
     room_config_t *room_config = (room_config_t *)arg;
     snprintf(*room_name, sizeof(*room_name), "%s", room_config->room_name);
     *max_player = room_config->max_players;
@@ -379,7 +403,7 @@ void wait_for_full_room(sem_t *sem, int slots) {
     }
 }
 
-void select_new_board_and_share(multiplayer_room_shared_data_t *shared_data) {
+void select_new_board_and_share(multiplayer_ranked_room_shared_data_t *shared_data) {
     cJSON *round_board;
 
     srand(time(NULL));
@@ -391,22 +415,22 @@ void select_new_board_and_share(multiplayer_room_shared_data_t *shared_data) {
     strcpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
 }
 
-void shared_memory_clean_up(char room_name[100], multiplayer_room_shared_data_t *shared_data) {
+void shared_memory_clean_up(char room_name[100], multiplayer_ranked_room_shared_data_t *shared_data) {
     sem_destroy(&shared_data->sem_game_start);
     sem_destroy(&shared_data->sem_room_full);
     sem_destroy(&shared_data->sem_found_solution);
     pthread_mutex_destroy(&shared_data->mutex_task_creators);
     pthread_mutex_destroy(&shared_data->mutex_task_reader);
-    munmap(shared_data, sizeof(multiplayer_room_shared_data_t));
+    munmap(shared_data, sizeof(multiplayer_ranked_room_shared_data_t));
     shm_unlink(room_name);
 }
 
-void *room_handler(void *arg) {
+void *multiplayer_ranked_room_handler(void *arg) {
     char room_name[100];
     int max_player;
     struct timespec start;
     struct timespec end;
-    multiplayer_room_shared_data_t *shared_data;
+    multiplayer_ranked_room_shared_data_t *shared_data;
     sem_t *sem_solution_found;
     pthread_t solution_checker;
 
@@ -436,4 +460,22 @@ void *room_handler(void *arg) {
 
     shared_memory_clean_up(room_name, shared_data);
     pthread_exit(NULL);
+}
+
+void *multiplayer_casual_room_handler(void *arg) {
+    char room_name[100];
+    int max_player;
+    struct timespec start;
+    struct timespec end;
+    sem_t *sem_solution_found;
+    pthread_t solution_checker;
+
+    printf("MULTIPLAYER CASUAL ROOM STARTED\n");
+}
+
+void *single_player_room_handler(void *arg) {
+    struct timespec start;
+    struct timespec end;
+
+    printf("SINGLEPLAYER ROOM STARTED - %s\n",arg);
 }

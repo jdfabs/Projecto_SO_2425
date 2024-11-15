@@ -55,7 +55,7 @@ struct sockaddr_un server_address;
 char buffer[BUFFER_SIZE] = {0};
 
 int client_socket;
-multiplayer_room_shared_data_t *shared_data;
+multiplayer_ranked_room_shared_data_t *shared_data;
 sem_t *sem_solucao;
 sem_t *sem_cons;
 sem_t *sem_prod;
@@ -106,33 +106,37 @@ int main(int argc, char *argv[]) {
 	printf("Socked do Cliente: %d\n", client_socket);
 	printf("Nome da sala connectada: %s\n", room_name);
 	separator();
-	printf("Inicializacao dos meios de sincronizacao da sala\n");
-	char temp[255];
-	sprintf(temp, "/sem_%s_producer", room_name);
-	sem_prod = sem_open(temp, 0);
-	sprintf(temp, "/sem_%s_consumer", room_name);
-	sem_cons = sem_open(temp, 0);
-	sprintf(temp, "/sem_%s_solucao", room_name);
-	sem_solucao = sem_open(temp, 0);
-
 
 	srand(time(NULL));
-	printf("Abrir memoria partilhada da sala\n");
-	int room_shared_memory_fd = shm_open(room_name, O_RDWR, 0666);
-	if (room_shared_memory_fd == -1) {
-		perror("shm_open FAIL");
-		exit(EXIT_FAILURE);
+	if(config.game_type == 0) {
+		printf("Inicializacao dos meios de sincronizacao da sala\n");
+		char temp[255];
+		sprintf(temp, "/sem_%s_producer", room_name);
+		sem_prod = sem_open(temp, 0);
+		sprintf(temp, "/sem_%s_consumer", room_name);
+		sem_cons = sem_open(temp, 0);
+		sprintf(temp, "/sem_%s_solucao", room_name);
+		sem_solucao = sem_open(temp, 0);
+
+
+		printf("Abrir memoria partilhada da sala\n");
+		int room_shared_memory_fd = shm_open(room_name, O_RDWR, 0666);
+		if (room_shared_memory_fd == -1) {
+			perror("shm_open FAIL");
+			exit(EXIT_FAILURE);
+		}
+
+		shared_data = mmap(NULL, sizeof(multiplayer_ranked_room_shared_data_t),
+							PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory_fd, 0);
+		if (shared_data == MAP_FAILED) {
+			perror("mmap FAIL");
+			exit(EXIT_FAILURE);
+		}
+		printf("PRONTO PARA JOGAR!\nAssinalando a Sala que esta a espera\n");
+		sem_post(&shared_data->sem_room_full); // assinala que tem mais um cliente no room
+		separator();
 	}
 
-	shared_data = mmap(NULL, sizeof(multiplayer_room_shared_data_t),
-						PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory_fd, 0);
-	if (shared_data == MAP_FAILED) {
-		perror("mmap FAIL");
-		exit(EXIT_FAILURE);
-	}
-	printf("PRONTO PARA JOGAR!\nAssinalando a Sala que esta a espera\n");
-	sem_post(&shared_data->sem_room_full); // assinala que tem mais um cliente no room
-	separator();
 	printf("ESPERANDO\n");
 
 	for (;;) {
