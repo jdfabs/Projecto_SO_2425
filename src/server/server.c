@@ -104,10 +104,11 @@ void server_init(const int argc, char **argv) {
 	}
 
 	log_event(config.log_file,"Boards carregados para memoria com sucesso");
+	printf("Server started...\n");
 }
 void setup_socket() {
 	log_event(config.log_file, "A começar setup do socket de connecção");
-
+	printf("Setting up socket...\n");
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
 		perror("Socket falhou");
 		log_event(config.log_file, "Criação do socket falhou!");
@@ -149,6 +150,7 @@ void setup_socket() {
 		exit(EXIT_FAILURE);
 	}
 	log_event(config.log_file, "Server começou a ouvir conecções ao servidor");
+	printf("Server listening for clients...\n");
 }
 
 void accept_clients() {
@@ -158,38 +160,38 @@ void accept_clients() {
 	if (client_socket  < 0) {
 		perror("Accept failed");
 	}
-
+	printf("New connection -");
 	//HANDSHAKE
 	char aux[100];
 	recv(client_socket,aux , 100, 0);
 	for(int i = 0; i < room_count ; i++) {
 		if(rooms[i].current_players < rooms[i].max_players && atoi(aux) == rooms[i].type){
-			printf("ROOM WITH SPACE && CORRECT TYPE\n");
+			printf(" Theres a room with correct type and space - Connecting to: %s\n", rooms[i].name);
 			sprintf(aux, "%d-%s%d", client_socket, "room_",i);
 			rooms[i].current_players++;
 			send(client_socket, aux, strlen(aux), 0);
 			return;
 		}
 	}
-	printf("NO APROPRIATE ROOMS-CREATING NEW ROOM\n");
+	printf(" No apropriate room - ");
 
 	snprintf(rooms[room_count].name,255, "room_%d", room_count);
 	rooms[room_count].current_players = 1;
 	rooms[room_count].type = atoi(aux);
 
 	if(atoi(aux) == 2) {
-		printf("CREATING ROOM OF TYPE SINGLEPLAYER\n");
+		printf("Type: SINGLEPLAYER\n");
 		rooms[room_count].type = 1;
 		printf("NAO IMPLEMENTADO!!!\n");
 	}
 	else {
 	rooms[room_count].max_players = 2;
 		if(atoi(aux) == 1) {
-			printf("CREATING ROOM OF TYPE RANKED\n");
+			printf("Type: RANKED\n");
 			create_multiplayer_ranked_room(rooms[room_count].max_players, rooms[room_count].name);
 		}
 		else if(atoi(aux) == 2) {
-			printf("CREATING ROOM OF TYPE CASUAL\n");
+			printf("Type: CASUAL\n");
 			printf("NAO IMPLEMENTADO!!!\n");
 		}
 	}
@@ -356,10 +358,10 @@ void *multiplayer_ranked_room_handler(void *arg) {
 	sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
 
 	pthread_create(&soltution_checker, NULL, task_handler_multiplayer_ranked, shared_data);
-	printf("MULTIPLAYER ROOM %s started with a max of %d players\n", room_name, max_player);
+	printf("%s of type Multiplayer Ranked - started with a max of %d players\n", room_name, max_player);
 
 
-
+	
 	wait_for_full_room(sem_room_full, max_player); // Espera que o room encha
 	printf("ROOM_HANDLER %s: Full room - games are starting\n",room_name);
 
@@ -379,7 +381,7 @@ void *multiplayer_ranked_room_handler(void *arg) {
 		for(int i = 0; i < max_player; i++) {
 			sem_wait(sem_solucao_encontrada);
 			clock_gettime(CLOCK_MONOTONIC, &end);
-			printf("%.10f\n",end.tv_sec - start.tv_sec + (end.tv_nsec - start.tv_nsec) / 1e9) ;
+			printf("%s - %.10f\n",room_name,end.tv_sec - start.tv_sec + (end.tv_nsec - start.tv_nsec) / 1e9) ;
 		}
 	}
 }
