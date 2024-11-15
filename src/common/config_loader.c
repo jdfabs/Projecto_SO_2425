@@ -57,7 +57,7 @@ int read_file_to_string(char *filepath, char **data) {
 	}
 
 	fseek(file, 0, SEEK_END);
-	long length = ftell(file);
+	const long length = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
 	*data = (char *) malloc(length + 1);
@@ -92,8 +92,8 @@ int load_client_config(const char *filename, client_config *config) {
 	cJSON *json = NULL;
 
 	printf("Construir caminho para ficheiro de config\n");
-	size_t length = strlen("./config/") + strlen(filename) + strlen(".json") + 1;
-	char *filePath = (char *) malloc(length);
+	const size_t length = strlen("./config/") + strlen(filename) + strlen(".json") + 1;
+	char *filePath = malloc(length);
 	if (!filePath) {
 		printf("Failed to allocate memory for file path.\n");
 		return -1; // Handle the error as needed
@@ -152,8 +152,8 @@ int load_server_config(const char *filename, server_config *config) {
 	char *data = NULL;
 	cJSON *json = NULL;
 
-	size_t length = strlen("./config/") + strlen(filename) + strlen(".json") + 1;
-	char *filePath = (char *) malloc(length);
+	const size_t length = strlen("./config/") + strlen(filename) + strlen(".json") + 1;
+	char *filePath =  malloc(length);
 	if (!filePath) {
 		printf("ERRO ao allocar memoria.\n");
 		return -1; // Handle the error as needed

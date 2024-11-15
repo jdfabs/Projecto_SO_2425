@@ -18,7 +18,6 @@
 #include "common.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 
@@ -112,7 +111,7 @@ int main(int argc, char *argv[]) {
 
 	srand(time(NULL));
 	printf("Abrir memoria partilhada da sala\n");
-	int room_shared_memory_fd = shm_open(room_name, O_RDWR, 0666);
+	const int room_shared_memory_fd = shm_open(room_name, O_RDWR, 0666);
 	if (room_shared_memory_fd == -1) {
 		perror("shm_open FAIL");
 		exit(EXIT_FAILURE);
@@ -141,7 +140,7 @@ int main(int argc, char *argv[]) {
 				if (board[i][j] == 0) {
 					printf("celula (%d,%d) está vazia\n", i, j);
 					while(true) {
-						int k = (rand() %9)+1;
+						const int k = rand() %9+1;
 						send_solution_attempt(i, j, k);
 						clear();
 						printf("ROOM: %s\n", room_name);
@@ -167,9 +166,6 @@ int main(int argc, char *argv[]) {
 		sem_post(sem_solucao);
 
 	}
-
-	close(sock);
-	exit(0);
 }
 
 void printBoard(int **matrix) {
@@ -188,11 +184,11 @@ void printBoard(int **matrix) {
 		}
 	}
 }
-void client_init(int argc, char *argv[], client_config *config) {
+void client_init(const int argc, char *argv[], client_config *config) {
 	clear();
 	separator();
 	printf("Inicialização do cliente\n");
-	const char *config_file = (argc > 1) ? argv[1] : "client_1";
+	const char *config_file = argc > 1 ? argv[1] : "client_1";
 	printf("Carregar argumento de entrada\n");
 
 	if (argc <= 1) {
