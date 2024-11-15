@@ -28,25 +28,7 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 
-/************************************
- * EXTERN VARIABLES
- ************************************/
 
-/************************************
- * PRIVATE MACROS AND DEFINES
- ************************************/
-
-/************************************
- * PRIVATE TYPEDEFS
- ************************************/
-
-/************************************
- * STATIC VARIABLES
- ************************************/
-
-/************************************
- * GLOBAL VARIABLES
- ************************************/
 client_config config;
 int **board;
 
@@ -59,6 +41,11 @@ multiplayer_room_shared_data_t *shared_data;
 sem_t *sem_solucao;
 sem_t *sem_cons;
 sem_t *sem_prod;
+sem_t *mutex_task;
+sem_t *sem_room_full;
+sem_t *sem_game_start;
+
+
 /************************************
  * STATIC FUNCTION PROTOTYPES
  ***********************************/
@@ -71,7 +58,7 @@ void send_solution_attempt(int x, int y, int novo_valor) {
 	printf("%s\n", message);
 	//PREPROTOCOLO
 	sem_wait(sem_prod);
-	pthread_mutex_lock(&shared_data->mutex_task_reader);
+	sem_wait(mutex_task);
 
 	//ZONA CRITICA PARA CRIAR TASK
 	shared_data->task_queue[shared_data->task_productor_ptr].client_socket = client_socket;
@@ -80,7 +67,7 @@ void send_solution_attempt(int x, int y, int novo_valor) {
 
 	printf("Pedido colocado na fila\n");
 	//POS PROTOCOLO
-	pthread_mutex_unlock(&shared_data->mutex_task_reader);
+	sem_post(mutex_task);
 	sem_post(sem_cons);
 }
 
@@ -107,6 +94,7 @@ int main(int argc, char *argv[]) {
 	printf("Nome da sala connectada: %s\n", room_name);
 	separator();
 	printf("Inicializacao dos meios de sincronizacao da sala\n");
+	sleep(1);
 	char temp[255];
 	sprintf(temp, "/sem_%s_producer", room_name);
 	sem_prod = sem_open(temp, 0);
@@ -114,6 +102,12 @@ int main(int argc, char *argv[]) {
 	sem_cons = sem_open(temp, 0);
 	sprintf(temp, "/sem_%s_solucao", room_name);
 	sem_solucao = sem_open(temp, 0);
+	sprintf(temp, "/sem_%s_room_full", room_name);
+	sem_room_full = sem_open(temp, 0);
+	sprintf(temp, "/sem_%s_game_start", room_name);
+	sem_game_start = sem_open(temp, 0);
+	sprintf(temp, "/mut_%s_task", room_name);
+	mutex_task = sem_open(temp, 0);
 
 
 	srand(time(NULL));
@@ -131,12 +125,12 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 	printf("PRONTO PARA JOGAR!\nAssinalando a Sala que esta a espera\n");
-	sem_post(&shared_data->sem_room_full); // assinala que tem mais um cliente no room
+	sem_post(sem_room_full); // assinala que tem mais um cliente no room
 	separator();
 	printf("ESPERANDO\n");
 
 	for (;;) {
-		sem_wait(&shared_data->sem_game_start); // espera que o jogo comece
+		sem_wait(sem_game_start); // espera que o jogo comece
 		clear();
 
 		int **board = getMatrixFromJSON(cJSON_Parse(shared_data->starting_board));
@@ -150,6 +144,7 @@ int main(int argc, char *argv[]) {
 						int k = (rand() %9)+1;
 						send_solution_attempt(i, j, k);
 						clear();
+						printf("ROOM: %s\n", room_name);
 						printBoard(board);
 						printf("Pedido de verificação enviado: %d em (%d,%d)\n",k,i,j);
 						recv(sock, buffer, BUFFER_SIZE, 0);
@@ -159,14 +154,17 @@ int main(int argc, char *argv[]) {
 							printf("Numero correto encontrado\n");
 							break;
 						}
-						usleep((rand() % 1500000));
+						//usleep((rand() % 15000));
 
 					}
 				}
 			}
 		}
 	//Solução encontrada
-	sem_post(sem_solucao);
+		clear();
+		printf("ROOM: %s\n", room_name);
+		printBoard(board);
+		sem_post(sem_solucao);
 
 	}
 
@@ -175,7 +173,6 @@ int main(int argc, char *argv[]) {
 }
 
 void printBoard(int **matrix) {
-	printf("\nQuadro de Sudoku:\n");
 	for (int i = 0; i < 9; i++) {
 		for (int j = 0; j < 9; j++) {
 			printf("%d ", matrix[i][j]); // Print the number
@@ -190,7 +187,6 @@ void printBoard(int **matrix) {
 			printf("---------------------\n");
 		}
 	}
-	printf("\n");
 }
 void client_init(int argc, char *argv[], client_config *config) {
 	clear();
