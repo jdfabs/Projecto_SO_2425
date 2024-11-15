@@ -39,12 +39,22 @@ pthread_t multiplayer_rooms[10];
 
 void server_init(int argc, char **argv);
 void setup_socket();
-void accept_clients(void);
+void accept_clients();
 
 void *task_handler (void *arg);
 void create_new_room(int max_players, char *room_name );
 void *room_handler(void *arg);
 
+typedef struct {
+	char name[255];
+	int type;
+	int max_players;
+	int current_players;
+	pthread_t thread_id;
+} room_t;
+
+room_t rooms[20];
+int room_count = 0;
 
 int main(int argc, char *argv[]) {
 	server_init(argc, argv); // Server data structures setup
@@ -52,9 +62,11 @@ int main(int argc, char *argv[]) {
 
 	//TODO -- SETUP MORE ROOMS
 	//Setup multiplayer rooms
-	create_new_room(2, "room_1");
+	//create_new_room(2, "room_1");
 
-	while (true) accept_clients(); //Aceitar connectões e handshake
+	while (true) {
+		accept_clients(); //Aceitar connectões e handshake
+	}
 
 	close(server_fd);
 	exit(EXIT_SUCCESS);
@@ -101,6 +113,7 @@ void setup_socket() {
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
 		perror("Socket falhou");
 		log_event(config.log_file, "Criação do socket falhou!");
+		close(server_fd);
 		exit(EXIT_FAILURE);
 	}
 
@@ -130,25 +143,73 @@ void setup_socket() {
 	}
 	log_event(config.log_file, "Server começou a ouvir conecções ao servidor");
 }
-void accept_clients(void) {
+void accept_clients() {
 	socklen_t addr_len = sizeof(address);
 	int client_socket = accept(server_fd, (struct sockaddr *) &address, &addr_len);
 	if (client_socket  < 0) {
 		perror("Accept failed");
 	}
+
+
+	//HANDSHAKE
 	char aux[100];
-	sprintf(aux, "%d-%s", client_socket,"room_1");
+	recv(client_socket,aux , 100, 0);
+	printf("%s\n",aux);
+
+
+	for(int i = 0; i < room_count ; i++) {
+		if(rooms[i].current_players < rooms[i].max_players) {
+			printf("ROOM WITH SPACE\n");
+			sprintf(aux, "%d-%s%d", client_socket, "room_",i);
+			rooms[i].current_players++;
+			send(client_socket, aux, strlen(aux), 0);
+			return;
+		}
+	}
+	printf("NO APROPRIATE ROOMS-CREATING NEW ROOM\n");
+	snprintf(rooms[room_count].name,255, "room_%d", room_count);
+	rooms[room_count].current_players = 1;
+	rooms[room_count].max_players = 1;
+	rooms[room_count].type = atoi(aux);
+
+	create_new_room(rooms[room_count].max_players, rooms[room_count].name);
+
+	sprintf(aux, "%d-%s", client_socket, rooms[room_count].name);
+
+
+	room_count++;
 	send(client_socket, aux, sizeof(aux), 0); //Informa o cliente qual é o seu socket (para efeitos de retornar mensagem ao cliente certo)
 }
-void create_new_room(int max_players, char *room_name ){
+void create_new_room(int max_players, char *room_name) {
 	room_config_t *room_config;
 	room_config = malloc(sizeof(room_config_t));
+	if (!room_config) {
+		perror("Failed to allocate memory for room_config");
+		exit(EXIT_FAILURE);
+	}
+
 	room_config->max_players = max_players;
 
-	sprintf(room_config->room_name,"%s", room_name);
-	pthread_create(&multiplayer_rooms[0], NULL, room_handler, (void *) room_config);
-}
+	// Allocate memory for room_name
+	room_config->room_name = malloc(strlen(room_name) + 1); // +1 for null terminator
+	if (!room_config->room_name) {
+		perror("Failed to allocate memory for room_name");
+		free(room_config); // Free previously allocated memory
+		exit(EXIT_FAILURE);
+	}
 
+	// Copy the room name into allocated memory
+	sprintf(room_config->room_name, "%s", room_name);
+
+	pthread_t temp_thread;
+	int ret = pthread_create(&temp_thread, NULL, room_handler, (void *) room_config);
+	if (ret != 0) {
+		perror("pthread_create failed");
+		free(room_config->room_name); // Clean up allocated memory
+		free(room_config);
+		exit(EXIT_FAILURE);
+	}
+}
 
 
 //TASK MANAGERS
@@ -156,8 +217,15 @@ void *task_handler(void *arg) {
 	// Cast the void pointer to the appropriate type
 	multiplayer_room_shared_data_t *shared_data = (multiplayer_room_shared_data_t *)arg;
 
-	sem_t *sem_prod = sem_open("/sem_room_1_producer", O_CREAT | O_RDWR, 0666,5);
-	sem_t *sem_cons = sem_open("/sem_room_1_consumer", O_CREAT | O_RDWR, 0666, 0);
+	char aux[100];
+	sprintf(aux, "/sem_%s_producer", shared_data->room_name);
+	sem_unlink(aux);
+	sem_t *sem_prod = sem_open(aux, O_CREAT | O_RDWR, 0666,5);
+
+
+	sprintf(aux, "/sem_%s_consumer", shared_data->room_name);
+	sem_unlink(aux);
+	sem_t *sem_cons = sem_open(aux, O_CREAT | O_RDWR, 0666, 0);
 
 
 	int **solution;
@@ -210,7 +278,6 @@ void setup_shared_memory(char room_name[100], multiplayer_room_shared_data_t **s
 	}
 
 	*shared_data = mmap(NULL, sizeof( multiplayer_room_shared_data_t), PROT_READ | PROT_WRITE, MAP_SHARED,room_shared_memory, 0);
-
 	sprintf((*shared_data)->room_name,room_name);
 	(*shared_data)->board_id = -1;
 	strcpy((*shared_data)->starting_board, "");
