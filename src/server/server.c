@@ -29,6 +29,8 @@ void accept_clients();
 void *task_handler_multiplayer_ranked (void *arg);
 void create_multiplayer_ranked_room(int max_players, char *room_name );
 void *multiplayer_ranked_room_handler(void *arg);
+void create_singleplayer_room(char *room_name);
+void *singleplayer_room_handler(void *arg);
 
 server_config config;
 cJSON *boards;
@@ -179,13 +181,13 @@ void accept_clients() {
 	rooms[room_count].current_players = 1;
 	rooms[room_count].type = atoi(aux);
 
-	if(atoi(aux) == 2) {
+	if(atoi(aux) == 0) {
 		printf("Type: SINGLEPLAYER\n");
-		rooms[room_count].type = 1;
 		printf("NAO IMPLEMENTADO!!!\n");
+		create_singleplayer_room(rooms[room_count].name);
 	}
 	else {
-	rooms[room_count].max_players = 2;
+	rooms[room_count].max_players = config.server_size;
 		if(atoi(aux) == 1) {
 			printf("Type: RANKED\n");
 			create_multiplayer_ranked_room(rooms[room_count].max_players, rooms[room_count].name);
@@ -228,7 +230,31 @@ void create_multiplayer_ranked_room(int max_players, char *room_name) {
 		exit(EXIT_FAILURE);
 	}
 }
+void create_singleplayer_room(char *room_name) {
+	room_config_t *room_config = malloc(sizeof(room_config_t));
+	if (!room_config) {
+		perror("Failed to allocate memory for room_config");
+		exit(EXIT_FAILURE);
+	}
 
+	room_config->max_players = 1;
+	room_config->room_name = malloc(strlen(room_name) + 1);
+	if (!room_config->room_name) {
+		perror("Failed to allocate memory for room_name");
+		free(room_config);
+		exit(EXIT_FAILURE);
+	}
+
+	sprintf(room_config->room_name, "%s", room_name);
+
+	pthread_t temp_thread;
+	if(pthread_create(&temp_thread, NULL, singleplayer_room_handler, room_config) != 0) {
+		perror("ptread_create fail");
+		free(room_config);
+		exit(EXIT_FAILURE);
+	}
+
+}
 
 //TASK MANAGERS
 void *task_handler_multiplayer_ranked(void *arg) {
@@ -361,13 +387,12 @@ void *multiplayer_ranked_room_handler(void *arg) {
 	printf("%s of type Multiplayer Ranked - started with a max of %d players\n", room_name, max_player);
 
 
-	
+
 	wait_for_full_room(sem_room_full, max_player); // Espera que o room encha
-	printf("ROOM_HANDLER %s: Full room - games are starting\n",room_name);
+	printf("Multiplayer Ranked %s: room full - set the games begin\n",room_name);
 
 	// ReSharper disable once CppDFAEndlessLoop
 	for(;;) {
-		printf("ROOM_HANDLER %s: NEW GAME!!",room_name);
 		sleep(5);
 		select_new_board_and_share(shared_data);
 
@@ -376,7 +401,7 @@ void *multiplayer_ranked_room_handler(void *arg) {
 		for(int i = 0; i < max_player; i++) {
 			sem_post(sem_game_start); //TODO FIX THIS SHIT
 		}
-		printf("Multiplayer Room Handler: game start has been signaled \n");
+		printf("Multiplayer Ranked %s: game start has been signaled \n",room_name);
 
 		for(int i = 0; i < max_player; i++) {
 			sem_wait(sem_solucao_encontrada);
@@ -386,4 +411,6 @@ void *multiplayer_ranked_room_handler(void *arg) {
 	}
 }
 
-
+void *singleplayer_room_handler(void *arg) {
+	printf("hello from singleplayer thread\n");
+}

@@ -38,25 +38,24 @@ char buffer[BUFFER_SIZE] = {0};
 int client_socket;
 multiplayer_room_shared_data_t *shared_data;
 sem_t *sem_solucao;
-sem_t *sem_cons;
-sem_t *sem_prod;
-sem_t *mutex_task;
 sem_t *sem_room_full;
 sem_t *sem_game_start;
 
-
+sem_t *mutex_task;
+sem_t *sem_sync_1;
+sem_t *sem_sync_2;
 /************************************
  * STATIC FUNCTION PROTOTYPES
  ***********************************/
 void client_init(int argc, char *argv[], client_config *config);
 void connect_to_server();
 
-void send_solution_attempt(int x, int y, int novo_valor) {
+void send_solution_attempt_multiplayer_ranked(int x, int y, int novo_valor) {
 	char message[255];
 	sprintf(message, "0-%d,%d,%d", x, y, novo_valor);
 	printf("%s\n", message);
 	//PREPROTOCOLO
-	sem_wait(sem_prod);
+	sem_wait(sem_sync_2); //produtores
 	sem_wait(mutex_task);
 
 	//ZONA CRITICA PARA CRIAR TASK
@@ -67,13 +66,17 @@ void send_solution_attempt(int x, int y, int novo_valor) {
 	printf("Pedido colocado na fila\n");
 	//POS PROTOCOLO
 	sem_post(mutex_task);
-	sem_post(sem_cons);
+	sem_post(sem_sync_1);
+}
+void send_solution_attempt_multiplayer_casual(int x, int y, int novo_valor) {
+	//TODO
+}
+void send_solution_attempt_single_player(int x, int y, int novo_valor) {
+	//TODO
 }
 
-/************************************
- * STATIC FUNCTIONS
- ************************************/
 int main(int argc, char *argv[]) {
+
 	client_init(argc, argv, &config); // Client data structures setup
 	connect_to_server(); // Connect to server
 
@@ -94,37 +97,43 @@ int main(int argc, char *argv[]) {
 	separator();
 	printf("Inicializacao dos meios de sincronizacao da sala\n");
 	sleep(1);
-	char temp[255];
-	sprintf(temp, "/sem_%s_producer", room_name);
-	sem_prod = sem_open(temp, 0);
-	sprintf(temp, "/sem_%s_consumer", room_name);
-	sem_cons = sem_open(temp, 0);
-	sprintf(temp, "/sem_%s_solucao", room_name);
-	sem_solucao = sem_open(temp, 0);
-	sprintf(temp, "/sem_%s_room_full", room_name);
-	sem_room_full = sem_open(temp, 0);
-	sprintf(temp, "/sem_%s_game_start", room_name);
-	sem_game_start = sem_open(temp, 0);
-	sprintf(temp, "/mut_%s_task", room_name);
-	mutex_task = sem_open(temp, 0);
 
-
-	srand(time(NULL));
-	printf("Abrir memoria partilhada da sala\n");
-	const int room_shared_memory_fd = shm_open(room_name, O_RDWR, 0666);
-	if (room_shared_memory_fd == -1) {
+	if(config.game_type == 0) {
+		printf("Lofica para single player NAO IMPLEMENTADO");
+	}
+	if(config.game_type == 1) {
+		char temp[255];
+		sprintf(temp, "/sem_%s_producer", room_name);
+		sem_sync_2 = sem_open(temp, 0);
+		sprintf(temp, "/sem_%s_consumer", room_name);
+		sem_sync_1 = sem_open(temp, 0);
+		sprintf(temp, "/sem_%s_solucao", room_name);
+		sem_solucao = sem_open(temp, 0);
+		sprintf(temp, "/sem_%s_room_full", room_name);
+		sem_room_full = sem_open(temp, 0);
+		sprintf(temp, "/sem_%s_game_start", room_name);
+		sem_game_start = sem_open(temp, 0);
+		sprintf(temp, "/mut_%s_task", room_name);
+		mutex_task = sem_open(temp, 0);
+		printf("Abrir memoria partilhada da sala\n");
+		const int room_shared_memory_fd = shm_open(room_name, O_RDWR, 0666);
+		if (room_shared_memory_fd == -1) {
 		perror("shm_open FAIL");
 		exit(EXIT_FAILURE);
+		}
+
+		shared_data = mmap(NULL, sizeof(multiplayer_room_shared_data_t),PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory_fd, 0);
+		if (shared_data == MAP_FAILED) {
+			perror("mmap FAIL");
+			exit(EXIT_FAILURE);
+		}
+		printf("PRONTO PARA JOGAR!\nAssinalando a Sala que esta a espera\n");
+		sem_post(sem_room_full); // assinala que tem mais um cliente no room
+	}
+	else if(config.game_type == 2) {
+		printf("Logica para Multiplayer casual NAO IMPLEMENTADO");
 	}
 
-	shared_data = mmap(NULL, sizeof(multiplayer_room_shared_data_t),
-						PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory_fd, 0);
-	if (shared_data == MAP_FAILED) {
-		perror("mmap FAIL");
-		exit(EXIT_FAILURE);
-	}
-	printf("PRONTO PARA JOGAR!\nAssinalando a Sala que esta a espera\n");
-	sem_post(sem_room_full); // assinala que tem mais um cliente no room
 	separator();
 	printf("ESPERANDO\n");
 
@@ -141,7 +150,20 @@ int main(int argc, char *argv[]) {
 					printf("celula (%d,%d) está vazia\n", i, j);
 					while(true) {
 						const int k = rand() %9+1;
-						send_solution_attempt(i, j, k);
+						switch (config.game_type) {
+							case 0:
+								printf("TODO\n");
+								while(true) {}
+								break;
+							case 1:
+								send_solution_attempt_multiplayer_ranked(i, j, k);
+
+								break;
+							case 2:
+								printf("TODO\n");
+								while(true) {}
+							break;
+						}
 						clear();
 						printf("ROOM: %s\n", room_name);
 						printBoard(board);
@@ -153,9 +175,7 @@ int main(int argc, char *argv[]) {
 							printf("Numero correto encontrado\n");
 							break;
 						}
-
-						usleep((rand() % config.slow_factor));
-
+						usleep(rand() % (config.slow_factor+1));
 					}
 				}
 			}
@@ -186,6 +206,7 @@ void printBoard(int **matrix) {
 	}
 }
 void client_init(const int argc, char *argv[], client_config *config) {
+	srand(time(NULL));
 	clear();
 	separator();
 	printf("Inicialização do cliente\n");
@@ -204,9 +225,7 @@ void client_init(const int argc, char *argv[], client_config *config) {
 	log_event(config->log_file, "Client Started");
 	log_event(config->log_file, "Client Config Loaded");
 	separator();
-	//sleep(3);
 }
-
 void connect_to_server() {
 	printf("Criando Socket\n");
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -233,18 +252,5 @@ void connect_to_server() {
 	printf("Conectado ao servidor!\n");
 	log_event(config.log_file, "Conectado ao servidor");
 	separator();
-	//sleep(3);
 }
 
-
-//TODO -- enviar e receber quadros
-void send_solution() {
-}
-
-void receive_answer() {
-}
-
-
-/************************************
- * GLOBAL FUNCTIONS
- ************************************/

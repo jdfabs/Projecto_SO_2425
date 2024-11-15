@@ -193,6 +193,7 @@ int load_server_config(const char *filename, server_config *config) {
 	config->task_handler_threads = cJSON_GetObjectItem(json, "event_handler_threads")->valueint;
 	strcpy(config->ip_address, cJSON_GetObjectItem(json, "ip_address")->valuestring);
 	config->port = cJSON_GetObjectItem(json, "port")->valueint;
+	config->server_size = cJSON_GetObjectItem(json, "multiplayer_room_size")->valueint;
 	// Cleanup
 	cJSON_Delete(json);
 	free(filePath);
