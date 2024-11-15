@@ -143,6 +143,7 @@ int load_client_config(const char *filename, client_config *config) {
 	config->server_port = cJSON_GetObjectItem(client, "server_port")->valueint;
 	strcpy(config->log_file, cJSON_GetObjectItem(client, "log_file")->valuestring);
 	config->game_type = cJSON_GetObjectItem(client, "game_type")->valueint;
+	config->slow_factor = cJSON_GetObjectItem(client, "slow_factor")->valueint;
 	// Cleanup
 	cJSON_Delete(json);
 	return 0; // Success

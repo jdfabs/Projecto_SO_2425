@@ -26,7 +26,7 @@
 void server_init(int argc, char **argv);
 void setup_socket();
 void accept_clients();
-void *task_handler (void *arg);
+void *task_handler_multiplayer_ranked (void *arg);
 void create_multiplayer_ranked_room(int max_players, char *room_name );
 void *multiplayer_ranked_room_handler(void *arg);
 
@@ -47,6 +47,7 @@ int main(const int argc, char *argv[]) {
 		accept_clients(); //Aceitar connectões e handshake
 	}
 }
+
 void graceful_shutdown() {
 	printf("Shutting down...\n");
 	log_event(config.log_file, "Server shutting down gracefully");
@@ -102,13 +103,9 @@ void server_init(const int argc, char **argv) {
 		child = child->child;
 	}
 
-
-
 	log_event(config.log_file,"Boards carregados para memoria com sucesso");
 }
-
 void setup_socket() {
-
 	log_event(config.log_file, "A começar setup do socket de connecção");
 
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
@@ -137,7 +134,6 @@ void setup_socket() {
 		exit(EXIT_FAILURE);
 	}
 
-
 	// Bind ao endereço e porta
 	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
 		log_event(config.log_file, "Socket falhou bind");
@@ -163,13 +159,9 @@ void accept_clients() {
 		perror("Accept failed");
 	}
 
-
 	//HANDSHAKE
 	char aux[100];
 	recv(client_socket,aux , 100, 0);
-	printf("%s\n",aux);
-
-
 	for(int i = 0; i < room_count ; i++) {
 		if(rooms[i].current_players < rooms[i].max_players && atoi(aux) == rooms[i].type){
 			printf("ROOM WITH SPACE && CORRECT TYPE\n");
@@ -237,7 +229,7 @@ void create_multiplayer_ranked_room(int max_players, char *room_name) {
 
 
 //TASK MANAGERS
-void *task_handler(void *arg) {
+void *task_handler_multiplayer_ranked(void *arg) {
 	// Cast the void pointer to the appropriate type
 	multiplayer_room_shared_data_t *shared_data = arg;
 	char temp[255];
@@ -251,7 +243,7 @@ void *task_handler(void *arg) {
 	//PROBLEMA PRODUTORES CONSUMIDORES--- CONSUMIDOR
 	// ReSharper disable once CppDFAEndlessLoop
 	while (1) {
-		printf("TASK_HANDLER -- Waiting for something to read\n");
+		//printf("TASK_HANDLER_MULTIPLAYER_RANKED - %s -- Waiting\n", shared_data->room_name);
 
 		//PREPROTOCOLO
 		sem_wait(sem_cons);
@@ -265,10 +257,7 @@ void *task_handler(void *arg) {
 		sem_post(mutex_task);
 		sem_post(sem_prod);
 
-		printf("%s\n",task.request);
-
-		int **solution = getMatrixFromJSON(
-			cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
+		int **solution = getMatrixFromJSON(cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
 
 		if(solution[task.request[2]- '0'][task.request[4] - '0'] != task.request[6] - '0') {
 			send(task.client_socket, "0", sizeof("0"), 0);
@@ -329,7 +318,7 @@ void select_new_board_and_share(multiplayer_room_shared_data_t *shared_data) {
 void *multiplayer_ranked_room_handler(void *arg) {
 	room_config_t *room_config =arg;
 
-	const char room_name[100];
+	char room_name[100];
 	sprintf(room_name,"%s",room_config->room_name);
 
 	const int max_player = room_config->max_players;
@@ -366,7 +355,7 @@ void *multiplayer_ranked_room_handler(void *arg) {
 	sem_unlink(temp);
 	sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
 
-	pthread_create(&soltution_checker, NULL, task_handler, shared_data);
+	pthread_create(&soltution_checker, NULL, task_handler_multiplayer_ranked, shared_data);
 	printf("MULTIPLAYER ROOM %s started with a max of %d players\n", room_name, max_player);
 
 

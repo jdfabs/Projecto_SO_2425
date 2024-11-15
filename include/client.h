@@ -24,6 +24,7 @@ typedef struct  {
     int server_port;
     char log_file[254];
     int game_type;
+    int slow_factor;
 } client_config;
 
 #define BOARD_SIZE 9
