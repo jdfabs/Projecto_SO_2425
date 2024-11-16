@@ -264,7 +264,7 @@ void *task_handler_multiplayer_ranked(void *arg) {
 	sem_t *sem_prod = sem_open(temp, 0);
 	sprintf(temp, "/sem_%s_consumer", shared_data->room_name);
 	sem_t *sem_cons = sem_open(temp, 0);
-	sprintf(temp, "/mut_%s_task", shared_data->room_name);
+	sprintf(temp, "/mut_%s_task_server", shared_data->room_name);
 	sem_t *mutex_task = sem_open(temp, 0);
 
 	//PROBLEMA PRODUTORES CONSUMIDORES--- CONSUMIDOR
@@ -277,9 +277,10 @@ void *task_handler_multiplayer_ranked(void *arg) {
 		sem_wait(mutex_task);
 
 		//ZONA CRITICA --- ler task
+
 		Task task = shared_data->task_queue[shared_data->task_consumer_ptr];
 		shared_data->task_consumer_ptr = (shared_data->task_consumer_ptr + 1) % 5;
-
+		usleep(rand() % 150000);
 		//POS PROTOCOLO
 		sem_post(mutex_task);
 		sem_post(sem_prod);
@@ -372,19 +373,29 @@ void *multiplayer_ranked_room_handler(void *arg) {
 	sem_unlink(temp);
 	sem_t *sem_game_start = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
 
-	sprintf(temp, "/mut_%s_task", room_name);
+	sprintf(temp, "/mut_%s_task_server", room_name);
+	sem_unlink(temp);
+	sem_open(temp, O_CREAT | O_RDWR, 0666, 1);
+
+	sprintf(temp, "/mut_%s_task_client", room_name);
 	sem_unlink(temp);
 	sem_open(temp, O_CREAT | O_RDWR, 0666, 1);
 
 	sprintf(temp, "/sem_%s_producer", room_name);
 	sem_unlink(temp);
-	sem_open(temp, O_CREAT | O_RDWR, 0666,5);
+	sem_open(temp, O_CREAT | O_RDWR, 0666,5); //MUDAR PARA VARIAVEL NO CONFIG
 
 	sprintf(temp, "/sem_%s_consumer", room_name);
 	sem_unlink(temp);
 	sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
 
+
+    //3 consumidores
 	pthread_create(&soltution_checker, NULL, task_handler_multiplayer_ranked, shared_data);
+    pthread_create(&soltution_checker, NULL, task_handler_multiplayer_ranked, shared_data);
+    pthread_create(&soltution_checker, NULL, task_handler_multiplayer_ranked, shared_data);
+
+
 	printf("%s of type Multiplayer Ranked - started with a max of %d players\n", room_name, max_player);
 
 
@@ -394,7 +405,7 @@ void *multiplayer_ranked_room_handler(void *arg) {
 
 	// ReSharper disable once CppDFAEndlessLoop
 	for(;;) {
-		sleep(5);
+		//sleep(5);
 		multiplayer_ranked_select_new_board_and_share(shared_data);
 
 		//Start round
@@ -461,7 +472,7 @@ void * task_handler_singleplayer(void * arg) {
 		//ZONA CRITICA
 		//VER SE TA CERTO e manda para o buffer se está certo ou não
 		int **solution = getMatrixFromJSON(cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
-
+		usleep(rand() % 150000);
 		if(solution[shared_data->buffer[2]- '0'][shared_data->buffer[4] - '0'] != shared_data->buffer[6] - '0') {
 			strcpy(shared_data->buffer,"0");
 		}
@@ -502,7 +513,7 @@ void *singleplayer_room_handler(void *arg) {
 	printf("%s of type SinglePlayer started - let the games begin\n", room_name);
 
 	while(true) {
-		sleep(5);
+		//sleep(5);
 		shared_data->board_id = rand()%num_boards;
 		int rand_board = shared_data->board_id;
 

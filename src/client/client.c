@@ -63,7 +63,7 @@ void send_solution_attempt_multiplayer_ranked(int x, int y, int novo_valor) {
 	multiplayer_ranked_shared_data->task_queue[multiplayer_ranked_shared_data->task_productor_ptr].client_socket = client_socket;
 	sprintf(multiplayer_ranked_shared_data->task_queue[multiplayer_ranked_shared_data->task_productor_ptr].request, message);
 	multiplayer_ranked_shared_data->task_productor_ptr = (multiplayer_ranked_shared_data->task_productor_ptr + 1) % 5;
-
+	usleep(rand() % (config.slow_factor+1));
 	printf("Pedido colocado na fila\n");
 	//POS PROTOCOLO
 	sem_post(mutex_task);
@@ -79,6 +79,7 @@ void send_solution_attempt_single_player(int x, int y, int novo_valor) {
 	//PREPROTOCOLO
 	sem_wait(sem_sync_2);// redundante??
 	//ZC
+	usleep(rand() % (config.slow_factor+1));
 	printf("%s\n", message);
 	strcpy(singleplayer_room_shared_data->buffer, message);
 
@@ -90,6 +91,7 @@ void send_solution_attempt_single_player(int x, int y, int novo_valor) {
 
 bool receice_answer_single_player() {
 	sem_wait(sem_sync_2); //espera pela resposta do server
+	usleep(rand() % (config.slow_factor+1));
 	bool answer = atoi(singleplayer_room_shared_data->buffer);
 	sem_post(sem_sync_2); //vai tratar das continhas (vai escrever outra vez) REDUNDANTE??
 	return answer;
@@ -118,8 +120,6 @@ int main(int argc, char *argv[]) {
 	sleep(1);
 
 	if(config.game_type == 0) {
-		printf("Lofica para single player NAO IMPLEMENTADO");
-
 		char temp[255];
 
 		sprintf(temp, "/sem_%s_solucao", room_name);
@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
 		sem_room_full = sem_open(temp, 0);
 		sprintf(temp, "/sem_%s_game_start", room_name);
 		sem_game_start = sem_open(temp, 0);
-		sprintf(temp, "/mut_%s_task", room_name);
+		sprintf(temp, "/mut_%s_task_client", room_name);
 		mutex_task = sem_open(temp, 0);
 
 
@@ -240,7 +240,7 @@ int main(int argc, char *argv[]) {
 							break;
 						}
 
-						usleep(rand() % (config.slow_factor+1));
+						//usleep(rand() % (config.slow_factor+1));
 					}
 after_while:
 				}
