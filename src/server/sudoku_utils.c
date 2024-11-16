@@ -175,31 +175,7 @@ bool isCellValidInSquare(int **board, int row, int col)
     return true;
 }
 
-cJSON *update_sudoku_board(cJSON *currentBoard, int value, int x, int y)
-{
 
-    // Get the row at index y
-    cJSON *row = cJSON_GetArrayItem(currentBoard, y);
-    if (!cJSON_IsArray(row))
-    {
-        printf("Error: Row %d is not an array\n", y);
-        return NULL;
-    }
-
-    // Get the current cell value at index x and evaluate it
-    cJSON *cell = cJSON_GetArrayItem(row, x);
-    if (!cJSON_IsNumber(cell))
-    {
-        printf("Error: Cell at (%d, %d) is not a number\n", x, y);
-        return NULL;
-    }
-
-    // Update the cell value
-    cJSON_SetNumberValue(cell, value);
-
-    // Return the updated board
-    return currentBoard;
-}
 
 int **getMatrixFromJSON(cJSON *board)
 {
@@ -208,7 +184,7 @@ int **getMatrixFromJSON(cJSON *board)
     {
         matrix[i] = (int *)malloc(9 * sizeof(int));
     }
-    // printf(cJSON_Print(board));
+
     for (int i = 0; i < 9; i++)
     {
         cJSON *row = cJSON_GetArrayItem(board, i);

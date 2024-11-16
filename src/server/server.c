@@ -5,9 +5,6 @@
  * Server entry-point
  *********************************************************************************/
 
-/************************************
- * INCLUDES
- ************************************/
 #include "server.h"
 #include "file_handler.h"
 #include <stdio.h>
@@ -16,446 +13,427 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-
+#include <fcntl.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <sys/mman.h>
+#include <time.h>
+#include <signal.h>
 
-/************************************
- * EXTERN VARIABLES
- ************************************/
-
-/************************************
- * PRIVATE MACROS AND DEFINES
- ************************************/
-
-/************************************
- * PRIVATE TYPEDEFS
- ************************************/
-/************************************
- * STATIC VARIABLES
- ************************************/
-
-/************************************
- * GLOBAL VARIABLES
- ************************************/
-server_config config;
-cJSON *boards;
-
-int server_fd ;
-struct sockaddr_un address;
+#define MAX_PENDING_CONNECTIONS 5
+#define MAX_ROOMS 20
+#define BUFFER_SIZE 100
+#define MAX_PLAYERS_DEFAULT 1
 
 typedef struct {
-	int client_socket;
-	char request[BUFFER_SIZE];
-} Task;
+    int max_players;
+    char *room_name;
+} room_config_t;
 
-Task task_queue[];
-int task_creator_ptr=0, task_reader_ptr=0;
-pthread_mutex_t mutex_task_creators = PTHREAD_MUTEX_INITIALIZER, mutex_task_reader = PTHREAD_MUTEX_INITIALIZER;
-sem_t sem_task_creators, sem_task_reader;
+server_config config;
+cJSON *boards;
+int num_boards;
+
+int server_fd;
+struct sockaddr_in address;
+pthread_t multiplayer_rooms[10];
+
+typedef struct {
+    char name[255];
+    int type;
+    int max_players;
+    int current_players;
+    pthread_t thread_id;
+} room_t;
+
+room_t rooms[MAX_ROOMS];
+int room_count = 0;
 
 /************************************
  * STATIC FUNCTION PROTOTYPES
  ************************************/
-
-void server_init(int argc, char **argv, Task *task_queue);
+void server_init(int argc, char **argv);
 void setup_socket();
-void *client_handler(void *arg);
-void *task_handler ();
-
-/************************************
- * STATIC FUNCTIONS
- ************************************/
-
-/*void * TEST_SEND_MESSAGE_FROM_OTHER_THREAD(void * p) {
-	printf("hi\n");
-	while(task_queue[0].client_socket == -1 ) {
-		//printf("waiting\n");
-	}
-	send(task_queue[0].client_socket, "message from the other thread", sizeof("message from the other thread"), 0);
-}*/
+void accept_clients();
+void graceful_shutdown(int signum);
+void *task_handler(void *arg);
+void create_new_room(int max_players, char *room_name);
+void *room_handler(void *arg);
+void setup_shared_memory(char room_name[100], multiplayer_room_shared_data_t **shared_data);
+void room_setup(void *arg, char (*room_name)[100], int *max_player, struct timespec *start, struct timespec *end, multiplayer_room_shared_data_t **shared_data, sem_t **sem_solution_found, pthread_t *solution_checker);
+void wait_for_full_room(sem_t *sem, int slots);
+void select_new_board_and_share(multiplayer_room_shared_data_t *shared_data);
+void shared_memory_clean_up(char room_name[100], multiplayer_room_shared_data_t *shared_data);
 
 int main(int argc, char *argv[]) {
+    // Initialize server data structures and configurations
+    server_init(argc, argv);
+    // Set up server socket ready to accept connections
+    setup_socket();
 
-	/*
-	server_init(argc, argv, task_queue); // Server data structures setup
-	setup_socket(); // Ready to accept connections
+    while (1) {
+        accept_clients(); // Accept connections and perform handshake
+    }
 
-
-
-	pthread_t thread_id;
-	pthread_create(&thread_id, NULL, task_handler ,NULL);
-	//pthread_create(&thread_id, NULL, solution_checker ,NULL);
-
-
-	while (true) {
-		client_message *client_info = malloc(sizeof(client_message));
-		if (!client_info) {
-			perror("Failed to allocate memory for client_data");
-			continue; // handle error
-		}
-
-		// Accept a new client connection
-		socklen_t addr_len = sizeof(address);
-		client_info->client_socket = accept(server_fd, (struct sockaddr *)&address, &addr_len);
-		if (client_info->client_socket < 0) {
-			perror("Accept failed");
-			free(client_info); // Cleanup allocated memory
-			continue; // handle error
-		}
-
-		//printf("Client %d connected\n", client_info->client_socket);
-
-
-		// Create a new thread for the client
-		if (pthread_create(&thread_id, NULL, client_handler, (void *)client_info) != 0) {
-			perror("Failed to create thread");
-			close(client_info->client_socket);
-			free(client_info); // Cleanup allocated memory
-			continue; // handle error
-		}
-
-		pthread_detach(thread_id); // Detach the thread so it cleans up after itself
-	}
-
-	close(server_fd);
-	exit(EXIT_SUCCESS);
-	*/
-
-
-	generate_sudoku();
-
+    close(server_fd);
+    return EXIT_SUCCESS;
 }
 
-
-/************************************
- * GLOBAL FUNCTIONS
- ************************************/
-/*matrix = getMatrixFromJSON(get_board_state_by_id(0,STARTING_STATE));
-
-cJSON *startingStateMatrix = matrix_to_JSON(matrix);
-printf("\nReset current state\n");
-save_board_to_file(update_boards_with_new_board(startingStateMatrix,0,CURRENT_STATE),1);
-
-printf("\nFICHEIRO JSON CURRENT STATE\n");
-printf(cJSON_Print(get_board_state_by_id(0,CURRENT_STATE)));
-
-int **solution;
-solution = getMatrixFromJSON(get_board_state_by_id(0,END_STATE));
-
-printBoard(matrix);
-printf("\nStarting to solve from initial state\n");
-
-cJSON *finishedMatrix = matrix_to_JSON(matrix);
-printf("\nsaving matrix to file\n");
-save_board_to_file(update_boards_with_new_board(finishedMatrix, 0, CURRENT_STATE),1);
-*/
-
-//SETUP FUNCTIONS
-void server_init(int argc, char **argv, Task *task_queue) {
-	if (argc == 1) {
-		printf("Usage: ./server [CONFIG_FILE_NAME]\n");
-		log_event("./logs/server_default.json","Servidor iniciado sem argumentos");
-		exit(EXIT_FAILURE);
-	}
-
-	printf("Starting server...\n");
-	if (load_server_config(argv[1], &config) < 0) {
-		fprintf(stderr, "Failed to load server configuration.\n");
-		log_event("./logs/server_default.json","Carregamento de configs falhado -- A FECHAR SERVER");
-		exit(EXIT_FAILURE);
-	}
-	log_event(config.log_file, "Servidor começou");
-
-
-	task_queue = (Task *)malloc(config.task_queue_size * sizeof(Task));
-	if (task_queue == NULL) {
-		fprintf(stderr, "Memory allocation failed\n");
-
-		log_event(config.log_file, "Criação do array de tasks falhou!");
-		exit(EXIT_FAILURE);
-	}
-	for (int i = 0; i < config.task_queue_size; i++) { //inicializar os valores do array
-		task_queue[i].client_socket = -1;
-		sprintf(task_queue[i].request, "\0");
-	}
-
-	sem_init(&sem_task_creators,0,config.task_queue_size);
-	sem_init(&sem_task_reader,0,0);
-
-	boards = load_boards(config.board_file_path);
-	if (boards == NULL) {
-		printf("Failed to load boards from %s\n", config.board_file_path);
-		log_event(config.log_file, "Erro ao carregar boards!");
-		exit(EXIT_FAILURE);
-	}
-	log_event(config.log_file,"Boards carregados para memoria com sucesso");
+// BASIC SERVER AUX FUNCTIONS
+void graceful_shutdown(int signum) {
+    log_event(config.log_file, "Server shutting down gracefully");
+    close(server_fd);
+    // Add more cleanup code if necessary
+    exit(EXIT_SUCCESS);
 }
+
+void server_init(int argc, char **argv) {
+    signal(SIGINT, graceful_shutdown);
+    signal(SIGTERM, graceful_shutdown);
+
+    if (argc != 2) {
+        fprintf(stderr, "Usage: ./server [CONFIG_FILE_NAME]\n");
+        log_event("./logs/server_default.json", "Server started without configuration arguments");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Starting server...\n");
+    if (load_server_config(argv[1], &config) < 0) {
+        fprintf(stderr, "Failed to load server configuration.\n");
+        log_event("./logs/server_default.json", "Failed to load server configuration - Shutting down server");
+        exit(EXIT_FAILURE);
+    }
+    log_event(config.log_file, "Server started successfully");
+
+    boards = load_boards(config.board_file_path);
+    if (boards == NULL) {
+        fprintf(stderr, "Failed to load boards from %s\n", config.board_file_path);
+        log_event(config.log_file, "Failed to load boards - Shutting down server");
+        exit(EXIT_FAILURE);
+    }
+
+    // Count the number of boards loaded
+    cJSON *child = boards->child;
+    while (child != NULL) {
+        num_boards++;
+        child = child->next;
+    }
+
+    log_event(config.log_file, "Boards successfully loaded into memory");
+}
+
 void setup_socket() {
-	log_event(config.log_file, "A começar setup do socket de connecção");
+    log_event(config.log_file, "Starting socket setup");
 
-	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-		perror("Socket falhou");
-		log_event(config.log_file, "Criação do socket falhou!");
-		exit(EXIT_FAILURE);
-	}
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+        perror("Socket creation failed");
+        log_event(config.log_file, "Socket creation failed");
+        exit(EXIT_FAILURE);
+    }
 
-	char temp[255];
-	sprintf(temp, "Socket criado com sucesso. socket_fd: %d", server_fd);
-	log_event(config.log_file, temp);
+    char temp[255];
+    snprintf(temp, sizeof(temp), "Socket created successfully. socket_fd: %d", server_fd);
+    log_event(config.log_file, temp);
 
-	// Configurar o endereço IP e porta do servidor
-	struct sockaddr_in address;
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY; // Aceitar conexões de qualquer IP
-	address.sin_port = htons(config.port);      // Porta do servidor
+    // Configure server address and port
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY; // Accept connections from any IP
+    address.sin_port = htons(config.port); // Server port
 
-	// Bind ao endereço e porta
-	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-		log_event(config.log_file, "Socket falhou bind");
-		close(server_fd);
-		exit(EXIT_FAILURE);
-	}
-	log_event(config.log_file, "Socket deu bind com sucesso");
+    int opt = 1;
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+        perror("setsockopt failed");
+        log_event(config.log_file, "setsockopt failed");
+        close(server_fd);
+        exit(EXIT_FAILURE);
+    }
 
-	// Ouvir pedidos de connecção
-	if (listen(server_fd, 5) < 0) { // 5 = queue de conecções a se conectar
-		log_event(config.log_file, "Listen falhou");
-		close(server_fd);
-		exit(EXIT_FAILURE);
-	}
-	log_event(config.log_file, "Server começou a ouvir conecções ao servidor");
+    // Bind to address and port
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+        perror("Bind failed");
+        log_event(config.log_file, "Socket bind failed");
+        close(server_fd);
+        exit(EXIT_FAILURE);
+    }
+    log_event(config.log_file, "Socket bound successfully");
+
+    // Listen for incoming connection requests
+    if (listen(server_fd, MAX_PENDING_CONNECTIONS) < 0) {
+        perror("Listen failed");
+        log_event(config.log_file, "Socket listen failed");
+        close(server_fd);
+        exit(EXIT_FAILURE);
+    }
+    log_event(config.log_file, "Server is now listening for incoming connections");
 }
 
-//CLIENT HANDLER FUNCTIONS
-void client_handshake(int socket) {
-	char socket_str[20];
-	sprintf(socket_str, "%d", socket);
-	send(socket, socket_str, sizeof(socket_str), 0); //envia o socket do cliente
-}
-int receive_message(client_message *message) {
-	ssize_t bytes_read = recv(message->client_socket, message->message, sizeof(message->message)-1, 0);
-	if (bytes_read <= 0) {
-		//printf("Erro ao receber mensagem com sucesso");
-		return -1;
-	}
-	message->message[bytes_read] = '\0';
-	return 0;
-}
+void accept_clients() {
+    socklen_t addr_len = sizeof(address);
+    int client_socket = accept(server_fd, (struct sockaddr *)&address, &addr_len);
+    if (client_socket < 0) {
+        perror("Accept failed");
+        return;
+    }
 
-void *client_handler(void *arg) {
-	char log_var_aux[255];
-	client_message *client_info = (client_message *)arg;
-	client_handshake(client_info->client_socket); // Handshake entre cliente e server
+    // HANDSHAKE
+    char aux[BUFFER_SIZE] = {0};
+    if (recv(client_socket, aux, sizeof(aux) - 1, 0) < 0) {
+        perror("Receive failed");
+        close(client_socket);
+        return;
+    }
+    printf("Received: %s\n", aux);
 
+    for (int i = 0; i < room_count; i++) {
+        if (rooms[i].current_players < rooms[i].max_players) {
+            printf("ROOM WITH SPACE\n");
+            snprintf(aux, sizeof(aux), "%d-%s%d", client_socket, "room_", i);
+            rooms[i].current_players++;
+            send(client_socket, aux, strlen(aux), 0);
+            close(client_socket);
+            return;
+        }
+    }
 
-	while (1) { //Vai Receber todas as mensagens que o cliente mandar
-		if (receive_message(client_info)== -1) {
-			log_event(config.log_file, "Erro a rebecer mensagem/ cliente desligado!");
-			return NULL; //erro com cliente, acabar com thread
-		}
+    printf("NO APPROPRIATE ROOMS - CREATING NEW ROOM\n");
+    snprintf(rooms[room_count].name, sizeof(rooms[room_count].name), "room_%d", room_count);
+    rooms[room_count].current_players = 1;
+    rooms[room_count].max_players = MAX_PLAYERS_DEFAULT;
+    rooms[room_count].type = atoi(aux);
 
-		sprintf(log_var_aux, "Mensagem recebida de %d: %s", client_info->client_socket ,client_info->message);
-		log_event(config.log_file, log_var_aux);
+    create_new_room(rooms[room_count].max_players, rooms[room_count].name);
 
-		//PROBLEMA LEITORES ESCRITORES --- ESCRITOR
-		printf("CLIENT_HANDLER socket: %d task recebida -- esperar para escrever\n", client_info->client_socket);
-		sem_wait(&sem_task_creators);
-		pthread_mutex_lock(&mutex_task_creators);
+    snprintf(aux, sizeof(aux), "%d-%s", client_socket, rooms[room_count].name);
+    room_count++;
 
-		//ZONA CRITICA -- criar a tasks
-		printf("CLIENT_HANDLER socket: %d a escrever task\n",client_info->client_socket);
-		task_queue[task_creator_ptr].client_socket = client_info->client_socket;
-		sprintf(task_queue[task_creator_ptr].request, "%s", client_info->message);
-		task_creator_ptr = (task_creator_ptr + 1) % config.task_queue_size;
-		//FIM ZONA CRITICA
-		pthread_mutex_unlock(&mutex_task_creators);
-		sem_post(&sem_task_reader);
-
-		//TO-ASK como isto fica fora da zona critica, pode ser que fique logged fora de ordem 🤔 era de mudar isto?
-		sprintf(log_var_aux, "Nova task de %d adicionada na fila.",client_info->client_socket);
-		log_event(config.log_file, log_var_aux);
-
-	}
-/*
-	log_event(config.log_file, "Thread para cliente criado");
-	const int client_socket = *(int *)arg;
-
-	printf("client socket: %d\n", client_socket);
-	char buffer[BUFFER_SIZE];
-
-	while (1) {
-		int valread = read(client_socket, buffer, BUFFER_SIZE);
-		if (valread <= 0) {
-			// Client disconnected or error occurred
-			close(client_socket);
-			break;
-		}
-
-		buffer[valread] = '\0'; // Null-terminate the buffer to make it a proper string
-		printf("Received: %s\n", buffer);
-
-	}
-
-	printf("Cliente desconnectado -- Thread %lu acabando\n", pthread_self());
-	return NULL;*/
+    send(client_socket, aux, strlen(aux), 0);
+    close(client_socket);
 }
 
+void create_new_room(int max_players, char *room_name) {
+    room_config_t *room_config;
+    room_config = malloc(sizeof(room_config_t));
+    if (!room_config) {
+        perror("Failed to allocate memory for room_config");
+        exit(EXIT_FAILURE);
+    }
 
-//TASK MANAGERS
-void *task_handler () {
-	//PROBLEMA LEITORES ESCRITORES ---- LEITOR!!
-	while (1) {
-		printf("SOLUTION_CHECKER -- Waiting for something to read\n");
+    room_config->max_players = max_players;
 
-		sem_wait(&sem_task_reader);
-		pthread_mutex_lock(&mutex_task_reader);
-		//ZONA CRITICA --- ler task
-		Task task = task_queue[task_reader_ptr];
-		task_reader_ptr = (task_reader_ptr + 1) % config.task_queue_size;
+    // Allocate memory for room_name
+    room_config->room_name = malloc(strlen(room_name) + 1); // +1 for null terminator
+    if (!room_config->room_name) {
+        perror("Failed to allocate memory for room_name");
+        free(room_config); // Free previously allocated memory
+        exit(EXIT_FAILURE);
+    }
 
-<<<<<<< HEAD
-		printf("SOLUTION_CHECKER -- Something to read from: %d\n", task.client_socket);
-		pthread_mutex_unlock(&mutex_task_reader);
-		sem_post(&sem_task_creators);
-		printf("SOLUTION_CHECKER -- Processing (sleep 10secs) from: %d\n", task.client_socket);
-		//sleep(10);
-		char temp[255];
-		sprintf(temp, "request %s processed!", task.request);
-		send(task.client_socket,temp, strlen(temp), 0);
-=======
-		//POS PROTOCOLO
-		pthread_mutex_unlock(&shared_data->mutex_task_reader);
-		sem_post(sem_prod);
+    // Copy the room name into allocated memory
+    strncpy(room_config->room_name, room_name, strlen(room_name) + 1);
 
-		printf("%s\n",task.request);
+    pthread_t temp_thread;
+    int ret = pthread_create(&temp_thread, NULL, room_handler, (void *)room_config);
+    if (ret != 0) {
+        perror("pthread_create failed");
+        free(room_config->room_name); // Clean up allocated memory
+        free(room_config);
+        exit(EXIT_FAILURE);
+    }
 
-		solution = getMatrixFromJSON(cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id),"solution"));
-
-		int i = task.request[2]- '0';
-		int j = task.request[4] - '0';
-		int k = task.request[6] - '0';
-
-		if(solution[i][j] != k) {
-			printf("nope\n");
-			send(task.client_socket, "0", sizeof("0"), 0);
-		}
-		else {
-			printf("yep\n");
-			send(task.client_socket, "1", sizeof("1"), 0);
-		}
-	}
+    log_event(config.log_file, "New room created successfully");
 }
 
-//ROOM FUNCTIONS
+// TASK MANAGERS
+void *task_handler(void *arg) {
+    // Cast the void pointer to the appropriate type
+    multiplayer_room_shared_data_t *shared_data = (multiplayer_room_shared_data_t *)arg;
+
+    char aux[100];
+    snprintf(aux, sizeof(aux), "/sem_%s_producer", shared_data->room_name);
+    sem_unlink(aux);
+    sem_t *sem_prod = sem_open(aux, O_CREAT | O_RDWR, 0666, 5);
+    if (sem_prod == SEM_FAILED) {
+        perror("Failed to create producer semaphore");
+        pthread_exit(NULL);
+    }
+
+    snprintf(aux, sizeof(aux), "/sem_%s_consumer", shared_data->room_name);
+    sem_unlink(aux);
+    sem_t *sem_cons = sem_open(aux, O_CREAT | O_RDWR, 0666, 0);
+    if (sem_cons == SEM_FAILED) {
+        perror("Failed to create consumer semaphore");
+        sem_close(sem_prod);
+        pthread_exit(NULL);
+    }
+
+    int **solution;
+
+    // PRODUCER-CONSUMER PROBLEM --- CONSUMER
+    while (1) {
+        printf("TASK_HANDLER -- Waiting for something to read\n");
+
+        // PRE-PROTOCOL
+        sem_wait(sem_cons);
+        pthread_mutex_lock(&shared_data->mutex_task_reader);
+
+        // CRITICAL SECTION --- read task
+        Task task = shared_data->task_queue[shared_data->task_consumer_ptr];
+        shared_data->task_consumer_ptr = (shared_data->task_consumer_ptr + 1) % 5;
+
+        // POST-PROTOCOL
+        pthread_mutex_unlock(&shared_data->mutex_task_reader);
+        sem_post(sem_prod);
+
+        printf("%s\n", task.request);
+
+        solution = getMatrixFromJSON(cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
+
+        int i = task.request[2] - '0';
+        int j = task.request[4] - '0';
+        int k = task.request[6] - '0';
+
+        if (solution[i][j] != k) {
+            printf("nope\n");
+            send(task.client_socket, "0", sizeof("0"), 0);
+        } else {
+            printf("yep\n");
+            send(task.client_socket, "1", sizeof("1"), 0);
+        }
+    }
+
+    // Cleanup semaphores before exit
+    sem_close(sem_prod);
+    sem_close(sem_cons);
+    pthread_exit(NULL);
+}
+
+// ROOM FUNCTIONS
 void setup_shared_memory(char room_name[100], multiplayer_room_shared_data_t **shared_data) {
-	int room_shared_memory = shm_open(room_name, O_CREAT | O_RDWR,0666);
-	if(room_shared_memory == -1) {
-		perror("shm_open falhou");
-		exit(EXIT_FAILURE);
-	}
-	if(ftruncate(room_shared_memory, sizeof(multiplayer_room_shared_data_t)) == -1) {
-		perror("ftruncate falhou");
-		exit(EXIT_FAILURE);
-	}
+    int room_shared_memory = shm_open(room_name, O_CREAT | O_RDWR, 0666);
+    if (room_shared_memory == -1) {
+        perror("shm_open failed");
+        exit(EXIT_FAILURE);
+    }
+    if (ftruncate(room_shared_memory, sizeof(multiplayer_room_shared_data_t)) == -1) {
+        perror("ftruncate failed");
+        close(room_shared_memory);
+        exit(EXIT_FAILURE);
+    }
 
-	*shared_data = mmap(NULL, sizeof( multiplayer_room_shared_data_t), PROT_READ | PROT_WRITE, MAP_SHARED,room_shared_memory, 0);
+    *shared_data = mmap(NULL, sizeof(multiplayer_room_shared_data_t), PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory, 0);
+    if (*shared_data == MAP_FAILED) {
+        perror("mmap failed");
+        close(room_shared_memory);
+        exit(EXIT_FAILURE);
+    }
 
-	sprintf((*shared_data)->room_name,room_name);
-	(*shared_data)->board_id = -1;
-	strcpy((*shared_data)->starting_board, "");
+    snprintf((*shared_data)->room_name, sizeof((*shared_data)->room_name), "%s", room_name);
+    (*shared_data)->board_id = -1;
+    strcpy((*shared_data)->starting_board, "");
 
-	sem_init(&(*shared_data)->sem_game_start, 1, 0);
-	sem_init(&(*shared_data)->sem_room_full, 1, 0);
-	sem_init(&(*shared_data)->sem_found_solution, 1,0);
+    sem_init(&(*shared_data)->sem_game_start, 1, 0);
+    sem_init(&(*shared_data)->sem_room_full, 1, 0);
+    sem_init(&(*shared_data)->sem_found_solution, 1, 0);
 
-	for (int i = 0; i < 5; i++) { //inicializar os valores da fila de espera
-		(*shared_data)->task_queue[i].client_socket = -1;
-		sprintf((*shared_data)->task_queue[i].request, "\0");
-	}
+    for (int i = 0; i < 5; i++) { // Initialize the task queue
+        (*shared_data)->task_queue[i].client_socket = -1;
+        snprintf((*shared_data)->task_queue[i].request, sizeof((*shared_data)->task_queue[i].request), "");
+    }
 
-	(*shared_data)->task_consumer_ptr = 0;
-	(*shared_data)->task_productor_ptr = 0;
-	pthread_mutex_init(&(*shared_data)->mutex_task_creators, NULL);
-	pthread_mutex_init(&(*shared_data)->mutex_task_reader, NULL);
+    (*shared_data)->task_consumer_ptr = 0;
+    (*shared_data)->task_productor_ptr = 0;
+    pthread_mutex_init(&(*shared_data)->mutex_task_creators, NULL);
+    pthread_mutex_init(&(*shared_data)->mutex_task_reader, NULL);
 }
-void room_setup(void *arg, char(*room_name)[100], int *max_player, struct timespec *start, struct timespec *end, multiplayer_room_shared_data_t **shared_data, sem_t **sem_solucao_encontrada, pthread_t *soltution_checker) {
-	room_config_t *room_config =arg;
-	sprintf(*room_name,"%s",room_config->room_name);
-	*max_player = room_config->max_players;
 
-	setup_shared_memory(*room_name, &*shared_data);
-	char temp[255];
-	sprintf(temp, "/sem_%s_solucao", *room_name);
-	*sem_solucao_encontrada = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
+void room_setup(void *arg, char (*room_name)[100], int *max_player, struct timespec *start, struct timespec *end, multiplayer_room_shared_data_t **shared_data, sem_t **sem_solution_found, pthread_t *solution_checker) {
+    room_config_t *room_config = (room_config_t *)arg;
+    snprintf(*room_name, sizeof(*room_name), "%s", room_config->room_name);
+    *max_player = room_config->max_players;
 
-	pthread_create(&*soltution_checker, NULL, task_handler, (void *)*shared_data);
+    setup_shared_memory(*room_name, shared_data);
+    char temp[255];
+    snprintf(temp, sizeof(temp), "/sem_%s_solution", *room_name);
+    *sem_solution_found = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
+    if (*sem_solution_found == SEM_FAILED) {
+        perror("Failed to create solution semaphore");
+        exit(EXIT_FAILURE);
+    }
 
-	printf("MULTIPLAYER ROOM %s started with a max of %d players\n", *room_name, *max_player);
+    if (pthread_create(solution_checker, NULL, task_handler, (void *)*shared_data) != 0) {
+        perror("Failed to create solution checker thread");
+        sem_close(*sem_solution_found);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("MULTIPLAYER ROOM %s started with a max of %d players\n", *room_name, *max_player);
 }
 
 void wait_for_full_room(sem_t *sem, int slots) {
-	int value;
-	sem_getvalue(sem,&value);
-	if(value <= slots) {
-		for(int i = 0; i < slots; i++) {
-			sem_wait(sem);
-		}
-	}
-
+    int value;
+    sem_getvalue(sem, &value);
+    if (value <= slots) {
+        for (int i = 0; i < slots; i++) {
+            sem_wait(sem);
+        }
+    }
 }
+
 void select_new_board_and_share(multiplayer_room_shared_data_t *shared_data) {
-	cJSON *round_board;
+    cJSON *round_board;
 
-	srand(time(NULL));
-	shared_data->board_id = rand()% num_boards;
-	int random_board = shared_data->board_id;
+    srand(time(NULL));
+    shared_data->board_id = rand() % num_boards;
+    int random_board = shared_data->board_id;
 
-	round_board = cJSON_GetArrayItem(boards, random_board);
-	//broadcast new board
-	strcpy(shared_data->starting_board,cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
+    round_board = cJSON_GetArrayItem(boards, random_board);
+    // Broadcast new board
+    strcpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
 }
 
-void shared_memory_clean_up(char room_name[100], multiplayer_room_shared_data_t *shared_data) { //TODO -- MISSING PROD_CONS VARS
-	sem_destroy(&shared_data->sem_game_start);
-	sem_destroy(&shared_data->sem_room_full);
-	munmap(shared_data, sizeof(multiplayer_room_shared_data_t));
-	shm_unlink(room_name);
+void shared_memory_clean_up(char room_name[100], multiplayer_room_shared_data_t *shared_data) {
+    sem_destroy(&shared_data->sem_game_start);
+    sem_destroy(&shared_data->sem_room_full);
+    sem_destroy(&shared_data->sem_found_solution);
+    pthread_mutex_destroy(&shared_data->mutex_task_creators);
+    pthread_mutex_destroy(&shared_data->mutex_task_reader);
+    munmap(shared_data, sizeof(multiplayer_room_shared_data_t));
+    shm_unlink(room_name);
 }
-
 
 void *room_handler(void *arg) {
-	char room_name[100];
-	int max_player;
-	struct timespec start;
-	struct timespec end;
-	multiplayer_room_shared_data_t *shared_data;
-	sem_t *sem_solucao_encontrada;
-	pthread_t soltution_checker;
-	room_setup(arg, &room_name, &max_player, &start, &end, &shared_data, &sem_solucao_encontrada, &soltution_checker);
+    char room_name[100];
+    int max_player;
+    struct timespec start;
+    struct timespec end;
+    multiplayer_room_shared_data_t *shared_data;
+    sem_t *sem_solution_found;
+    pthread_t solution_checker;
 
+    room_setup(arg, &room_name, &max_player, &start, &end, &shared_data, &sem_solution_found, &solution_checker);
 
-	wait_for_full_room(&shared_data->sem_room_full, max_player); // Espera que o room encha
-	printf("ROOM_HANDLER %s: Full room - games are starting\n",room_name);
+    wait_for_full_room(&shared_data->sem_room_full, max_player); // Wait for the room to be full
+    printf("ROOM_HANDLER %s: Full room - games are starting\n", room_name);
 
-	for(;;) {
-		printf("ROOM_HANDLER %s: NEW GAME!!",room_name);
-		sleep(5);
-		select_new_board_and_share(shared_data);
+    for (;;) {
+        printf("ROOM_HANDLER %s: NEW GAME!!\n", room_name);
+        sleep(5);
+        select_new_board_and_share(shared_data);
 
-		//Start round
-		clock_gettime(CLOCK_MONOTONIC, &start);
-		for(int i = 0; i < max_player; i++) {
-			sem_post(&shared_data->sem_game_start);
-		}
-		printf("Multiplayer Room Handler: game start has been signaled \n");
+        // Start round
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        for (int i = 0; i < max_player; i++) {
+            sem_post(&shared_data->sem_game_start);
+        }
+        printf("Multiplayer Room Handler: game start has been signaled\n");
 
-		for(int i = 0; i < max_player; i++) {
-			sem_wait(sem_solucao_encontrada);
-			clock_gettime(CLOCK_MONOTONIC, &end);
-			printf("%.2f\n",(end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) ;
-		}
->>>>>>> parent of 7e38406 (UI Basica do Cliente)
+        for (int i = 0; i < max_player; i++) {
+            sem_wait(sem_solution_found);
+            clock_gettime(CLOCK_MONOTONIC, &end);
+            printf("%.2f\n", (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9);
+        }
+    }
 
-	}
+    shared_memory_clean_up(room_name, shared_data);
+    pthread_exit(NULL);
 }

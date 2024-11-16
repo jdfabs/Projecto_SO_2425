@@ -26,7 +26,6 @@
 #include <sys/un.h>
 #include <semaphore.h>
 #include <sys/mman.h>
-#include <unistr.h>
 #include <fcntl.h>
 
 /************************************
@@ -69,7 +68,7 @@ void connect_to_server();
 void send_solution_attempt(int x, int y, int novo_valor) {
 	char message[255];
 	sprintf(message, "0-%d,%d,%d", x, y, novo_valor);
-
+	printf("%s\n", message);
 	//PREPROTOCOLO
 	sem_wait(sem_prod);
 	pthread_mutex_lock(&shared_data->mutex_task_reader);
@@ -93,14 +92,20 @@ int main(int argc, char *argv[]) {
 	connect_to_server(); // Connect to server
 
 	//Handshake com server --- é enviado o socket do cliente e o nome do room em que este fica
+	char aux[100];
+	sprintf(aux, "%d", config.game_type);
+	send(sock, aux, sizeof(aux),0);
+
+
+
 	char room_name[100];
 	recv(sock, buffer, BUFFER_SIZE, 0);
+	sleep(1);
 	sscanf(buffer, "%d-%99s", &client_socket, room_name);
 
 	printf("Socked do Cliente: %d\n", client_socket);
 	printf("Nome da sala connectada: %s\n", room_name);
 	separator();
-	sleep(3);
 	printf("Inicializacao dos meios de sincronizacao da sala\n");
 	char temp[255];
 	sprintf(temp, "/sem_%s_producer", room_name);
@@ -118,7 +123,6 @@ int main(int argc, char *argv[]) {
 		perror("shm_open FAIL");
 		exit(EXIT_FAILURE);
 	}
-
 
 	shared_data = mmap(NULL, sizeof(multiplayer_room_shared_data_t),
 						PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory_fd, 0);
@@ -207,7 +211,7 @@ void client_init(int argc, char *argv[], client_config *config) {
 	log_event(config->log_file, "Client Started");
 	log_event(config->log_file, "Client Config Loaded");
 	separator();
-	sleep(3);
+	//sleep(3);
 }
 
 void connect_to_server() {
@@ -236,7 +240,7 @@ void connect_to_server() {
 	printf("Conectado ao servidor!\n");
 	log_event(config.log_file, "Conectado ao servidor");
 	separator();
-	sleep(3);
+	//sleep(3);
 }
 
 
