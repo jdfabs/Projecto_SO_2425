@@ -36,7 +36,8 @@ struct sockaddr_un server_address;
 char buffer[BUFFER_SIZE] = {0};
 
 int client_socket;
-multiplayer_room_shared_data_t *shared_data;
+multiplayer_room_shared_data_t *multiplayer_ranked_shared_data;
+singleplayer_room_shared_data_t *singleplayer_room_shared_data;
 sem_t *sem_solucao;
 sem_t *sem_room_full;
 sem_t *sem_game_start;
@@ -59,9 +60,9 @@ void send_solution_attempt_multiplayer_ranked(int x, int y, int novo_valor) {
 	sem_wait(mutex_task);
 
 	//ZONA CRITICA PARA CRIAR TASK
-	shared_data->task_queue[shared_data->task_productor_ptr].client_socket = client_socket;
-	sprintf(shared_data->task_queue[shared_data->task_productor_ptr].request, message);
-	shared_data->task_productor_ptr = (shared_data->task_productor_ptr + 1) % 5;
+	multiplayer_ranked_shared_data->task_queue[multiplayer_ranked_shared_data->task_productor_ptr].client_socket = client_socket;
+	sprintf(multiplayer_ranked_shared_data->task_queue[multiplayer_ranked_shared_data->task_productor_ptr].request, message);
+	multiplayer_ranked_shared_data->task_productor_ptr = (multiplayer_ranked_shared_data->task_productor_ptr + 1) % 5;
 
 	printf("Pedido colocado na fila\n");
 	//POS PROTOCOLO
@@ -73,7 +74,27 @@ void send_solution_attempt_multiplayer_casual(int x, int y, int novo_valor) {
 }
 void send_solution_attempt_single_player(int x, int y, int novo_valor) {
 	//TODO
+	char message[255];
+	sprintf(message, "0-%d,%d,%d", x, y, novo_valor);
+	//PREPROTOCOLO
+	sem_wait(sem_sync_2);// redundante??
+	//ZC
+	printf("%s\n", message);
+	strcpy(singleplayer_room_shared_data->buffer, message);
+
+	//POSPROTOCOLO
+	sem_post(sem_sync_1);// passa para o server
 }
+
+
+
+bool receice_answer_single_player() {
+	sem_wait(sem_sync_2); //espera pela resposta do server
+	bool answer = atoi(singleplayer_room_shared_data->buffer);
+	sem_post(sem_sync_2); //vai tratar das continhas (vai escrever outra vez) REDUNDANTE??
+	return answer;
+
+};
 
 int main(int argc, char *argv[]) {
 
@@ -84,8 +105,6 @@ int main(int argc, char *argv[]) {
 	char aux[100];
 	sprintf(aux, "%d", config.game_type);
 	send(sock, aux, sizeof(aux),0);
-
-
 
 	char room_name[100];
 	recv(sock, buffer, BUFFER_SIZE, 0);
@@ -100,6 +119,31 @@ int main(int argc, char *argv[]) {
 
 	if(config.game_type == 0) {
 		printf("Lofica para single player NAO IMPLEMENTADO");
+
+		char temp[255];
+
+		sprintf(temp, "/sem_%s_solucao", room_name);
+		sem_solucao = sem_open(temp, 0);
+		sprintf(temp, "/sem_%s_game_start", room_name);
+		sem_game_start = sem_open(temp, 0);
+		sprintf(temp, "/sem_%s_server", room_name);
+		sem_sync_1 = sem_open(temp, 0);
+		sprintf(temp, "/sem_%s_client", room_name);
+		sem_sync_2 = sem_open(temp, 0);
+
+		printf("Abrirmemoria partilhada da sala\n");
+		const int room_shared_memory_fd = shm_open(room_name, O_CREAT | O_RDWR, 0666);
+		if (room_shared_memory_fd == -1) {
+			perror("shm_open fail");
+			exit(EXIT_FAILURE);
+		}
+
+		singleplayer_room_shared_data = mmap (NULL, sizeof(singleplayer_room_shared_data_t), PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory_fd, 0);
+		if(singleplayer_room_shared_data == MAP_FAILED) {
+			perror("mmap fail");
+			exit(EXIT_FAILURE);
+		}
+		printf("PRONTO PARA JOGAR!\nAssinalando a Sala que esta a espera\n");
 	}
 	if(config.game_type == 1) {
 		char temp[255];
@@ -107,6 +151,7 @@ int main(int argc, char *argv[]) {
 		sem_sync_2 = sem_open(temp, 0);
 		sprintf(temp, "/sem_%s_consumer", room_name);
 		sem_sync_1 = sem_open(temp, 0);
+
 		sprintf(temp, "/sem_%s_solucao", room_name);
 		sem_solucao = sem_open(temp, 0);
 		sprintf(temp, "/sem_%s_room_full", room_name);
@@ -115,15 +160,17 @@ int main(int argc, char *argv[]) {
 		sem_game_start = sem_open(temp, 0);
 		sprintf(temp, "/mut_%s_task", room_name);
 		mutex_task = sem_open(temp, 0);
+
+
 		printf("Abrir memoria partilhada da sala\n");
 		const int room_shared_memory_fd = shm_open(room_name, O_RDWR, 0666);
 		if (room_shared_memory_fd == -1) {
-		perror("shm_open FAIL");
-		exit(EXIT_FAILURE);
+			perror("shm_open FAIL");
+			exit(EXIT_FAILURE);
 		}
 
-		shared_data = mmap(NULL, sizeof(multiplayer_room_shared_data_t),PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory_fd, 0);
-		if (shared_data == MAP_FAILED) {
+		multiplayer_ranked_shared_data = mmap(NULL, sizeof(multiplayer_room_shared_data_t),PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory_fd, 0);
+		if (multiplayer_ranked_shared_data == MAP_FAILED) {
 			perror("mmap FAIL");
 			exit(EXIT_FAILURE);
 		}
@@ -141,7 +188,22 @@ int main(int argc, char *argv[]) {
 		sem_wait(sem_game_start); // espera que o jogo comece
 		clear();
 
-		int **board = getMatrixFromJSON(cJSON_Parse(shared_data->starting_board));
+		int **board;
+
+		switch (config.game_type) {
+			case 0:
+				printf("111\n");
+				board = getMatrixFromJSON(cJSON_Parse(singleplayer_room_shared_data->starting_board));
+			break;
+			case 1:
+				printf("222\n");
+				board = getMatrixFromJSON(cJSON_Parse(multiplayer_ranked_shared_data->starting_board));
+			break;
+			case 2:
+				printf("333\n");
+				printf("TODO!!!");
+		}
+
 
 		// SOLUCIONAR BOARD
 		for (int i = 0; i < BOARD_SIZE; i++) {
@@ -150,33 +212,37 @@ int main(int argc, char *argv[]) {
 					printf("celula (%d,%d) está vazia\n", i, j);
 					while(true) {
 						const int k = rand() %9+1;
+						clear();
+						printf("ROOM: %s\n", room_name);
+						printBoard(board);
+						printf("Pedido de verificação enviado: %d em (%d,%d)\n",k,i,j);
 						switch (config.game_type) {
 							case 0:
-								printf("TODO\n");
-								while(true) {}
+								send_solution_attempt_single_player(i,j,k);
+								if(receice_answer_single_player()) {
+									board[i][j] = k;
+									printf("Numero correto encontrado\n");
+									goto after_while;
+								}
 								break;
 							case 1:
 								send_solution_attempt_multiplayer_ranked(i, j, k);
-
+								recv(sock, buffer, BUFFER_SIZE, 0);
+								if (buffer[0] == '1') {
+									board[i][j] = k;
+									printf("Numero correto encontrado\n");
+									goto after_while;
+								}
 								break;
 							case 2:
 								printf("TODO\n");
 								while(true) {}
 							break;
 						}
-						clear();
-						printf("ROOM: %s\n", room_name);
-						printBoard(board);
-						printf("Pedido de verificação enviado: %d em (%d,%d)\n",k,i,j);
-						recv(sock, buffer, BUFFER_SIZE, 0);
 
-						if (buffer[0] == '1') {
-							board[i][j] = k;
-							printf("Numero correto encontrado\n");
-							break;
-						}
 						usleep(rand() % (config.slow_factor+1));
 					}
+after_while:
 				}
 			}
 		}

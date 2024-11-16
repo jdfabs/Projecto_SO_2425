@@ -183,7 +183,6 @@ void accept_clients() {
 
 	if(atoi(aux) == 0) {
 		printf("Type: SINGLEPLAYER\n");
-		printf("NAO IMPLEMENTADO!!!\n");
 		create_singleplayer_room(rooms[room_count].name);
 	}
 	else {
@@ -297,7 +296,7 @@ void *task_handler_multiplayer_ranked(void *arg) {
 }
 
 //ROOM FUNCTIONS
-void setup_shared_memory(char room_name[100], multiplayer_room_shared_data_t **shared_data) {
+void setup_multiplayer_ranked_shared_memory(char room_name[100], multiplayer_room_shared_data_t **shared_data) {
 	const int room_shared_memory = shm_open(room_name, O_CREAT | O_RDWR,0666);
 	if(room_shared_memory == -1) {
 		perror("shm_open falhou");
@@ -321,8 +320,6 @@ void setup_shared_memory(char room_name[100], multiplayer_room_shared_data_t **s
 	(*shared_data)->task_consumer_ptr = 0;
 	(*shared_data)->task_productor_ptr = 0;
 }
-
-
 void wait_for_full_room(sem_t *sem, int slots) {
 	int value;
 	sem_getvalue(sem,&value);
@@ -333,7 +330,7 @@ void wait_for_full_room(sem_t *sem, int slots) {
 	}
 
 }
-void select_new_board_and_share(multiplayer_room_shared_data_t *shared_data) {
+void multiplayer_ranked_select_new_board_and_share(multiplayer_room_shared_data_t *shared_data) {
 	srand(time(NULL));
 	shared_data->board_id = rand()% num_boards;
 	int random_board = shared_data->board_id;
@@ -342,8 +339,12 @@ void select_new_board_and_share(multiplayer_room_shared_data_t *shared_data) {
 	//broadcast new board
 	strcpy(shared_data->starting_board,cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
 }
-
 void *multiplayer_ranked_room_handler(void *arg) {
+	struct timespec media;
+	media.tv_sec = 0;
+	media.tv_nsec = 0;
+	int time_counter = 0;
+
 	room_config_t *room_config =arg;
 
 	char room_name[100];
@@ -356,7 +357,7 @@ void *multiplayer_ranked_room_handler(void *arg) {
 	multiplayer_room_shared_data_t *shared_data;
 	pthread_t soltution_checker;
 
-	setup_shared_memory(room_name, &shared_data);
+	setup_multiplayer_ranked_shared_memory(room_name, &shared_data);
 
 	char temp[255];
 	sprintf(temp, "/sem_%s_solucao", room_name);
@@ -394,7 +395,7 @@ void *multiplayer_ranked_room_handler(void *arg) {
 	// ReSharper disable once CppDFAEndlessLoop
 	for(;;) {
 		sleep(5);
-		select_new_board_and_share(shared_data);
+		multiplayer_ranked_select_new_board_and_share(shared_data);
 
 		//Start round
 		clock_gettime(CLOCK_MONOTONIC, &start);
@@ -406,11 +407,127 @@ void *multiplayer_ranked_room_handler(void *arg) {
 		for(int i = 0; i < max_player; i++) {
 			sem_wait(sem_solucao_encontrada);
 			clock_gettime(CLOCK_MONOTONIC, &end);
-			printf("%s - %.10f\n",room_name,end.tv_sec - start.tv_sec + (end.tv_nsec - start.tv_nsec) / 1e9) ;
+			struct timespec final;
+			final.tv_sec = end.tv_sec - start.tv_sec;
+			final.tv_nsec = end.tv_nsec - start.tv_nsec;
+
+			time_counter++;
+			double new_avg = ((media.tv_sec + media.tv_nsec / 1e9) * (time_counter - 1) + (final.tv_sec + final.tv_nsec / 1e9)) / time_counter;
+			media.tv_sec = (time_t)new_avg;
+			media.tv_nsec = (long)((new_avg - media.tv_sec) * 1e9);
+
+			printf("Novo tempo em %s: %.10f\n",room_name,final.tv_sec + final.tv_nsec / 1e9);
+			printf("Media de %s: %.10f\n",room_name, media.tv_sec + media.tv_nsec / 1e9);
 		}
 	}
 }
 
+void setup_singleplayer_shared_memory(char room_name[100], singleplayer_room_shared_data_t **shared_data) {
+	const int shm = shm_open(room_name, O_CREAT | O_RDWR, 0666);
+	if (shm == -1) {
+		perror("shared data could not be opened");
+		exit(EXIT_FAILURE);
+	}
+
+	if (ftruncate(shm, sizeof(singleplayer_room_shared_data_t)) == -1) {
+		perror("shared data could not be truncated");
+		exit(EXIT_FAILURE);
+	}
+
+	*shared_data = mmap(NULL, sizeof(singleplayer_room_shared_data_t), PROT_READ | PROT_WRITE, MAP_SHARED, shm, 0);
+	if (*shared_data == MAP_FAILED) {
+		perror("mmap failed");
+		exit(EXIT_FAILURE);
+	}
+
+	// Initialize shared memory fields
+	strcpy((*shared_data)->room_name , room_name);
+	(*shared_data)->board_id = -1;
+	strcpy((*shared_data)->starting_board, "");
+	strcpy((*shared_data)->buffer, "");
+
+}
+void * task_handler_singleplayer(void * arg) {
+	singleplayer_room_shared_data_t *shared_data = arg;
+
+	char temp[255];
+	sprintf(temp, "sem_%s_server", shared_data->room_name);
+	sem_t * sem_server = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
+	sprintf(temp, "sem_%s_client", shared_data->room_name);
+	sem_t * sem_client = sem_open(temp, O_CREAT | O_RDWR, 0666, 1);
+
+	while (true) {
+		sem_wait(sem_server);
+		//ZONA CRITICA
+		//VER SE TA CERTO e manda para o buffer se está certo ou não
+		int **solution = getMatrixFromJSON(cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
+
+		if(solution[shared_data->buffer[2]- '0'][shared_data->buffer[4] - '0'] != shared_data->buffer[6] - '0') {
+			strcpy(shared_data->buffer,"0");
+		}
+		else {
+			strcpy(shared_data->buffer,"1");
+		}
+		sem_post(sem_client);
+	}
+}
 void *singleplayer_room_handler(void *arg) {
+	struct timespec media;
+	media.tv_sec = 0;
+	media.tv_nsec = 0;
+	int time_counter = 0;
+
 	printf("hello from singleplayer thread\n");
+
+	room_config_t *room_config =arg;
+	char room_name[100];
+	sprintf(room_name,"%s",room_config->room_name);
+
+	struct timespec start;
+	struct timespec end;
+	singleplayer_room_shared_data_t *shared_data ;
+	pthread_t solution_checker;
+
+	setup_singleplayer_shared_memory(room_name, &shared_data);
+
+	char temp[255];
+	sprintf(temp, "/sem_%s_game_start", room_name);
+	sem_unlink(temp);
+	sem_t *sem_game_start = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
+	sprintf(temp, "sem_%s_solucao", room_name);
+	sem_unlink(temp);
+	sem_t *sem_solucao_encontrada = sem_open(temp, O_CREAT | O_RDWR,0666, 0);
+
+	pthread_create(&solution_checker, NULL, task_handler_singleplayer, shared_data);
+	printf("%s of type SinglePlayer started - let the games begin\n", room_name);
+
+	while(true) {
+		sleep(5);
+		shared_data->board_id = rand()%num_boards;
+		int rand_board = shared_data->board_id;
+
+		cJSON *round_board = cJSON_GetArrayItem(boards, rand_board);
+		strcpy(shared_data->starting_board,cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
+
+		//Start Round
+		clock_gettime(CLOCK_MONOTONIC, &start);
+		sem_post(sem_game_start);
+
+		printf("Single Player %s: game start signaled\n", room_name);
+		sem_wait(sem_solucao_encontrada);
+
+		clock_gettime(CLOCK_MONOTONIC, &end);
+		struct timespec final;
+		final.tv_sec = end.tv_sec - start.tv_sec;
+		final.tv_nsec = end.tv_nsec - start.tv_nsec;
+
+		time_counter++;
+		double new_avg = ((media.tv_sec + media.tv_nsec / 1e9) * (time_counter - 1) + (final.tv_sec + final.tv_nsec / 1e9)) / time_counter;
+		media.tv_sec = (time_t)new_avg;
+		media.tv_nsec = (long)((new_avg - media.tv_sec) * 1e9);
+
+		printf("Novo tempo em %s: %.10f\n",room_name,final.tv_sec + final.tv_nsec / 1e9);
+		printf("Media de %s: %.10f\n",room_name, media.tv_sec + media.tv_nsec / 1e9);
+
+	}
 }
