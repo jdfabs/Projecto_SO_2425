@@ -435,7 +435,7 @@ void *multiplayer_ranked_room_handler(void *arg) {
 
 			printf("Novo tempo em %s: %.10f\n",room_name,final.tv_sec + final.tv_nsec / 1e9);
 			printf("Media de %s: %.10f\n",room_name, media.tv_sec + media.tv_nsec / 1e9);
-
+		}
 	}
 }
 
