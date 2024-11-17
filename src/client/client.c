@@ -63,8 +63,9 @@ void send_solution_attempt_multiplayer_ranked(int x, int y, int novo_valor) {
 	multiplayer_ranked_shared_data->task_queue[multiplayer_ranked_shared_data->task_productor_ptr].client_socket = client_socket;
 	sprintf(multiplayer_ranked_shared_data->task_queue[multiplayer_ranked_shared_data->task_productor_ptr].request, message);
 	multiplayer_ranked_shared_data->task_productor_ptr = (multiplayer_ranked_shared_data->task_productor_ptr + 1) % 5;
-	usleep(rand() % (config.slow_factor+1));
 	printf("Pedido colocado na fila\n");
+
+	usleep(rand() % (config.slow_factor+0));
 	//POS PROTOCOLO
 	sem_post(mutex_task);
 	sem_post(sem_sync_1);
@@ -215,6 +216,7 @@ int main(int argc, char *argv[]) {
 						clear();
 						printf("ROOM: %s\n", room_name);
 						printBoard(board);
+						usleep(rand() % (config.slow_factor*10+1));
 						printf("Pedido de verificação enviado: %d em (%d,%d)\n",k,i,j);
 						switch (config.game_type) {
 							case 0:
@@ -240,7 +242,7 @@ int main(int argc, char *argv[]) {
 							break;
 						}
 
-						//usleep(rand() % (config.slow_factor+1));
+
 					}
 after_while:
 				}

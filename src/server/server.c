@@ -280,7 +280,7 @@ void *task_handler_multiplayer_ranked(void *arg) {
 
 		Task task = shared_data->task_queue[shared_data->task_consumer_ptr];
 		shared_data->task_consumer_ptr = (shared_data->task_consumer_ptr + 1) % 5;
-		usleep(rand() % 150000);
+		usleep(rand() % 1500);
 		//POS PROTOCOLO
 		sem_post(mutex_task);
 		sem_post(sem_prod);
@@ -472,7 +472,7 @@ void * task_handler_singleplayer(void * arg) {
 		//ZONA CRITICA
 		//VER SE TA CERTO e manda para o buffer se está certo ou não
 		int **solution = getMatrixFromJSON(cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
-		usleep(rand() % 150000);
+		usleep(rand() % 1500);
 		if(solution[shared_data->buffer[2]- '0'][shared_data->buffer[4] - '0'] != shared_data->buffer[6] - '0') {
 			strcpy(shared_data->buffer,"0");
 		}
