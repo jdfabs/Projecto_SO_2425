@@ -1,9 +1,10 @@
 {
   "client": {
-	"id": "client2",
+	"id": "client1",
 	"server_ip": "127.0.0.1",
 	"server_port": 9346,
 	"log_file": "./logs/client1.log",
-	"game_type": 0
+	"game_type": 1,
+	"slow_factor": 150000
   }
 }

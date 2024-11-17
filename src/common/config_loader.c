@@ -57,7 +57,7 @@ int read_file_to_string(char *filepath, char **data) {
 	}
 
 	fseek(file, 0, SEEK_END);
-	long length = ftell(file);
+	const long length = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
 	*data = (char *) malloc(length + 1);
@@ -92,8 +92,8 @@ int load_client_config(const char *filename, client_config *config) {
 	cJSON *json = NULL;
 
 	printf("Construir caminho para ficheiro de config\n");
-	size_t length = strlen("./config/") + strlen(filename) + strlen(".json") + 1;
-	char *filePath = (char *) malloc(length);
+	const size_t length = strlen("./config/") + strlen(filename) + strlen(".json") + 1;
+	char *filePath = malloc(length);
 	if (!filePath) {
 		printf("Failed to allocate memory for file path.\n");
 		return -1; // Handle the error as needed
@@ -143,6 +143,7 @@ int load_client_config(const char *filename, client_config *config) {
 	config->server_port = cJSON_GetObjectItem(client, "server_port")->valueint;
 	strcpy(config->log_file, cJSON_GetObjectItem(client, "log_file")->valuestring);
 	config->game_type = cJSON_GetObjectItem(client, "game_type")->valueint;
+	config->slow_factor = cJSON_GetObjectItem(client, "slow_factor")->valueint;
 	// Cleanup
 	cJSON_Delete(json);
 	return 0; // Success
@@ -152,8 +153,8 @@ int load_server_config(const char *filename, server_config *config) {
 	char *data = NULL;
 	cJSON *json = NULL;
 
-	size_t length = strlen("./config/") + strlen(filename) + strlen(".json") + 1;
-	char *filePath = (char *) malloc(length);
+	const size_t length = strlen("./config/") + strlen(filename) + strlen(".json") + 1;
+	char *filePath =  malloc(length);
 	if (!filePath) {
 		printf("ERRO ao allocar memoria.\n");
 		return -1; // Handle the error as needed
@@ -192,6 +193,7 @@ int load_server_config(const char *filename, server_config *config) {
 	config->task_handler_threads = cJSON_GetObjectItem(json, "event_handler_threads")->valueint;
 	strcpy(config->ip_address, cJSON_GetObjectItem(json, "ip_address")->valuestring);
 	config->port = cJSON_GetObjectItem(json, "port")->valueint;
+	config->server_size = cJSON_GetObjectItem(json, "multiplayer_room_size")->valueint;
 	// Cleanup
 	cJSON_Delete(json);
 	free(filePath);

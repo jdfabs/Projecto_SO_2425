@@ -41,9 +41,15 @@ typedef struct multiplayer_room_shared_data {
 
  Task task_queue[5];
  int task_productor_ptr, task_consumer_ptr;
- pthread_mutex_t mutex_task_creators, mutex_task_reader;
- sem_t sem_game_start, sem_room_full, sem_found_solution;
-} multiplayer_ranked_room_shared_data_t;
+
+} multiplayer_room_shared_data_t;
+
+typedef struct singleplayer_room_shared_data {
+ int board_id;
+ char starting_board[BUFFER_SIZE], room_name[BUFFER_SIZE];
+
+ char buffer[1024];
+} singleplayer_room_shared_data_t;
 /************************************
  * EXPORTED VARIABLES
  ************************************/
