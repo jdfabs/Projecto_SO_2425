@@ -56,24 +56,54 @@ void graceful_shutdown() {
 	close(server_fd);
 	for (int i = 0; i < room_count; i++) {
 		char temp[100];
-		sprintf(temp, "sem_%s_game_start", rooms[i].name);
-		sem_unlink(temp);
-		sprintf(temp, "sem_%s_solucao", rooms[i].name);
-		sem_unlink(temp);
-		sprintf(temp, "sem_%s_room_full", rooms[i].name);
-		sem_unlink(temp);
-		sprintf(temp, "sem_%s_producer", rooms[i].name);
-		sem_unlink(temp);
-		sprintf(temp, "sem_%s_consumer", rooms[i].name);
-		sem_unlink(temp);
-		sprintf(temp, "mut_%s_task", rooms[i].name);
-		sem_unlink(temp);
-		sprintf(temp, "%s", rooms[i].name);
-		sem_unlink(temp);
-		sprintf(temp, "sem_%s_client", rooms[i].name);
-		sem_unlink(temp);
-		sprintf(temp, "mut_%s_server", rooms[i].name);
-		sem_unlink(temp);
+		for (int i = 0; i < room_count; i++) { // Assuming 'room_count' defines the number of rooms
+			char temp[256]; // Buffer for semaphore names
+			int result;
+
+			sprintf(temp, "sem_%s_game_start", rooms[i].name);
+			result = sem_unlink(temp);
+			if (result == -1) perror("Error unlinking sem_game_start");
+
+			sprintf(temp, "sem_%s_solucao", rooms[i].name);
+			result = sem_unlink(temp);
+			if (result == -1) perror("Error unlinking sem_solucao");
+
+			sprintf(temp, "sem_%s_room_full", rooms[i].name);
+			result = sem_unlink(temp);
+			if (result == -1) perror("Error unlinking sem_room_full");
+
+			sprintf(temp, "sem_%s_producer", rooms[i].name);
+			result = sem_unlink(temp);
+			if (result == -1) perror("Error unlinking sem_producer");
+
+			sprintf(temp, "sem_%s_consumer", rooms[i].name);
+			result = sem_unlink(temp);
+			if (result == -1) perror("Error unlinking sem_consumer");
+
+			sprintf(temp, "mut_%s_task", rooms[i].name);
+			result = sem_unlink(temp);
+			if (result == -1) perror("Error unlinking mut_task");
+
+			sprintf(temp, "%s", rooms[i].name);
+			result = sem_unlink(temp);
+			if (result == -1) perror("Error unlinking room_name");
+
+			sprintf(temp, "sem_%s_client", rooms[i].name);
+			result = sem_unlink(temp);
+			if (result == -1) perror("Error unlinking sem_client");
+
+			sprintf(temp, "mut_%s_server", rooms[i].name);
+			result = sem_unlink(temp);
+			if (result == -1) perror("Error unlinking mut_server");
+
+			sprintf(temp, "sem_%s_task_client", rooms[i].name);
+			result = sem_unlink(temp);
+			if (result == -1) perror("Error unlinking sem_task_client");
+
+			sprintf(temp, "mut_%s_task_server", rooms[i].name);
+			result = sem_unlink(temp);
+			if (result == -1) perror("Error unlinking mut_task_server");
+		}
 
 	}
 	// Add more cleanup code if necessary
