@@ -4,9 +4,7 @@
  * 11/10/2024
  *********************************************************************************/
 
-/************************************
- * INCLUDES
- ************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,21 +12,32 @@
 #include "cJSON.h"
 #include "common.h"
 #include <arpa/inet.h>
-/************************************
- * MACROS AND DEFINES
- ************************************/
 
-/************************************
- * TYPEDEFS
- ************************************/
 typedef struct {
 	char log_file[255];
 	char board_file_path[255];
 	int task_queue_size;
 	int task_handler_threads;
- char ip_address[255];
- int port;
+	char ip_address[255];
+	int port;
+	int server_size;
 } server_config;
+
+typedef struct {
+	char name[255];
+	int type;
+	int max_players;
+	int current_players;
+	pthread_t thread_id;
+} room_t;
+
+typedef struct {
+	int max_players;
+	char *room_name;
+} room_config_t;
+
+
+
 
 
 /************************************

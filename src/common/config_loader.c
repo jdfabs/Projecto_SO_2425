@@ -46,7 +46,7 @@ int parse_json(const char *data, cJSON **json) {
 	if (!*json) {
 		return -1; // Indicate parsing error
 	}
-	printf("JSON parsed successfully\n");
+	//printf("JSON parsed successfully\n");
 	return 0; // Indicate success
 }
 int read_file_to_string(char *filepath, char **data) {
@@ -57,7 +57,7 @@ int read_file_to_string(char *filepath, char **data) {
 	}
 
 	fseek(file, 0, SEEK_END);
-	long length = ftell(file);
+	const long length = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
 	*data = (char *) malloc(length + 1);
@@ -70,17 +70,17 @@ int read_file_to_string(char *filepath, char **data) {
 	fread(*data, 1, length, file);
 	(*data)[length] = '\0';
 	fclose(file);
-	printf("File read to string successfully\n");
+	//printf("File read to string successfully\n");
 	return 0;
 }
 
-void load_default_client_config(client_config *client_config) {
+void load_default_client_config(client_config *client_config) { //TODO -- fix
 	strcpy(client_config->id, "default_client");
 	strcpy(client_config->server_ip, "127.0.0.1");
 	client_config->server_port = 8080;
 	strcpy(client_config->log_file, "./logs/client_default.log");
 }
-void load_default_server_config(server_config *server_config) {
+void load_default_server_config(server_config *server_config) { //TODO -- fix
 	strcpy(server_config->log_file, "./logs/server_default.log");
 	server_config->board_file_path, "./boards/boards.json";
 	server_config->task_queue_size = 10;
@@ -91,9 +91,9 @@ int load_client_config(const char *filename, client_config *config) {
 	char *data = NULL;
 	cJSON *json = NULL;
 
-
-	size_t length = strlen("./config/") + strlen(filename) + strlen(".json") + 1;
-	char *filePath = (char *) malloc(length);
+	printf("Construir caminho para ficheiro de config\n");
+	const size_t length = strlen("./config/") + strlen(filename) + strlen(".json") + 1;
+	char *filePath = malloc(length);
 	if (!filePath) {
 		printf("Failed to allocate memory for file path.\n");
 		return -1; // Handle the error as needed
@@ -104,7 +104,7 @@ int load_client_config(const char *filename, client_config *config) {
 	strcat(filePath, filename);
 	strcat(filePath, ".json"); // Read file content to string
 
-
+	printf("Carregar ficheiro para memoria\n");
 	// Read file content to string
 	if (read_file_to_string(filePath, &data) < 0) {
 		printf("Loading default client configurations.\n");
@@ -113,7 +113,7 @@ int load_client_config(const char *filename, client_config *config) {
 		log_event(CLIENT_LOG_PATH, "Config default cliente carregada.");
 		return 1;
 	}
-
+	printf("Parsing ficheiro config para JSON\n");
 	// Parse the JSON data
 	if (parse_json(data, &json) < 0) {
 		free(data);
@@ -125,6 +125,7 @@ int load_client_config(const char *filename, client_config *config) {
 	}
 	free(data); // Free the allocated memory for data
 
+
 	// Get the client configuration
 	const cJSON *client = cJSON_GetObjectItem(json, "client");
 	if (!client) {
@@ -135,24 +136,25 @@ int load_client_config(const char *filename, client_config *config) {
 		cJSON_Delete(json);
 		return 1;
 	}
-
+	printf("Carregar valores da config para struct em memoria\n");
 	// Extracting values from the JSON object
 	strcpy(config->id, cJSON_GetObjectItem(client, "id")->valuestring);
 	strcpy(config->server_ip, cJSON_GetObjectItem(client, "server_ip")->valuestring);
 	config->server_port = cJSON_GetObjectItem(client, "server_port")->valueint;
 	strcpy(config->log_file, cJSON_GetObjectItem(client, "log_file")->valuestring);
-
+	config->game_type = cJSON_GetObjectItem(client, "game_type")->valueint;
+	config->slow_factor = cJSON_GetObjectItem(client, "slow_factor")->valueint;
 	// Cleanup
 	cJSON_Delete(json);
 	return 0; // Success
 }
 int load_server_config(const char *filename, server_config *config) {
-	printf("A Carregar Config File Do Server\n");
+	//printf("A Carregar Config File Do Server\n");
 	char *data = NULL;
 	cJSON *json = NULL;
 
-	size_t length = strlen("./config/") + strlen(filename) + strlen(".json") + 1;
-	char *filePath = (char *) malloc(length);
+	const size_t length = strlen("./config/") + strlen(filename) + strlen(".json") + 1;
+	char *filePath =  malloc(length);
 	if (!filePath) {
 		printf("ERRO ao allocar memoria.\n");
 		return -1; // Handle the error as needed
@@ -191,6 +193,7 @@ int load_server_config(const char *filename, server_config *config) {
 	config->task_handler_threads = cJSON_GetObjectItem(json, "event_handler_threads")->valueint;
 	strcpy(config->ip_address, cJSON_GetObjectItem(json, "ip_address")->valuestring);
 	config->port = cJSON_GetObjectItem(json, "port")->valueint;
+	config->server_size = cJSON_GetObjectItem(json, "multiplayer_room_size")->valueint;
 	// Cleanup
 	cJSON_Delete(json);
 	free(filePath);

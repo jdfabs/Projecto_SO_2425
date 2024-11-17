@@ -68,8 +68,8 @@ bool isValidSudoku(int **board)
             return false;
         // printf("row %d valid", i+1);
 
-        int startRow = (i / 3) * 3;
-        int startCol = (i % 3) * 3;
+        int startRow = i / 3 * 3;
+        int startCol = i % 3 * 3;
 
         int counter = 0;
         for (int r = 0; r < 3; r++)
@@ -160,8 +160,8 @@ bool isCellValidInCol(int **board, int row, int col)
 bool isCellValidInSquare(int **board, int row, int col)
 {
     int num = board[row][col];
-    int startRow = (row / 3) * 3;
-    int startCol = (col / 3) * 3;
+    int startRow = row / 3 * 3;
+    int startCol = col / 3 * 3;
     for (int i = startRow; i < startRow + 3; i++)
     { // rows from aprop
         for (int j = startCol; j < startCol + 3; j++)
@@ -179,7 +179,7 @@ bool isCellValidInSquare(int **board, int row, int col)
 
 int **getMatrixFromJSON(cJSON *board)
 {
-    int **matrix = (int **)malloc(9 * sizeof(int *));
+    int **matrix = malloc(9 * sizeof(int *));
     for (int i = 0; i < 9; i++)
     {
         matrix[i] = (int *)malloc(9 * sizeof(int));

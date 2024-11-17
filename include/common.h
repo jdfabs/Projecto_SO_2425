@@ -8,8 +8,9 @@
 /************************************
  * INCLUDES
  ************************************/
-
-
+#include <pthread.h>
+#include <semaphore.h>
+#include "cJSON.h"
 /************************************
  * MACROS AND DEFINES
  ************************************/
@@ -30,9 +31,25 @@
 
 
 typedef struct {
- int client_socket;
- char message[MESSAGE_SIZE];
-} client_message;
+	int client_socket;
+	char request[BUFFER_SIZE];
+} Task;
+
+typedef struct multiplayer_room_shared_data {
+ int board_id;
+ char starting_board[BUFFER_SIZE], room_name[BUFFER_SIZE];
+
+ Task task_queue[5];
+ int task_productor_ptr, task_consumer_ptr;
+
+} multiplayer_room_shared_data_t;
+
+typedef struct singleplayer_room_shared_data {
+ int board_id;
+ char starting_board[BUFFER_SIZE], room_name[BUFFER_SIZE];
+
+ char buffer[1024];
+} singleplayer_room_shared_data_t;
 /************************************
  * EXPORTED VARIABLES
  ************************************/
@@ -42,3 +59,4 @@ typedef struct {
  ************************************/
 
 int log_event(const char *file_path, const char *message);
+int **getMatrixFromJSON(cJSON *board);

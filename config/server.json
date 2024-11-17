@@ -8,5 +8,6 @@
   "backup_interval": 15,
   "board_file_path": "./boards/boards.json",
   "task_queue_size": 1,
-  "event_handler_threads": 2
+  "event_handler_threads": 2,
+  "multiplayer_room_size":8
 }

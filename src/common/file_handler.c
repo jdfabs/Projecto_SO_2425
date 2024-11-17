@@ -74,11 +74,11 @@ cJSON *load_boards(char *path) {
 
     // Determine the file size
     fseek(file, 0, SEEK_END);
-    long file_size = ftell(file);
+    const long file_size = ftell(file);
     fseek(file, 0, SEEK_SET);
 
     // Allocate memory for the file content
-    char *file_content = (char *) malloc(file_size + 1);
+    char *file_content =  malloc(file_size + 1);
     if (file_content == NULL) {
         printf("Error: Could not allocate memory\n");
         fclose(file);
