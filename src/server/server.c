@@ -68,6 +68,12 @@ void graceful_shutdown() {
 		sem_unlink(temp);
 		sprintf(temp, "mut_%s_task", rooms[i].name);
 		sem_unlink(temp);
+		sprintf(temp, "%s", rooms[i].name);
+		sem_unlink(temp);
+		sprintf(temp, "sem_%s_client", rooms[i].name);
+		sem_unlink(temp);
+		sprintf(temp, "mut_%s_server", rooms[i].name);
+		sem_unlink(temp);
 
 	}
 	// Add more cleanup code if necessary
@@ -429,7 +435,7 @@ void *multiplayer_ranked_room_handler(void *arg) {
 
 			printf("Novo tempo em %s: %.10f\n",room_name,final.tv_sec + final.tv_nsec / 1e9);
 			printf("Media de %s: %.10f\n",room_name, media.tv_sec + media.tv_nsec / 1e9);
-		}
+
 	}
 }
 

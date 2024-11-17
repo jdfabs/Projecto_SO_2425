@@ -244,7 +244,7 @@ int main(int argc, char *argv[]) {
 
 
 					}
-after_while:
+after_while: continue;
 				}
 			}
 		}
