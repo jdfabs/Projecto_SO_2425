@@ -31,6 +31,8 @@ void create_multiplayer_ranked_room(int max_players, char *room_name );
 void *multiplayer_ranked_room_handler(void *arg);
 void create_singleplayer_room(char *room_name);
 void *singleplayer_room_handler(void *arg);
+void clean_room_shm(void);
+
 
 server_config config;
 cJSON *boards;
@@ -49,6 +51,8 @@ int main(const int argc, char *argv[]) {
 		accept_clients(); //Aceitar connectões e handshake
 	}
 }
+
+
 
 void graceful_shutdown() {
 	printf("Shutting down...\n");
@@ -84,19 +88,20 @@ void graceful_shutdown() {
 			result = sem_unlink(temp);
 			if (result == -1) perror("Error unlinking mut_task");
 
-			sprintf(temp, "%s", rooms[i].name);
-			result = sem_unlink(temp);
-			if (result == -1) perror("Error unlinking room_name");
+
+
+			clean_room_shm();
+
 
 			sprintf(temp, "sem_%s_client", rooms[i].name);
 			result = sem_unlink(temp);
 			if (result == -1) perror("Error unlinking sem_client");
 
-			sprintf(temp, "mut_%s_server", rooms[i].name);
+			sprintf(temp, "sem_%s_server", rooms[i].name);
 			result = sem_unlink(temp);
 			if (result == -1) perror("Error unlinking mut_server");
 
-			sprintf(temp, "sem_%s_task_client", rooms[i].name);
+			sprintf(temp, "mut_%s_task_client", rooms[i].name);
 			result = sem_unlink(temp);
 			if (result == -1) perror("Error unlinking sem_task_client");
 
@@ -366,6 +371,9 @@ void wait_for_full_room(sem_t *sem, int slots) {
 		}
 	}
 
+}
+void clean_room_shm(void) {
+	shm_unlink("room_0");	shm_unlink("room_1");	shm_unlink("room_2");	shm_unlink("room_3");	shm_unlink("room_4");	shm_unlink("room_5");	shm_unlink("room_6");	shm_unlink("room_7");	shm_unlink("room_8");	shm_unlink("room_9");	shm_unlink("room_10");shm_unlink("room_11");	shm_unlink("room_12");	shm_unlink("room_13");	shm_unlink("room_14");	shm_unlink("room_15");	shm_unlink("room_16");	shm_unlink("room_17");	shm_unlink("room_19");	shm_unlink("room_18");
 }
 void multiplayer_ranked_select_new_board_and_share(multiplayer_room_shared_data_t *shared_data) {
 	srand(time(NULL));
