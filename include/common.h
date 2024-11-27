@@ -35,14 +35,24 @@ typedef struct {
 	char request[BUFFER_SIZE];
 } Task;
 
-typedef struct multiplayer_room_shared_data {
+typedef struct multiplayer_ranked_room_shared_data {
  int board_id;
  char starting_board[BUFFER_SIZE], room_name[BUFFER_SIZE];
 
  Task task_queue[5];
  int task_productor_ptr, task_consumer_ptr;
 
-} multiplayer_room_shared_data_t;
+} multiplayer_ranked_room_shared_data_t;
+
+typedef struct multiplayer_casual_room_shared_data {
+ //TODO
+} multiplayer_casual_room_shared_data_t;
+
+typedef struct multiplayer_coop_room_shared_data {
+ //TODO
+} multiplayer_coop_room_shared_data_t;
+
+
 
 typedef struct singleplayer_room_shared_data {
  int board_id;

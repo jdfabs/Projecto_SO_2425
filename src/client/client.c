@@ -36,7 +36,7 @@ struct sockaddr_un server_address;
 char buffer[BUFFER_SIZE] = {0};
 
 int client_socket;
-multiplayer_room_shared_data_t *multiplayer_ranked_shared_data;
+multiplayer_ranked_room_shared_data_t *multiplayer_ranked_shared_data;
 singleplayer_room_shared_data_t *singleplayer_room_shared_data;
 sem_t *sem_solucao;
 sem_t *sem_room_full;
@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
 			exit(EXIT_FAILURE);
 		}
 
-		multiplayer_ranked_shared_data = mmap(NULL, sizeof(multiplayer_room_shared_data_t),PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory_fd, 0);
+		multiplayer_ranked_shared_data = mmap(NULL, sizeof(multiplayer_ranked_room_shared_data_t),PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory_fd, 0);
 		if (multiplayer_ranked_shared_data == MAP_FAILED) {
 			perror("mmap FAIL");
 			exit(EXIT_FAILURE);
