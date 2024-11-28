@@ -33,13 +33,12 @@ void *singleplayer_room_handler(void *arg);
 void *multiplayer_ranked_room_handler(void *arg);
 void *task_handler_multiplayer_ranked(void *arg);
 
+void *multiplayer_casual_room_handler(void *arg);
 
+void *multiplayer_coop_room_handler(void *arg);
 
 void create_singleplayer_room(char *room_name);
-void create_multiplayer_ranked_room(int max_players, char *room_name);
-void create_multiplayer_casual_room(int max_players, char *room_name);
-void create_multiplayer_coop_room(int max_players, char *room_name);
-
+void create_multiplayer_room(int max_players, char *room_name, multiplayer_room_type_t room_type );
 
 void clean_room_shm(void);
 
@@ -218,8 +217,8 @@ void accept_clients() {
 	for (int i = 0; i < room_count; i++) {
 		if (rooms[i].current_players < rooms[i].max_players && atoi(aux) == rooms[i].type) {
 			printf(" Theres a room with correct type and space - Connecting to: %s\n", rooms[i].name);
-			sprintf(aux, "%d-%s%d", client_socket, "room_", i);
 			rooms[i].current_players++;
+			sprintf(aux, "%d-%d-%s%d", client_socket, rooms[i].current_players-1 ,"room_", i);
 			send(client_socket, aux, strlen(aux), 0);
 			return;
 		}
@@ -236,16 +235,20 @@ void accept_clients() {
 		create_singleplayer_room(rooms[room_count].name);
 	} else if (atoi(aux) == 1) {
 		printf("Type: RANKED\n");
-		create_multiplayer_ranked_room(rooms[room_count].max_players, rooms[room_count].name);
+		multiplayer_room_type_t room_type = RANKED;
+		create_multiplayer_room(rooms[room_count].max_players, rooms[room_count].name, room_type);
 	} else if (atoi(aux) == 2) {
 		printf("Type: CASUAL\n");
-		create_multiplayer_casual_room(rooms[room_count].max_players, rooms[room_count].name);
+		multiplayer_room_type_t room_type = CASUAL;
+		create_multiplayer_room(rooms[room_count].max_players, rooms[room_count].name, room_type);
 	} else if (atoi(aux) == 3) {
 		printf("Type: COOP");
-		create_multiplayer_coop_room(rooms[room_count].max_players, rooms[room_count].name);
+		multiplayer_room_type_t room_type = COOP;
+		create_multiplayer_room(rooms[room_count].max_players, rooms[room_count].name,room_type);
 	}
 
-	sprintf(aux, "%d-%s", client_socket, rooms[room_count].name);
+	sprintf(aux, "%d-%d-%s", client_socket,  rooms[room_count].current_players-1, rooms[room_count].name);
+	printf("%s\n",aux);
 	room_count++;
 	send(client_socket, aux, sizeof(aux), 0);
 	//Informa o cliente qual é o seu socket (para efeitos de retornar mensagem ao cliente certo)
@@ -274,36 +277,8 @@ void create_singleplayer_room(char *room_name) {
 		free(room_config);
 		exit(EXIT_FAILURE);
 	}
-} //TODO join up these functions, theres a lot of code duplicated
-void create_multiplayer_ranked_room(int max_players, char *room_name) {
-	room_config_t *room_config = malloc(sizeof(room_config_t));
-	if (!room_config) {
-		perror("Failed to allocate memory for room_config");
-		exit(EXIT_FAILURE);
-	}
-
-	room_config->max_players = max_players;
-
-	// Allocate memory for room_name
-	room_config->room_name = malloc(strlen(room_name) + 1); // +1 for null terminator
-	if (!room_config->room_name) {
-		perror("Failed to allocate memory for room_name");
-		free(room_config); // Free previously allocated memory
-		exit(EXIT_FAILURE);
-	}
-
-	// Copy the room name into allocated memory
-	sprintf(room_config->room_name, "%s", room_name);
-
-	pthread_t temp_thread;
-	if (pthread_create(&temp_thread, NULL, multiplayer_ranked_room_handler, room_config) != 0) {
-		perror("pthread_create failed");
-		free(room_config->room_name); // Clean up allocated memory
-		free(room_config);
-		exit(EXIT_FAILURE);
-	}
 }
-void create_multiplayer_casual_room(int max_players, char *room_name) {
+void create_multiplayer_room(int max_players, char *room_name, multiplayer_room_type_t room_type ) {
 	room_config_t *room_config = malloc(sizeof(room_config_t));
 	if (!room_config) {
 		perror("Failed to allocate memory for room_config");
@@ -322,38 +297,31 @@ void create_multiplayer_casual_room(int max_players, char *room_name) {
 	sprintf(room_config->room_name, "%s", room_name);
 
 	pthread_t temp_thread;
-	if (pthread_create(&temp_thread, NULL, create_multiplayer_casual_room, room_config) != 0) {
+
+	void *function;
+	switch (room_type) {
+		case 0:
+			function = multiplayer_ranked_room_handler;
+			break;
+		case 1:
+			function = multiplayer_casual_room_handler;
+			break;
+		case 2:
+			function = multiplayer_coop_room_handler;
+			break;
+		default:
+			perror("Invalid room->room_name");
+			exit(EXIT_FAILURE);
+	}
+
+	if (pthread_create(&temp_thread, NULL, function, room_config) != 0) {
 		perror("pthread_create failed");
 		free(room_config->room_name);
 		free(room_config);
 		exit(EXIT_FAILURE);
 	}
-}
-void create_multiplayer_coop_room(int max_players, char *room_name) {
-	room_config_t *room_config = malloc(sizeof(room_config_t));
-	if (!room_config) {
-		perror("Failed to allocate memory for room_config");
-		exit(EXIT_FAILURE);
-	}
 
-	room_config->max_players = max_players;
 
-	room_config->room_name = malloc(strlen(room_name) + 1);
-	if (!room_config->room_name) {
-		perror("Failed to allocate memory for room_name");
-		free(room_config);
-		exit(EXIT_FAILURE);
-	}
-
-	sprintf(room_config->room_name, "%s", room_name);
-
-	pthread_t temp_thread;
-	if (pthread_create(&temp_thread, NULL, create_multiplayer_coop_room, room_config) != 0) {
-		perror("pthread_create failed");
-		free(room_config->room_name);
-		free(room_config);
-		exit(EXIT_FAILURE);
-	}
 }
 
 //AUX Functions
@@ -391,7 +359,6 @@ void clean_room_shm(void) {
 
 //TASK MANAGERS
 void *task_handler_multiplayer_ranked(void *arg) {
-	// Cast the void pointer to the appropriate type
 	multiplayer_ranked_room_shared_data_t *shared_data = arg;
 	char temp[255];
 	sprintf(temp, "/sem_%s_producer", shared_data->room_name);
@@ -428,6 +395,43 @@ void *task_handler_multiplayer_ranked(void *arg) {
 			send(task.client_socket, "1", sizeof("1"), 0);
 		}
 	}
+}
+void *task_handler_multiplayer_casual(void *arg) {
+	multiplayer_casual_room_shared_data_t *shared_data = arg;
+
+	int current_index = 0;
+
+	// ReSharper disable once CppDFAEndlessLoop
+	while (1) {
+		//PREPROTOCOLO
+		if (shared_data->has_solution[current_index]) {
+			current_index = (current_index + 1) % config.server_size;
+			continue;
+		}
+		sem_wait(&shared_data->sems_server[current_index]);
+		//ZONA CRITICA --- ler task
+
+		Task task = shared_data->task_queue[current_index];
+		int **solution = getMatrixFromJSON(
+			cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
+
+		if (task.request[0] == '1') {
+			//FOUND SOLUTION - SKIP TO "STEP 6"
+		}
+		else if (solution[task.request[2] - '0'][task.request[4] - '0'] != task.request[6] - '0') {
+			sprintf(shared_data->task_queue[current_index].request, "0");
+		} else {
+			sprintf(shared_data->task_queue[current_index].request, "1");
+		}
+		usleep(rand() % 15);
+		sleep(0);
+		//POS PROTOCOLO
+		sem_post(&shared_data->sems_client[current_index]);
+		current_index = (current_index + 1) % config.server_size;
+	}
+}
+void *task_handler_multiplayer_coop(void *arg) {
+	//TODO
 }
 
 //ROOM FUNCTIONS
@@ -537,7 +541,7 @@ void *multiplayer_ranked_room_handler(void *arg) {
 		//Start round
 		clock_gettime(CLOCK_MONOTONIC, &start);
 		for (int i = 0; i < max_player; i++) {
-			sem_post(sem_game_start); //TODO FIX THIS SHIT
+			sem_post(sem_game_start);
 		}
 		printf("Multiplayer Ranked %s: game start has been signaled \n", room_name);
 
@@ -561,14 +565,120 @@ void *multiplayer_ranked_room_handler(void *arg) {
 }
 
 //CASUAL
-void setup_multiplayer_casual_shared_memory(char room_name[100], multiplayer_casual_room_shared_data_t *shared_data) {
-	//TODO
+void setup_multiplayer_casual_shared_memory(char room_name[100], multiplayer_casual_room_shared_data_t **shared_data) {
+	const int room_shared_memory = shm_open(room_name, O_CREAT | O_RDWR, 0666);
+	if (room_shared_memory == -1) {
+		perror("shm_open falhou");
+		exit(EXIT_FAILURE);
+	}
+	if (ftruncate(room_shared_memory, sizeof (multiplayer_casual_room_shared_data_t)) == -1) {
+		perror("ftruncate falhou");
+		exit(EXIT_FAILURE);
+	}
+
+	*shared_data = mmap(NULL, sizeof(multiplayer_casual_room_shared_data_t), PROT_READ | PROT_WRITE, MAP_SHARED,
+						room_shared_memory, 0);
+	sprintf((*shared_data)->room_name, room_name);
+	(*shared_data)->board_id = -1;
+	strcpy((*shared_data)->starting_board, "");
+
+	for (int i = 0; i <20; i++) {
+		//inicializar os valores da fila de espera
+		(*shared_data)->task_queue[i].client_socket = -1;
+		sprintf((*shared_data)->task_queue[i].request, "\0");
+	}
+	(*shared_data)->counter = 0;
+
+
+	for (int i = 0; i < config.server_size; i++) {
+		sem_init(&(*shared_data)->sems_client[i], true, 1);
+	}
+
+	for (int i = 0; i < config.server_size; i++) {
+		sem_init(&(*shared_data)->sems_server[i], true, 0);
+	}
+	for (int i = 0; i < config.server_size; i++) {
+		(*shared_data)->has_solution[i] = false;
+	}
 }
 void multiplayer_casual_select_new_board_and_share(multiplayer_casual_room_shared_data_t *shared_data) {
-	//TODO
+	srand(time(NULL));
+	shared_data->board_id = rand() % num_boards;
+	int random_board = shared_data->board_id;
+
+	const cJSON *round_board = cJSON_GetArrayItem(boards, random_board);
+	//broadcast new board
+	strcpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
 }
 void *multiplayer_casual_room_handler(void *arg) {
-	//TODO
+	struct timespec media;
+	media.tv_sec = 0;
+	media.tv_nsec = 0;
+	int time_counter = 0;
+
+	room_config_t *room_config = arg;
+
+	char room_name[100];
+	sprintf(room_name, "%s", room_config->room_name);
+
+	const int max_player = room_config->max_players;
+
+	struct timespec start;
+	struct timespec end;
+	multiplayer_casual_room_shared_data_t *shared_data;
+	pthread_t soltution_checker;
+
+	setup_multiplayer_casual_shared_memory(room_name, &shared_data);
+	char temp[255];
+	sprintf(temp, "/sem_%s_solucao", room_name);
+	sem_unlink(temp);
+	sem_t *sem_solucao_encontrada = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
+
+	sprintf(temp, "/sem_%s_room_full", room_name);
+	sem_unlink(temp);
+	sem_t *sem_room_full = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
+
+	sprintf(temp, "/sem_%s_game_start", room_name);
+	sem_unlink(temp);
+	sem_t *sem_game_start = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
+
+	pthread_create(&soltution_checker, NULL, task_handler_multiplayer_casual, shared_data);
+
+	printf("%s of type Multiplayer Casual - started with a max of %d players\n", room_name, max_player);
+
+
+	wait_for_full_room(sem_room_full, max_player); // Espera que o room encha
+	printf("Multiplayer Casual %s: room full - set the games begin\n", room_name);
+
+	for (;;) {
+		//sleep(5);
+		multiplayer_casual_select_new_board_and_share(shared_data);
+
+		//Start round
+		clock_gettime(CLOCK_MONOTONIC, &start);
+		for (int i = 0; i < max_player; i++) {
+			sem_post(sem_game_start);
+		}
+		printf("Multiplayer Casual %s: game start has been signaled \n", room_name);
+
+		for (int i = 0; i < max_player; i++) {
+			sem_wait(sem_solucao_encontrada);
+			clock_gettime(CLOCK_MONOTONIC, &end);
+			struct timespec final;
+			final.tv_sec = end.tv_sec - start.tv_sec;
+			final.tv_nsec = end.tv_nsec - start.tv_nsec;
+
+			time_counter++;
+			double new_avg = ((media.tv_sec + media.tv_nsec / 1e9) * (time_counter - 1) + (
+								final.tv_sec + final.tv_nsec / 1e9)) / time_counter;
+			media.tv_sec = (time_t) new_avg;
+			media.tv_nsec = (long) ((new_avg - media.tv_sec) * 1e9);
+
+			printf("Novo tempo em %s: %.10f\n", room_name, final.tv_sec + final.tv_nsec / 1e9);
+			printf("Media de %s: %.10f\n", room_name, media.tv_sec + media.tv_nsec / 1e9);
+		}
+
+	}
 }
 
 //COOP
@@ -576,10 +686,83 @@ void setup_multiplayer_coop_shared_memory(char room_name[100], multiplayer_coop_
 	//TODO
 }
 void multiplayer_coop_select_new_board_and_share(multiplayer_coop_room_shared_data_t *shared_data) {
-	//TODO
+	srand(time(NULL));
+	shared_data->board_id = rand() % num_boards;
+	int random_board = shared_data->board_id;
+
+	const cJSON *round_board = cJSON_GetArrayItem(boards, random_board);
+	//broadcast new board
+	strcpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
 }
 void *multiplayer_coop_room_handler(void *arg) {
-	//TODO
+	struct timespec media;
+	media.tv_sec = 0;
+	media.tv_nsec = 0;
+	int time_counter = 0;
+
+	room_config_t *room_config = arg;
+
+	char room_name[100];
+	sprintf(room_name, "%s", room_config->room_name);
+
+	const int max_player = room_config->max_players;
+
+	struct timespec start;
+	struct timespec end;
+	multiplayer_coop_room_shared_data_t *shared_data;
+	pthread_t soltution_checker;
+
+	setup_multiplayer_coop_shared_memory(room_name, shared_data);
+	char temp[255];
+	sprintf(temp, "/sem_%s_solucao", room_name);
+	sem_unlink(temp);
+	sem_t *sem_solucao_encontrada = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
+
+	sprintf(temp, "/sem_%s_room_full", room_name);
+	sem_unlink(temp);
+	sem_t *sem_room_full = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
+
+	sprintf(temp, "/sem_%s_game_start", room_name);
+	sem_unlink(temp);
+	sem_t *sem_game_start = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
+
+	//TODO RESTO DOS SEMAFOROS
+	pthread_create(&soltution_checker, NULL, task_handler_multiplayer_coop, shared_data);
+
+	printf("%s of type Multiplayer COOP - started with a max of %d players\n", room_name, max_player);
+
+
+	wait_for_full_room(sem_room_full, max_player); // Espera que o room encha
+	printf("Multiplayer COOP %s: room full - set the games begin\n", room_name);
+
+	for (;;) {
+		//sleep(5);
+		multiplayer_coop_select_new_board_and_share(shared_data);
+
+		//Start round
+		clock_gettime(CLOCK_MONOTONIC, &start);
+		for (int i = 0; i < max_player; i++) {
+			sem_post(sem_game_start);
+		}
+		printf("Multiplayer COOP %s: game start has been signaled \n", room_name);
+
+		for (int i = 0; i < max_player; i++) {
+			sem_wait(sem_solucao_encontrada);
+			clock_gettime(CLOCK_MONOTONIC, &end);
+			struct timespec final;
+			final.tv_sec = end.tv_sec - start.tv_sec;
+			final.tv_nsec = end.tv_nsec - start.tv_nsec;
+
+			time_counter++;
+			double new_avg = ((media.tv_sec + media.tv_nsec / 1e9) * (time_counter - 1) + (
+								final.tv_sec + final.tv_nsec / 1e9)) / time_counter;
+			media.tv_sec = (time_t) new_avg;
+			media.tv_nsec = (long) ((new_avg - media.tv_sec) * 1e9);
+
+			printf("Novo tempo em %s: %.10f\n", room_name, final.tv_sec + final.tv_nsec / 1e9);
+			printf("Media de %s: %.10f\n", room_name, media.tv_sec + media.tv_nsec / 1e9);
+		}
+	}
 }
 
 //SINGLEPLAYER

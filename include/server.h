@@ -36,7 +36,11 @@ typedef struct {
 	char *room_name;
 } room_config_t;
 
-
+typedef enum {
+	RANKED = 0,
+	CASUAL = 1,
+	COOP = 2
+}multiplayer_room_type_t ;
 
 
 

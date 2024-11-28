@@ -2,15 +2,15 @@
  * common.h
  * Skipper
  * 11/10/2024
- * common functions  
+* common functions
  *********************************************************************************/
 
 /************************************
  * INCLUDES
  ************************************/
-#include <pthread.h>
-#include <semaphore.h>
 #include "cJSON.h"
+#include <semaphore.h>
+#include <stdbool.h>
 /************************************
  * MACROS AND DEFINES
  ************************************/
@@ -27,7 +27,6 @@
 #define SOLUTION_STATE 1
 
 #define BUFFER_SIZE 1024
-#define MESSAGE_SIZE 256
 
 
 typedef struct {
@@ -45,10 +44,20 @@ typedef struct multiplayer_ranked_room_shared_data {
 } multiplayer_ranked_room_shared_data_t;
 
 typedef struct multiplayer_casual_room_shared_data {
- //TODO
+ int board_id;
+ char starting_board[BUFFER_SIZE], room_name[BUFFER_SIZE];
+
+ Task task_queue[20];//TODO malloc this?
+ sem_t sems_client[20];
+ sem_t sems_server[20];
+ bool has_solution[20];
+
+ int counter;
 } multiplayer_casual_room_shared_data_t;
 
 typedef struct multiplayer_coop_room_shared_data {
+ int board_id;
+ char starting_board[BUFFER_SIZE], room_name[BUFFER_SIZE];
  //TODO
 } multiplayer_coop_room_shared_data_t;
 
