@@ -758,3 +758,683 @@
 [Thu Nov 28 16:50:22 2024] Socket criado com sucesso. socket_fd: 3
 [Thu Nov 28 16:50:22 2024] Socket deu bind com sucesso
 [Thu Nov 28 16:50:22 2024] Server começou a ouvir conecções ao servidor
+[Thu Nov 28 18:10:58 2024] Config server carregada.
+[Thu Nov 28 18:10:58 2024] Servidor começou
+[Thu Nov 28 18:10:58 2024] Boards carregados para memoria com sucesso
+[Thu Nov 28 18:10:58 2024] A começar setup do socket de connecção
+[Thu Nov 28 18:10:58 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Nov 28 18:10:58 2024] Socket deu bind com sucesso
+[Thu Nov 28 18:10:58 2024] Server começou a ouvir conecções ao servidor
+[Thu Nov 28 18:11:31 2024] Server shutting down gracefully
+[Thu Nov 28 18:11:58 2024] Config server carregada.
+[Thu Nov 28 18:11:58 2024] Servidor começou
+[Thu Nov 28 18:11:58 2024] Boards carregados para memoria com sucesso
+[Thu Nov 28 18:11:58 2024] A começar setup do socket de connecção
+[Thu Nov 28 18:11:58 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Nov 28 18:11:58 2024] Socket deu bind com sucesso
+[Thu Nov 28 18:11:58 2024] Server começou a ouvir conecções ao servidor
+[Thu Nov 28 18:12:28 2024] Server shutting down gracefully
+[Thu Nov 28 18:13:10 2024] Config server carregada.
+[Thu Nov 28 18:13:10 2024] Servidor começou
+[Thu Nov 28 18:13:10 2024] Boards carregados para memoria com sucesso
+[Thu Nov 28 18:13:10 2024] A começar setup do socket de connecção
+[Thu Nov 28 18:13:10 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Nov 28 18:13:10 2024] Socket deu bind com sucesso
+[Thu Nov 28 18:13:10 2024] Server começou a ouvir conecções ao servidor
+[Thu Nov 28 18:13:40 2024] Server shutting down gracefully
+[Thu Nov 28 18:13:53 2024] Config server carregada.
+[Thu Nov 28 18:13:53 2024] Servidor começou
+[Thu Nov 28 18:13:53 2024] Boards carregados para memoria com sucesso
+[Thu Nov 28 18:13:53 2024] A começar setup do socket de connecção
+[Thu Nov 28 18:13:53 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Nov 28 18:13:53 2024] Socket deu bind com sucesso
+[Thu Nov 28 18:13:53 2024] Server começou a ouvir conecções ao servidor
+[Thu Nov 28 18:14:53 2024] Server shutting down gracefully
+[Thu Nov 28 18:15:12 2024] Config server carregada.
+[Thu Nov 28 18:15:12 2024] Servidor começou
+[Thu Nov 28 18:15:12 2024] Boards carregados para memoria com sucesso
+[Thu Nov 28 18:15:12 2024] A começar setup do socket de connecção
+[Thu Nov 28 18:15:12 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Nov 28 18:15:12 2024] Socket deu bind com sucesso
+[Thu Nov 28 18:15:12 2024] Server começou a ouvir conecções ao servidor
+[Thu Nov 28 18:15:59 2024] Server shutting down gracefully
+[Thu Nov 28 18:17:22 2024] Config server carregada.
+[Thu Nov 28 18:17:22 2024] Servidor começou
+[Thu Nov 28 18:17:22 2024] Boards carregados para memoria com sucesso
+[Thu Nov 28 18:17:22 2024] A começar setup do socket de connecção
+[Thu Nov 28 18:17:22 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Nov 28 18:17:22 2024] Socket deu bind com sucesso
+[Thu Nov 28 18:17:22 2024] Server começou a ouvir conecções ao servidor
+[Thu Nov 28 18:19:06 2024] Server shutting down gracefully
+[Thu Nov 28 18:19:08 2024] Config server carregada.
+[Thu Nov 28 18:19:08 2024] Servidor começou
+[Thu Nov 28 18:19:08 2024] Boards carregados para memoria com sucesso
+[Thu Nov 28 18:19:08 2024] A começar setup do socket de connecção
+[Thu Nov 28 18:19:08 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Nov 28 18:19:08 2024] Socket deu bind com sucesso
+[Thu Nov 28 18:19:08 2024] Server começou a ouvir conecções ao servidor
+[Thu Nov 28 18:19:35 2024] Server shutting down gracefully
+[Thu Nov 28 18:20:07 2024] Config server carregada.
+[Thu Nov 28 18:20:07 2024] Servidor começou
+[Thu Nov 28 18:20:07 2024] Boards carregados para memoria com sucesso
+[Thu Nov 28 18:20:07 2024] A começar setup do socket de connecção
+[Thu Nov 28 18:20:07 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Nov 28 18:20:07 2024] Socket deu bind com sucesso
+[Thu Nov 28 18:20:07 2024] Server começou a ouvir conecções ao servidor
+[Thu Nov 28 18:21:01 2024] Server shutting down gracefully
+[Thu Nov 28 18:21:13 2024] Config server carregada.
+[Thu Nov 28 18:21:13 2024] Servidor começou
+[Thu Nov 28 18:21:13 2024] Boards carregados para memoria com sucesso
+[Thu Nov 28 18:21:13 2024] A começar setup do socket de connecção
+[Thu Nov 28 18:21:13 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Nov 28 18:21:13 2024] Socket deu bind com sucesso
+[Thu Nov 28 18:21:13 2024] Server começou a ouvir conecções ao servidor
+[Thu Nov 28 18:21:30 2024] Server shutting down gracefully
+[Thu Nov 28 18:21:31 2024] Config server carregada.
+[Thu Nov 28 18:21:31 2024] Servidor começou
+[Thu Nov 28 18:21:31 2024] Boards carregados para memoria com sucesso
+[Thu Nov 28 18:21:31 2024] A começar setup do socket de connecção
+[Thu Nov 28 18:21:31 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Nov 28 18:21:31 2024] Socket deu bind com sucesso
+[Thu Nov 28 18:21:31 2024] Server começou a ouvir conecções ao servidor
+[Thu Nov 28 18:22:39 2024] Config server carregada.
+[Thu Nov 28 18:22:39 2024] Servidor começou
+[Thu Nov 28 18:22:39 2024] Boards carregados para memoria com sucesso
+[Thu Nov 28 18:22:39 2024] A começar setup do socket de connecção
+[Thu Nov 28 18:22:39 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Nov 28 18:22:39 2024] Socket falhou bind
+[Thu Nov 28 18:22:49 2024] Server shutting down gracefully
+[Thu Nov 28 18:22:55 2024] Config server carregada.
+[Thu Nov 28 18:22:55 2024] Servidor começou
+[Thu Nov 28 18:22:55 2024] Boards carregados para memoria com sucesso
+[Thu Nov 28 18:22:55 2024] A começar setup do socket de connecção
+[Thu Nov 28 18:22:55 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Nov 28 18:22:55 2024] Socket deu bind com sucesso
+[Thu Nov 28 18:22:55 2024] Server começou a ouvir conecções ao servidor
+[Thu Nov 28 18:24:33 2024] Config server carregada.
+[Thu Nov 28 18:24:33 2024] Servidor começou
+[Thu Nov 28 18:24:33 2024] Boards carregados para memoria com sucesso
+[Thu Nov 28 18:24:33 2024] A começar setup do socket de connecção
+[Thu Nov 28 18:24:33 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Nov 28 18:24:33 2024] Socket deu bind com sucesso
+[Thu Nov 28 18:24:33 2024] Server começou a ouvir conecções ao servidor
+[Thu Nov 28 18:26:25 2024] Server shutting down gracefully
+[Thu Nov 28 18:26:25 2024] Config server carregada.
+[Thu Nov 28 18:26:25 2024] Servidor começou
+[Thu Nov 28 18:26:25 2024] Boards carregados para memoria com sucesso
+[Thu Nov 28 18:26:25 2024] A começar setup do socket de connecção
+[Thu Nov 28 18:26:25 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Nov 28 18:26:25 2024] Socket deu bind com sucesso
+[Thu Nov 28 18:26:25 2024] Server começou a ouvir conecções ao servidor
+[Thu Nov 28 18:30:19 2024] Server shutting down gracefully
+[Thu Nov 28 18:30:21 2024] Config server carregada.
+[Thu Nov 28 18:30:21 2024] Servidor começou
+[Thu Nov 28 18:30:21 2024] Boards carregados para memoria com sucesso
+[Thu Nov 28 18:30:21 2024] A começar setup do socket de connecção
+[Thu Nov 28 18:30:21 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Nov 28 18:30:21 2024] Socket deu bind com sucesso
+[Thu Nov 28 18:30:21 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 12:34:06 2024] Config server carregada.
+[Fri Nov 29 12:34:06 2024] Servidor começou
+[Fri Nov 29 12:34:06 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 12:34:06 2024] A começar setup do socket de connecção
+[Fri Nov 29 12:34:06 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 12:34:06 2024] Socket deu bind com sucesso
+[Fri Nov 29 12:34:06 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 12:34:34 2024] Server shutting down gracefully
+[Fri Nov 29 13:57:51 2024] Config server carregada.
+[Fri Nov 29 13:57:51 2024] Servidor começou
+[Fri Nov 29 13:57:51 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 13:57:51 2024] A começar setup do socket de connecção
+[Fri Nov 29 13:57:51 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 13:57:51 2024] Socket deu bind com sucesso
+[Fri Nov 29 13:57:51 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 13:59:39 2024] Config server carregada.
+[Fri Nov 29 13:59:39 2024] Servidor começou
+[Fri Nov 29 13:59:39 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 13:59:39 2024] A começar setup do socket de connecção
+[Fri Nov 29 13:59:39 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 13:59:39 2024] Socket deu bind com sucesso
+[Fri Nov 29 13:59:39 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:00:37 2024] Config server carregada.
+[Fri Nov 29 14:00:37 2024] Servidor começou
+[Fri Nov 29 14:00:37 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:00:37 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:00:37 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:00:37 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:00:37 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:01:29 2024] Config server carregada.
+[Fri Nov 29 14:01:29 2024] Servidor começou
+[Fri Nov 29 14:01:29 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:01:29 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:01:29 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:01:29 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:01:29 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:02:29 2024] Config server carregada.
+[Fri Nov 29 14:02:29 2024] Servidor começou
+[Fri Nov 29 14:02:29 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:02:29 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:02:29 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:02:29 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:02:29 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:04:48 2024] Config server carregada.
+[Fri Nov 29 14:04:48 2024] Servidor começou
+[Fri Nov 29 14:04:48 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:04:48 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:04:48 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:04:48 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:04:48 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:04:56 2024] Server shutting down gracefully
+[Fri Nov 29 14:12:27 2024] Config server carregada.
+[Fri Nov 29 14:12:27 2024] Servidor começou
+[Fri Nov 29 14:12:27 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:12:27 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:12:27 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:12:27 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:12:27 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:13:14 2024] Config server carregada.
+[Fri Nov 29 14:13:14 2024] Servidor começou
+[Fri Nov 29 14:13:14 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:13:14 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:13:14 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:13:14 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:13:14 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:18:32 2024] Config server carregada.
+[Fri Nov 29 14:18:32 2024] Servidor começou
+[Fri Nov 29 14:18:32 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:18:32 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:18:32 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:18:32 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:18:32 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:20:12 2024] Config server carregada.
+[Fri Nov 29 14:20:12 2024] Servidor começou
+[Fri Nov 29 14:20:12 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:20:12 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:20:12 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:20:12 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:20:12 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:20:23 2024] Config server carregada.
+[Fri Nov 29 14:20:23 2024] Servidor começou
+[Fri Nov 29 14:20:23 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:20:23 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:20:23 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:20:23 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:20:23 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:43:25 2024] Config server carregada.
+[Fri Nov 29 14:43:25 2024] Servidor começou
+[Fri Nov 29 14:43:25 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:43:25 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:43:25 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:43:25 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:43:25 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:46:35 2024] Config server carregada.
+[Fri Nov 29 14:46:35 2024] Servidor começou
+[Fri Nov 29 14:46:35 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:46:35 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:46:35 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:46:35 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:46:35 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:48:27 2024] Config server carregada.
+[Fri Nov 29 14:48:27 2024] Servidor começou
+[Fri Nov 29 14:48:27 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:48:27 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:48:27 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:48:27 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:48:27 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:50:47 2024] Config server carregada.
+[Fri Nov 29 14:50:47 2024] Servidor começou
+[Fri Nov 29 14:50:47 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:50:47 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:50:47 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:50:47 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:50:47 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:52:57 2024] Config server carregada.
+[Fri Nov 29 14:52:57 2024] Servidor começou
+[Fri Nov 29 14:52:57 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:52:57 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:52:57 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:52:57 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:52:57 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:58:06 2024] Config server carregada.
+[Fri Nov 29 14:58:06 2024] Servidor começou
+[Fri Nov 29 14:58:06 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:58:06 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:58:06 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:58:06 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:58:06 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 14:59:36 2024] Config server carregada.
+[Fri Nov 29 14:59:36 2024] Servidor começou
+[Fri Nov 29 14:59:36 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 14:59:36 2024] A começar setup do socket de connecção
+[Fri Nov 29 14:59:36 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 14:59:36 2024] Socket deu bind com sucesso
+[Fri Nov 29 14:59:36 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:00:14 2024] Config server carregada.
+[Fri Nov 29 15:00:14 2024] Servidor começou
+[Fri Nov 29 15:00:14 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:00:14 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:00:14 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:00:14 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:00:14 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:00:47 2024] Config server carregada.
+[Fri Nov 29 15:00:47 2024] Servidor começou
+[Fri Nov 29 15:00:47 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:00:47 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:00:47 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:00:47 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:00:47 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:02:10 2024] Config server carregada.
+[Fri Nov 29 15:02:10 2024] Servidor começou
+[Fri Nov 29 15:02:10 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:02:10 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:02:10 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:02:10 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:02:10 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:04:11 2024] Config server carregada.
+[Fri Nov 29 15:04:11 2024] Servidor começou
+[Fri Nov 29 15:04:11 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:04:11 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:04:11 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:04:11 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:04:11 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:04:54 2024] Config server carregada.
+[Fri Nov 29 15:04:54 2024] Servidor começou
+[Fri Nov 29 15:04:54 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:04:54 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:04:54 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:04:54 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:04:54 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:05:23 2024] Config server carregada.
+[Fri Nov 29 15:05:23 2024] Servidor começou
+[Fri Nov 29 15:05:23 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:05:23 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:05:23 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:05:23 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:05:23 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:06:45 2024] Config server carregada.
+[Fri Nov 29 15:06:45 2024] Servidor começou
+[Fri Nov 29 15:06:45 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:06:45 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:06:45 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:06:45 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:06:45 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:07:06 2024] Config server carregada.
+[Fri Nov 29 15:07:06 2024] Servidor começou
+[Fri Nov 29 15:07:06 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:07:06 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:07:06 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:07:06 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:07:06 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:14:21 2024] Config server carregada.
+[Fri Nov 29 15:14:21 2024] Servidor começou
+[Fri Nov 29 15:14:21 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:14:21 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:14:21 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:14:21 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:14:21 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:20:41 2024] Config server carregada.
+[Fri Nov 29 15:20:41 2024] Servidor começou
+[Fri Nov 29 15:20:41 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:20:41 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:20:41 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:20:41 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:20:41 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:21:55 2024] Config server carregada.
+[Fri Nov 29 15:21:55 2024] Servidor começou
+[Fri Nov 29 15:21:55 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:21:55 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:21:55 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:21:55 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:21:55 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:23:55 2024] Config server carregada.
+[Fri Nov 29 15:23:55 2024] Servidor começou
+[Fri Nov 29 15:23:55 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:23:55 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:23:55 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:23:55 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:23:55 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:26:19 2024] Config server carregada.
+[Fri Nov 29 15:26:19 2024] Servidor começou
+[Fri Nov 29 15:26:19 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:26:19 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:26:19 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:26:19 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:26:19 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:26:50 2024] Config server carregada.
+[Fri Nov 29 15:26:50 2024] Servidor começou
+[Fri Nov 29 15:26:50 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:26:50 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:26:50 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:26:50 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:26:50 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:36:06 2024] Config server carregada.
+[Fri Nov 29 15:36:06 2024] Servidor começou
+[Fri Nov 29 15:36:06 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:36:06 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:36:06 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:36:06 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:36:06 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:38:10 2024] Server shutting down gracefully
+[Fri Nov 29 15:38:17 2024] Config server carregada.
+[Fri Nov 29 15:38:17 2024] Servidor começou
+[Fri Nov 29 15:38:17 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:38:17 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:38:17 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:38:17 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:38:17 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:39:03 2024] Server shutting down gracefully
+[Fri Nov 29 15:42:25 2024] Config server carregada.
+[Fri Nov 29 15:42:25 2024] Servidor começou
+[Fri Nov 29 15:42:25 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:42:25 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:42:25 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:42:25 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:42:25 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:42:42 2024] Config server carregada.
+[Fri Nov 29 15:42:42 2024] Servidor começou
+[Fri Nov 29 15:42:42 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:42:42 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:42:42 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:42:42 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:42:42 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:44:58 2024] Server shutting down gracefully
+[Fri Nov 29 15:46:32 2024] Config server carregada.
+[Fri Nov 29 15:46:32 2024] Servidor começou
+[Fri Nov 29 15:46:32 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:46:32 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:46:32 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:46:32 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:46:32 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:46:53 2024] Server shutting down gracefully
+[Fri Nov 29 15:47:50 2024] Config server carregada.
+[Fri Nov 29 15:47:51 2024] Servidor começou
+[Fri Nov 29 15:47:51 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:47:51 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:47:51 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:47:51 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:47:51 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:48:20 2024] Server shutting down gracefully
+[Fri Nov 29 15:50:43 2024] Config server carregada.
+[Fri Nov 29 15:50:43 2024] Servidor começou
+[Fri Nov 29 15:50:43 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:50:43 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:50:43 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:50:43 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:50:43 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:51:48 2024] Server shutting down gracefully
+[Fri Nov 29 15:55:40 2024] Config server carregada.
+[Fri Nov 29 15:55:40 2024] Servidor começou
+[Fri Nov 29 15:55:40 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:55:40 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:55:40 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:55:40 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:55:40 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:56:00 2024] Server shutting down gracefully
+[Fri Nov 29 15:57:25 2024] Config server carregada.
+[Fri Nov 29 15:57:25 2024] Servidor começou
+[Fri Nov 29 15:57:25 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:57:25 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:57:25 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:57:25 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:57:25 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:57:46 2024] Server shutting down gracefully
+[Fri Nov 29 15:58:39 2024] Config server carregada.
+[Fri Nov 29 15:58:39 2024] Servidor começou
+[Fri Nov 29 15:58:39 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 15:58:39 2024] A começar setup do socket de connecção
+[Fri Nov 29 15:58:39 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 15:58:39 2024] Socket deu bind com sucesso
+[Fri Nov 29 15:58:39 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 15:58:54 2024] Server shutting down gracefully
+[Fri Nov 29 16:03:32 2024] Config server carregada.
+[Fri Nov 29 16:03:32 2024] Servidor começou
+[Fri Nov 29 16:03:32 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 16:03:32 2024] A começar setup do socket de connecção
+[Fri Nov 29 16:03:32 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 16:03:32 2024] Socket deu bind com sucesso
+[Fri Nov 29 16:03:32 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 16:03:53 2024] Server shutting down gracefully
+[Fri Nov 29 16:10:10 2024] Config server carregada.
+[Fri Nov 29 16:10:10 2024] Servidor começou
+[Fri Nov 29 16:10:10 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 16:10:10 2024] A começar setup do socket de connecção
+[Fri Nov 29 16:10:10 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 16:10:10 2024] Socket deu bind com sucesso
+[Fri Nov 29 16:10:10 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 16:10:50 2024] Config server carregada.
+[Fri Nov 29 16:10:50 2024] Servidor começou
+[Fri Nov 29 16:11:08 2024] Config server carregada.
+[Fri Nov 29 16:11:08 2024] Servidor começou
+[Fri Nov 29 16:11:35 2024] Config server carregada.
+[Fri Nov 29 16:11:35 2024] Servidor começou
+[Fri Nov 29 16:11:39 2024] Server shutting down gracefully
+[Fri Nov 29 16:11:44 2024] Config server carregada.
+[Fri Nov 29 16:11:44 2024] Servidor começou
+[Fri Nov 29 16:12:10 2024] Config server carregada.
+[Fri Nov 29 16:12:10 2024] Servidor começou
+[Fri Nov 29 16:12:10 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 16:12:10 2024] A começar setup do socket de connecção
+[Fri Nov 29 16:12:10 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 16:12:10 2024] Socket deu bind com sucesso
+[Fri Nov 29 16:12:10 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 16:13:34 2024] Config server carregada.
+[Fri Nov 29 16:13:34 2024] Servidor começou
+[Fri Nov 29 16:13:34 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 16:13:34 2024] A começar setup do socket de connecção
+[Fri Nov 29 16:13:34 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 16:13:34 2024] Socket deu bind com sucesso
+[Fri Nov 29 16:13:34 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 16:13:38 2024] Server shutting down gracefully
+[Fri Nov 29 16:13:41 2024] Config server carregada.
+[Fri Nov 29 16:13:41 2024] Servidor começou
+[Fri Nov 29 16:13:41 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 16:13:41 2024] A começar setup do socket de connecção
+[Fri Nov 29 16:13:41 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 16:13:41 2024] Socket deu bind com sucesso
+[Fri Nov 29 16:13:41 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 16:14:04 2024] Config server carregada.
+[Fri Nov 29 16:14:04 2024] Servidor começou
+[Fri Nov 29 16:14:04 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 16:14:04 2024] A começar setup do socket de connecção
+[Fri Nov 29 16:14:04 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 16:14:04 2024] Socket deu bind com sucesso
+[Fri Nov 29 16:14:04 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 16:14:25 2024] Server shutting down gracefully
+[Fri Nov 29 16:15:14 2024] Config server carregada.
+[Fri Nov 29 16:15:14 2024] Servidor começou
+[Fri Nov 29 16:15:14 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 16:15:14 2024] A começar setup do socket de connecção
+[Fri Nov 29 16:15:14 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 16:15:14 2024] Socket deu bind com sucesso
+[Fri Nov 29 16:15:14 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 16:15:30 2024] Server shutting down gracefully
+[Fri Nov 29 16:17:15 2024] Config server carregada.
+[Fri Nov 29 16:17:15 2024] Servidor começou
+[Fri Nov 29 16:17:15 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 16:17:15 2024] A começar setup do socket de connecção
+[Fri Nov 29 16:17:15 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 16:17:15 2024] Socket deu bind com sucesso
+[Fri Nov 29 16:17:15 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 16:17:41 2024] Server shutting down gracefully
+[Fri Nov 29 16:23:06 2024] Config server carregada.
+[Fri Nov 29 16:23:06 2024] Servidor começou
+[Fri Nov 29 16:23:06 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 16:23:06 2024] A começar setup do socket de connecção
+[Fri Nov 29 16:23:06 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 16:23:06 2024] Socket deu bind com sucesso
+[Fri Nov 29 16:23:06 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 16:23:20 2024] Server shutting down gracefully
+[Fri Nov 29 16:25:40 2024] Config server carregada.
+[Fri Nov 29 16:25:40 2024] Servidor começou
+[Fri Nov 29 16:25:40 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 16:25:40 2024] A começar setup do socket de connecção
+[Fri Nov 29 16:25:40 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 16:25:40 2024] Socket deu bind com sucesso
+[Fri Nov 29 16:25:40 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 16:26:04 2024] Server shutting down gracefully
+[Fri Nov 29 16:27:27 2024] Config server carregada.
+[Fri Nov 29 16:27:27 2024] Servidor começou
+[Fri Nov 29 16:27:27 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 16:27:27 2024] A começar setup do socket de connecção
+[Fri Nov 29 16:27:27 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 16:27:27 2024] Socket deu bind com sucesso
+[Fri Nov 29 16:27:27 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 16:27:52 2024] Server shutting down gracefully
+[Fri Nov 29 16:29:38 2024] Config server carregada.
+[Fri Nov 29 16:29:38 2024] Servidor começou
+[Fri Nov 29 16:29:38 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 16:29:38 2024] A começar setup do socket de connecção
+[Fri Nov 29 16:29:38 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 16:29:38 2024] Socket deu bind com sucesso
+[Fri Nov 29 16:29:38 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 16:34:29 2024] Server shutting down gracefully
+[Fri Nov 29 17:13:48 2024] Config server carregada.
+[Fri Nov 29 17:13:48 2024] Servidor começou
+[Fri Nov 29 17:13:48 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:13:48 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:13:48 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:13:48 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:13:48 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:14:44 2024] Config server carregada.
+[Fri Nov 29 17:14:44 2024] Servidor começou
+[Fri Nov 29 17:14:44 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:14:44 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:14:44 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:14:44 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:14:44 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:15:14 2024] Config server carregada.
+[Fri Nov 29 17:15:14 2024] Servidor começou
+[Fri Nov 29 17:15:14 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:15:14 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:15:14 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:15:14 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:15:14 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:17:46 2024] Config server carregada.
+[Fri Nov 29 17:17:46 2024] Servidor começou
+[Fri Nov 29 17:17:46 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:17:46 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:17:46 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:17:46 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:17:46 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:20:46 2024] Config server carregada.
+[Fri Nov 29 17:20:46 2024] Servidor começou
+[Fri Nov 29 17:20:46 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:20:46 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:20:46 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:20:46 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:20:46 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:22:57 2024] Config server carregada.
+[Fri Nov 29 17:22:57 2024] Servidor começou
+[Fri Nov 29 17:22:57 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:22:57 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:22:57 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:22:57 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:22:57 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:24:13 2024] Config server carregada.
+[Fri Nov 29 17:24:13 2024] Servidor começou
+[Fri Nov 29 17:24:13 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:24:13 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:24:13 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:24:13 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:24:13 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:24:49 2024] Config server carregada.
+[Fri Nov 29 17:24:49 2024] Servidor começou
+[Fri Nov 29 17:24:49 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:24:49 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:24:49 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:24:49 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:24:49 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:26:52 2024] Config server carregada.
+[Fri Nov 29 17:26:52 2024] Servidor começou
+[Fri Nov 29 17:26:52 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:26:52 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:26:52 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:26:52 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:26:52 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:29:42 2024] Config server carregada.
+[Fri Nov 29 17:29:42 2024] Servidor começou
+[Fri Nov 29 17:29:42 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:29:42 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:29:42 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:29:42 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:29:42 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:30:02 2024] Server shutting down gracefully
+[Fri Nov 29 17:31:56 2024] Config server carregada.
+[Fri Nov 29 17:31:56 2024] Servidor começou
+[Fri Nov 29 17:31:56 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:31:56 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:31:56 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:31:56 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:31:56 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:32:05 2024] Server shutting down gracefully
+[Fri Nov 29 17:32:23 2024] Config server carregada.
+[Fri Nov 29 17:32:23 2024] Servidor começou
+[Fri Nov 29 17:32:23 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:32:23 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:32:23 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:32:23 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:32:23 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:35:04 2024] Server shutting down gracefully
+[Fri Nov 29 17:35:29 2024] Config server carregada.
+[Fri Nov 29 17:35:29 2024] Servidor começou
+[Fri Nov 29 17:35:29 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:35:29 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:35:29 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:35:29 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:35:29 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:36:25 2024] Server shutting down gracefully
+[Fri Nov 29 17:37:14 2024] Config server carregada.
+[Fri Nov 29 17:37:14 2024] Servidor começou
+[Fri Nov 29 17:37:14 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:37:14 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:37:14 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:37:14 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:37:14 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:40:32 2024] Server shutting down gracefully
+[Fri Nov 29 17:40:38 2024] Config server carregada.
+[Fri Nov 29 17:40:38 2024] Servidor começou
+[Fri Nov 29 17:40:38 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:40:38 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:40:38 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:40:38 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:40:38 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:42:59 2024] Server shutting down gracefully
+[Fri Nov 29 17:43:00 2024] Config server carregada.
+[Fri Nov 29 17:43:00 2024] Servidor começou
+[Fri Nov 29 17:43:00 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:43:00 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:43:00 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:43:00 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:43:00 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:44:07 2024] Server shutting down gracefully
+[Fri Nov 29 17:44:30 2024] Config server carregada.
+[Fri Nov 29 17:44:30 2024] Servidor começou
+[Fri Nov 29 17:44:30 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:44:30 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:44:30 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:44:30 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:44:30 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:46:31 2024] Server shutting down gracefully
+[Fri Nov 29 17:46:33 2024] Config server carregada.
+[Fri Nov 29 17:46:33 2024] Servidor começou
+[Fri Nov 29 17:46:33 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:46:33 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:46:33 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:46:33 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:46:33 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:48:37 2024] Server shutting down gracefully
+[Fri Nov 29 17:49:20 2024] Config server carregada.
+[Fri Nov 29 17:49:20 2024] Servidor começou
+[Fri Nov 29 17:49:20 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:49:20 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:49:20 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:49:20 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:49:20 2024] Server começou a ouvir conecções ao servidor
+[Fri Nov 29 17:50:44 2024] Server shutting down gracefully
+[Fri Nov 29 17:52:35 2024] Config server carregada.
+[Fri Nov 29 17:52:35 2024] Servidor começou
+[Fri Nov 29 17:52:35 2024] Boards carregados para memoria com sucesso
+[Fri Nov 29 17:52:35 2024] A começar setup do socket de connecção
+[Fri Nov 29 17:52:35 2024] Socket criado com sucesso. socket_fd: 3
+[Fri Nov 29 17:52:35 2024] Socket deu bind com sucesso
+[Fri Nov 29 17:52:35 2024] Server começou a ouvir conecções ao servidor

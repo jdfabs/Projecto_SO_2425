@@ -94,6 +94,53 @@ void send_solution_attempt_multiplayer_casual(int x, int y, int novo_valor) {
 	//POSPROTOCOLO
 	sem_post(&multiplayer_casual_room_shared_data->sems_server[client_index]);
 }
+void send_solution_attempt_multiplayer_coop() {
+	// PREPROTOCOLO
+	sem_wait(&multiplayer_coop_room_shared_data->sems_client[client_index]);
+
+	// ZC
+	usleep(rand() % (config.slow_factor+0));
+	cJSON *json_board = cJSON_Parse(multiplayer_coop_room_shared_data->current_board);
+	if (json_board == NULL) {
+		printf("Error parsing JSON\n");
+		return;
+	}
+	clear();
+
+	int x, y, value;
+	int **old_board = getMatrixFromJSON(json_board);
+
+	printBoard(old_board);
+
+	for (int i = 0; i < BOARD_SIZE; i++) {
+		for (int j = 0; j < BOARD_SIZE; j++) {
+			if (old_board[i][j] == 0) {
+				printf("celula (%d,%d) está vazia\n", i, j);
+				x = i;
+				y = j;
+				value = rand() % 9 + 1;
+				sprintf(multiplayer_coop_room_shared_data->task_queue[client_index].request, "0-%d,%d,%d", x, y, value);
+				printf("%d,%d,%d\n", x, y, value);
+				goto outside_for;
+			}
+		}
+	}
+	outside_for:
+
+		for (int i = 0; i < BOARD_SIZE; i++) {
+			free(old_board[i]);
+		}
+	free(old_board);
+
+	// Free the JSON object
+	cJSON_Delete(json_board);
+
+	// POSPROTOCOLO
+	sem_post(&multiplayer_coop_room_shared_data->sems_server[client_index]);
+	sem_post(&multiplayer_coop_room_shared_data->sem_has_requests);
+
+	usleep(rand() % (config.slow_factor+0));
+}
 bool get_response_multiplayer_casual() {
 	char response[1024];
 	//PRE
@@ -118,6 +165,7 @@ void send_solution_attempt_single_player(int x, int y, int novo_valor) {
 	//POSPROTOCOLO
 	sem_post(sem_sync_1);// passa para o server
 }
+
 
 
 
@@ -151,6 +199,8 @@ int main(int argc, char *argv[]) {
 	separator();
 	printf("Inicializacao dos meios de sincronizacao da sala\n");
 	sleep(1);
+
+
 
 	if(config.game_type == 0) {
 		char temp[255];
@@ -211,7 +261,7 @@ int main(int argc, char *argv[]) {
 		sem_post(sem_room_full); // assinala que tem mais um cliente no room
 	}
 	else if(config.game_type == 2) {
-		printf("Logica para Multiplayer casual NAO IMPLEMENTADO\n");
+		printf("Logica para Multiplayer casual\n");
 		char temp[255];
 		sprintf(temp, "/sem_%s_solucao", room_name);
 		sem_solucao = sem_open(temp, 0);
@@ -237,7 +287,31 @@ int main(int argc, char *argv[]) {
 		sem_post(sem_room_full);
 	}
 	else if (config.game_type == 3) {
-		printf("Logica para Multiplayer coop IMPLEMENTADO");
+		printf("Logica para Multiplayer coop NAO IMPLEMENTADO");
+
+		char temp[255];
+		sprintf(temp, "/sem_%s_solucao", room_name);
+		sem_solucao = sem_open(temp, 0);
+		sprintf(temp, "/sem_%s_room_full", room_name);
+		sem_room_full = sem_open(temp, 0);
+		sprintf(temp, "/sem_%s_game_start", room_name);
+		sem_game_start = sem_open(temp, 0);
+
+		printf("Abrir memoria partilhada da sala\n");
+		const int room_shared_memory_fd = shm_open(room_name, O_RDWR, 0666);
+		if (room_shared_memory_fd == -1) {
+			perror("shm_open FAIL");
+			printf(room_name);
+			exit(EXIT_FAILURE);
+		}
+		multiplayer_coop_room_shared_data = mmap(NULL, sizeof(multiplayer_casual_room_shared_data_t), PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory_fd, 0);
+
+		if (multiplayer_coop_room_shared_data == MAP_FAILED) {
+			printf("mmap FAIL");
+			exit(EXIT_FAILURE);
+		}
+		printf("PRONTO PARA JOGAR!\nAssinalando a Salla que esta a espera\n");
+		sem_post(sem_room_full);
 	}
 
 	separator();
@@ -245,7 +319,10 @@ int main(int argc, char *argv[]) {
 
 	for (;;) {
 		sem_wait(sem_game_start); // espera que o jogo comece
-		multiplayer_casual_room_shared_data->has_solution[client_index] = false;
+
+		if (config.game_type == 2) {
+			multiplayer_casual_room_shared_data->has_solution[client_index] = false;
+		}
 		bool is_first_attempt = true;
 		clear();
 
@@ -253,6 +330,7 @@ int main(int argc, char *argv[]) {
 
 		switch (config.game_type) {
 			case 0:
+
 				board = getMatrixFromJSON(cJSON_Parse(singleplayer_room_shared_data->starting_board));
 			break;
 			case 1:
@@ -260,26 +338,26 @@ int main(int argc, char *argv[]) {
 			break;
 			case 2:
 				board = getMatrixFromJSON(cJSON_Parse(multiplayer_casual_room_shared_data->starting_board));
-				break;
-			case 3:
-				board = getMatrixFromJSON(cJSON_Parse(multiplayer_coop_room_shared_data->starting_board));
 			break;
 		}
 
 		// SOLUCIONAR BOARD
-		for (int i = 0; i < BOARD_SIZE; i++) {
-			for (int j = 0; j < BOARD_SIZE; j++) {
-				if (board[i][j] == 0) {
-					printf("celula (%d,%d) está vazia\n", i, j);
-					while(true) {
-						const int k = rand() %9+1;
-						clear();
-						printf("ROOM: %s\n", room_name);
-						printBoard(board);
-						usleep(rand() % (config.slow_factor*10+1));
-						switch (config.game_type) {
-							case 0:
-								send_solution_attempt_single_player(i,j,k);
+
+		//JOGOS INDIVIDUAIS
+		if (config.game_type != 3) {
+			for (int i = 0; i < BOARD_SIZE; i++) {
+				for (int j = 0; j < BOARD_SIZE; j++) {
+					if (board[i][j] == 0) {
+						printf("celula (%d,%d) está vazia\n", i, j);
+						while(true) {
+							const int k = rand() %9+1;
+							clear();
+							printf("ROOM: %s\n", room_name);
+							printBoard(board);
+							usleep(rand() % (config.slow_factor+1));
+							switch (config.game_type) {
+								case 0:
+									send_solution_attempt_single_player(i,j,k);
 								printf("Pedido de verificação enviado: %d em (%d,%d)\n",k,i,j);
 								if(receice_answer_single_player()) {
 									board[i][j] = k;
@@ -287,8 +365,8 @@ int main(int argc, char *argv[]) {
 									goto after_while;
 								}
 								break;
-							case 1:
-								send_solution_attempt_multiplayer_ranked(i, j, k);
+								case 1:
+									send_solution_attempt_multiplayer_ranked(i, j, k);
 								printf("Pedido de verificação enviado: %d em (%d,%d)\n",k,i,j);
 								recv(sock, buffer, BUFFER_SIZE, 0);
 								if (buffer[0] == '1') {
@@ -297,8 +375,8 @@ int main(int argc, char *argv[]) {
 									goto after_while;
 								}
 								break;
-							case 2:
-								send_solution_attempt_multiplayer_casual(i,j,k);
+								case 2:
+									send_solution_attempt_multiplayer_casual(i,j,k);
 
 								printf("Pedido de verificação enviado: %d em (%d,%d)\n",k,i,j);
 								if (get_response_multiplayer_casual()) {
@@ -307,30 +385,36 @@ int main(int argc, char *argv[]) {
 									goto after_while;
 								}
 								break;
-							case 3:
-								printf("TODO\n");
-								while(true) {}
-								break;
+							}
 
 						}
-
-
+						after_while: continue;
 					}
-after_while: continue;
 				}
 			}
-		}
-	//Solução encontrada
-		if (config.game_type == 2) {
-			send_solution_attempt_multiplayer_casual(-1,-1,-1); //signal for has solution
-			multiplayer_casual_room_shared_data->has_solution[client_index] = true;
-			is_first_attempt = true;
-		}
-		clear();
-		printf("ROOM: %s\n", room_name);
-		printBoard(board);
-		sem_post(sem_solucao);
+			//Solução encontrada
+			if (config.game_type == 2) {
+				send_solution_attempt_multiplayer_casual(-1,-1,-1); //signal for has solution
+				multiplayer_casual_room_shared_data->has_solution[client_index] = true;
+				is_first_attempt = true;
+			}
+			clear();
+			printf("ROOM: %s\n", room_name);
+			printBoard(board);
+			sem_post(sem_solucao);
 
+		}
+		//JOGO COOPERATIVO
+		else {
+			while (true) {
+				send_solution_attempt_multiplayer_coop();
+			}
+		}
+
+		for (int i = 0; i < BOARD_SIZE; i++) {
+			free(board[i]);
+		}
+		free(board);
 	}
 }
 

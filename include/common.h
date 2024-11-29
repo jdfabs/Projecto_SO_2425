@@ -57,10 +57,14 @@ typedef struct multiplayer_casual_room_shared_data {
 
 typedef struct multiplayer_coop_room_shared_data {
  int board_id;
- char starting_board[BUFFER_SIZE], room_name[BUFFER_SIZE];
+ char current_board[BUFFER_SIZE], room_name[BUFFER_SIZE];
  //TODO
-} multiplayer_coop_room_shared_data_t;
+ Task task_queue[20];
+ sem_t sems_server[20];
+ sem_t sems_client[20];
+ sem_t sem_has_requests;
 
+} multiplayer_coop_room_shared_data_t;
 
 
 typedef struct singleplayer_room_shared_data {
@@ -79,3 +83,4 @@ typedef struct singleplayer_room_shared_data {
 
 int log_event(const char *file_path, const char *message);
 int **getMatrixFromJSON(cJSON *board);
+cJSON *convertMatrixToJSON(int **matrix);

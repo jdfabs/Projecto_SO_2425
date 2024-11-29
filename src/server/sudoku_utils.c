@@ -221,6 +221,43 @@ int **getMatrixFromJSON(cJSON *board)
     return matrix;
 }
 
+cJSON *convertMatrixToJSON(int **matrix)
+{
+    cJSON *jsonArray = cJSON_CreateArray();
+    if (jsonArray == NULL)
+    {
+        fprintf(stderr, "Failed to create JSON array\n");
+        return NULL;
+    }
+
+    for (int i = 0; i < 9; i++)
+    {
+        cJSON *rowArray = cJSON_CreateArray();
+        if (rowArray == NULL)
+        {
+            fprintf(stderr, "Failed to create row array at row %d\n", i);
+            cJSON_Delete(jsonArray);
+            return NULL;
+        }
+
+        cJSON_AddItemToArray(jsonArray, rowArray);
+
+        for (int j = 0; j < 9; j++)
+        {
+            cJSON *value = cJSON_CreateNumber(matrix[i][j]);
+            if (value == NULL)
+            {
+                fprintf(stderr, "Failed to create JSON number at row %d, column %d\n", i, j);
+                cJSON_Delete(jsonArray);
+                return NULL;
+            }
+
+            cJSON_AddItemToArray(rowArray, value);
+        }
+    }
+    return jsonArray;
+}
+
 
 bool is_safe(int **grid, int row, int col, int num) {
     for (int x = 0; x < SIZE; x++) {
@@ -334,54 +371,3 @@ int **generate_sudoku() { // TODO FALTA TIRAR OS NUMEROS 👌
 
     return grid;
 }
-
-
-/*
-int **create_new_board()
-{
-
-    int new_board[SIZE][SIZE];
-    int board_array[81] = {5,3,4,6,7,8,9,1,2,6,7,2,1,9,5,3,4,8,1,9,8,3,4,2,5,6,7,8,5,9,7,6,1,4,2,3,4,2,6,8,5,3,7,9,1,7,1,3,9,2,4,8,5,6,9,6,1,5,3,7,2,8,4,2,8,7,4,1,9,6,3,5,3,4,5,2,8,6,1,7,9};
-
-    
-    
-    for (int i = 80; i > 0; i--) {
-        int j = rand() % (i + 1);
-        int temp = board_array[i];
-        board_array[i] = board_array[j];
-        board_array[j] = temp;
-    }
-    
-    for (int i = 0; i < 81; i++)
-    printf("%d\n", board_array[i]);
-
-    int counter = 0;
-    for (int i; i < 9; i++){
-        for(int j; j<9 ; j++){
-            new_board[i][j] = board_array[counter];
-            counter++;
-        }
-
-    }
-
-    printf("\nQuadro de Sudoku:\n");
-	for (int i = 0; i < 9; i++) {
-		for (int j = 0; j < 9; j++) {
-			printf("%d ", new_board[i][j]); // Print the number
-			// Print a vertical separator for the 3x3 blocks
-			if ((j + 1) % 3 == 0 && j != 8) {
-				printf("| ");
-			}
-		}
-		printf("\n"); // Move to a new line after each row
-		// Print a horizontal separator for the 3x3 blocks
-		if ((i + 1) % 3 == 0 && i != 8) {
-			printf("---------------------\n");
-		}
-	}
-	printf("\n");
-
-    return new_board;
-}
-
-*/
