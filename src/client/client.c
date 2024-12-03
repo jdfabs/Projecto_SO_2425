@@ -43,141 +43,24 @@ int client_index;
  * STATIC FUNCTION PROTOTYPES
  ***********************************/
 void client_init(int argc, char *argv[], client_config *config);
+
 void connect_to_server();
 
-void send_solution_attempt_multiplayer_ranked(int x, int y, int novo_valor) {
-	char message[255];
-	sprintf(message, "0-%d,%d,%d", x, y, novo_valor);
-	printf("%s\n", message);
-	//PREPROTOCOLO
-	sem_wait(sem_sync_2); //produtores
-	sem_wait(mutex_task);
-
-	//ZONA CRITICA PARA CRIAR TASK
-	multiplayer_ranked_shared_data->task_queue[multiplayer_ranked_shared_data->task_productor_ptr].client_socket = client_socket;
-	sprintf(multiplayer_ranked_shared_data->task_queue[multiplayer_ranked_shared_data->task_productor_ptr].request, message);
-	multiplayer_ranked_shared_data->task_productor_ptr = (multiplayer_ranked_shared_data->task_productor_ptr + 1) % 5;
-	printf("Pedido colocado na fila\n");
-
-	usleep(rand() % (config.slow_factor+0));
-	//POS PROTOCOLO
-	sem_post(mutex_task);
-	sem_post(sem_sync_1);
-}
-void send_solution_attempt_multiplayer_casual(int x, int y, int novo_valor) {
-	char message[255];
-	if (x == -1) {
-		sprintf(message, "1--1,-1,-1", y, novo_valor);
-	}
-	else sprintf(message, "0-%d,%d,%d", x, y, novo_valor);
-	//PREPROTOCOLO
-	sem_wait(&multiplayer_casual_room_shared_data->sems_client[client_index]);
-
-	//ZC
-	sprintf(multiplayer_casual_room_shared_data->task_queue[client_index].request, message);
-	printf("Pedido colocado no array\n");
-
-	usleep(rand() % (config.slow_factor+0));
-
-	//POSPROTOCOLO
-	sem_post(&multiplayer_casual_room_shared_data->sems_server[client_index]);
-}
-void send_solution_attempt_multiplayer_coop() {
-	// PREPROTOCOLO
-	sem_wait(&multiplayer_coop_room_shared_data->sems_client[client_index]);
-
-	// ZC
-	usleep(rand() % (config.slow_factor+0));
-	cJSON *json_board = cJSON_Parse(multiplayer_coop_room_shared_data->current_board);
-	if (json_board == NULL) {
-		printf("Error parsing JSON\n");
-		return;
-	}
-	clear();
-
-	int x, y, value;
-	int **old_board = getMatrixFromJSON(json_board);
-
-	printBoard(old_board);
-
-	for (int i = 0; i < BOARD_SIZE; i++) {
-		for (int j = 0; j < BOARD_SIZE; j++) {
-			if (old_board[i][j] == 0) {
-				printf("celula (%d,%d) está vazia\n", i, j);
-				x = i;
-				y = j;
-				value = rand() % 9 + 1;
-				sprintf(multiplayer_coop_room_shared_data->task_queue[client_index].request, "0-%d,%d,%d", x, y, value);
-				printf("%d,%d,%d\n", x, y, value);
-				goto outside_for;
-			}
-		}
-	}
-	outside_for:
-
-		for (int i = 0; i < BOARD_SIZE; i++) {
-			free(old_board[i]);
-		}
-	free(old_board);
-
-	// Free the JSON object
-	cJSON_Delete(json_board);
-
-	// POSPROTOCOLO
-	sem_post(&multiplayer_coop_room_shared_data->sems_server[client_index]);
-	sem_post(&multiplayer_coop_room_shared_data->sem_has_requests);
-
-	usleep(rand() % (config.slow_factor+0));
-}
-bool get_response_multiplayer_casual() {
-	char response[1024];
-	//PRE
-	sem_wait(&multiplayer_casual_room_shared_data->sems_client[client_index]);
-	//ZC
-	sprintf(response, multiplayer_casual_room_shared_data->task_queue[client_index].request);
-
-	//POS
-	sem_post(&multiplayer_casual_room_shared_data->sems_client[client_index]);
-	return response[0] == '0' ? false : true;
-}
-
-
-
-void send_solution_attempt_single_player(int x, int y, int novo_valor) {
-	char message[255];
-	sprintf(message, "0-%d,%d,%d", x, y, novo_valor);
-	//PREPROTOCOLO
-	sem_wait(sem_sync_2);// redundante??
-	//ZC
-	usleep(rand() % (config.slow_factor+1));
-	printf("%s\n", message);
-	strcpy(singleplayer_room_shared_data->buffer, message);
-
-	//POSPROTOCOLO
-	sem_post(sem_sync_1);// passa para o server
-}
-bool receice_answer_single_player() {
-	sem_wait(sem_sync_2); //espera pela resposta do server
-	usleep(rand() % (config.slow_factor+1));
-	bool answer = atoi(singleplayer_room_shared_data->buffer);
-	sem_post(sem_sync_2); //vai tratar das continhas (vai escrever outra vez) REDUNDANTE??
-	return answer;
-
-};
 
 int main(int argc, char *argv[]) {
-
 	client_init(argc, argv, &config); // Client data structures setup
 	connect_to_server(); // Connect to server
 
 	//Handshake com server --- é enviado o socket do cliente e o nome do room em que este fica
 	char aux[100];
 	sprintf(aux, "%d", config.game_type);
-	send(sock, aux, sizeof(aux),0);
+	send(sock, aux, strlen(aux), 0);
 
 	char room_name[100];
 	recv(sock, buffer, BUFFER_SIZE, 0);
 	sleep(1);
+	printf("%s\n", buffer);
+
 	sscanf(buffer, "%d-%d-%99s", &client_socket, &client_index, room_name);
 
 	printf("Socked do Cliente: %d\n", client_socket);
@@ -187,11 +70,106 @@ int main(int argc, char *argv[]) {
 	printf("Inicializacao dos meios de sincronizacao da sala\n");
 	sleep(1);
 
+	int last_i;
+	int last_j;
+	int last_k;
+
+	while (true) {
+		recv(sock, buffer, BUFFER_SIZE, 0);
+		char *message = buffer;
+		message += 2;
+		switch (buffer[0]) {
+			case '0':
+				//Update Board
+				printf("Updating Board\n");
+				board = getMatrixFromJSON(cJSON_Parse(message));
+				printBoard(board);
+				break;
+			case '1':
+			//Correct Guess
+				board[last_i][last_j] = last_k;
+			case '2':
+			//Wrong Guess
+
+			case '3':
+				//Game Start/Take a guess again
+				//JOGOS INDIVIDUAIS
+				if (config.game_type != 3) {
+					for (int i = 0; i < 9; i++) {
+						for (int j = 0; j < 9; j++) {
+							if (board[i][j] == 0) {	// FIND FIRST EMPTY SPOT
+								printf("celula (%d,%d) está vazia\n", i, j);
+
+								const int k = rand() % 9 + 1; // random try
+								last_i = i;
+								last_j = j;
+								last_k = k;
+								clear();
+								printf("ROOM: %s\n", room_name);
+								printBoard(board);
+								usleep(rand() % (config.slow_factor + 1));
 
 
-		
+								sprintf(buffer, "0-%d-%d-%d", i, j, k);
+								send(sock, buffer, strlen(buffer), 0);
+								printf("Pedido de verificação enviado: %d em (%d,%d)\n",k,i,j);
+
+
+								goto exit_for;
+								switch (config.game_type) {
+									case 0:
+
+
+									case 1:
+									//TODO !IMPORTANT FIX --- BROKEN
+									//recv(sock, buffer, BUFFER_SIZE, 0);
+										if (buffer[0] == '1') {
+											board[i][j] = k;
+											//printf("Numero correto encontrado\n");
+											goto after_while;
+										}
+										break;
+
+								}
+
+							after_while:
+								continue;
+							}
+						}
+
+					}
+					send(sock, "1", strlen("1"), 0);
+					printf("SOLVED\n");
+					exit_for:
+
+					//Solução encontrada
+					/*
+					if (room->type == 2) {
+						send_solution_attempt_multiplayer_casual(-1, -1, -1, multiplayer_casual_room_shared_data,
+																client_index); //signal for has solution
+						multiplayer_casual_room_shared_data->has_solution[client_index] = true;
+						is_first_attempt = true;
+					}*/
+					//TODO
+					//clear();
+					//printf("ROOM: %s\n", room->name);
+					//TODO
+					//printBoard(board);
+					//sem_post(sem_solucao);
+				}
+				break;
+			case '4':
+				break;
+			case '5':
+				break;
+			case '6':
+				break;
+			case '7':
+				break;
+		}
 	}
 }
+
 
 void printBoard(int **matrix) {
 	for (int i = 0; i < 9; i++) {
@@ -209,6 +187,7 @@ void printBoard(int **matrix) {
 		}
 	}
 }
+
 void client_init(const int argc, char *argv[], client_config *config) {
 	srand(time(NULL));
 	clear();
@@ -230,6 +209,7 @@ void client_init(const int argc, char *argv[], client_config *config) {
 	log_event(config->log_file, "Client Config Loaded");
 	separator();
 }
+
 void connect_to_server() {
 	printf("Criando Socket\n");
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -242,13 +222,14 @@ void connect_to_server() {
 	struct sockaddr_in server_address;
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(config.server_port); // Porta do servidor
-	if (inet_pton(AF_INET, config.server_ip, &server_address.sin_addr) <= 0) { // Endereço IP do servidor
+	if (inet_pton(AF_INET, config.server_ip, &server_address.sin_addr) <= 0) {
+		// Endereço IP do servidor
 		log_event(config.log_file, "Endereço inválido! EXIT\n");
 		exit(EXIT_FAILURE);
 	}
 
 	printf("Pedindo ao Servidor a conexão\n");
-	if (connect(sock, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) {
+	if (connect(sock, (struct sockaddr *) &server_address, sizeof(server_address)) < 0) {
 		log_event(config.log_file, "Conexão falhou! EXIT\n");
 		exit(EXIT_FAILURE);
 	}
@@ -257,4 +238,3 @@ void connect_to_server() {
 	log_event(config.log_file, "Conectado ao servidor");
 	separator();
 }
-

@@ -21,6 +21,7 @@ typedef struct {
 	char ip_address[255];
 	int port;
 	int server_size;
+	int slow_factor;
 } server_config;
 
 typedef struct {
@@ -28,7 +29,6 @@ typedef struct {
 	int type;
 	int max_players;
 	int current_players;
-	pthread_t thread_id;
 } room_t;
 
 typedef struct {
@@ -41,8 +41,6 @@ typedef enum {
 	CASUAL = 1,
 	COOP = 2
 }multiplayer_room_type_t ;
-
-
 
 /************************************
  * EXPORTED VARIABLES

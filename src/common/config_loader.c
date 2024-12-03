@@ -194,6 +194,7 @@ int load_server_config(const char *filename, server_config *config) {
 	strcpy(config->ip_address, cJSON_GetObjectItem(json, "ip_address")->valuestring);
 	config->port = cJSON_GetObjectItem(json, "port")->valueint;
 	config->server_size = cJSON_GetObjectItem(json, "multiplayer_room_size")->valueint;
+	config->slow_factor = cJSON_GetObjectItem(json, "slow_factor")->valueint;
 	// Cleanup
 	cJSON_Delete(json);
 	free(filePath);
