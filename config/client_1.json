@@ -5,6 +5,6 @@
 	"server_port": 9346,
 	"log_file": "./logs/client1.log",
 	"game_type": 1,
-	"slow_factor": 5
+	"slow_factor": 150000
   }
 }

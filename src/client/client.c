@@ -27,6 +27,7 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <time.h>
+#include <signal.h>
 
 client_config config;
 int **board;
@@ -46,6 +47,10 @@ void client_init(int argc, char *argv[], client_config *config);
 
 void connect_to_server();
 
+void graceful_shutdown() {
+	send(client_socket, "9", sizeof("9") , 0);
+	exit(0);
+}
 
 int main(int argc, char *argv[]) {
 	client_init(argc, argv, &config); // Client data structures setup
@@ -58,7 +63,7 @@ int main(int argc, char *argv[]) {
 
 	char room_name[100];
 	recv(sock, buffer, BUFFER_SIZE, 0);
-	sleep(1);
+	//sleep(1);
 	printf("%s\n", buffer);
 
 	sscanf(buffer, "%d-%d-%99s", &client_socket, &client_index, room_name);
@@ -68,13 +73,14 @@ int main(int argc, char *argv[]) {
 	printf("Client Index: %d\n", client_index);
 	separator();
 	printf("Inicializacao dos meios de sincronizacao da sala\n");
-	sleep(1);
+	//sleep(1);
 
 	int last_i;
 	int last_j;
 	int last_k;
 
 	while (true) {
+		exit_for:
 		recv(sock, buffer, BUFFER_SIZE, 0);
 		char *message = buffer;
 		message += 2;
@@ -107,7 +113,7 @@ int main(int argc, char *argv[]) {
 								clear();
 								printf("ROOM: %s\n", room_name);
 								printBoard(board);
-								usleep(rand() % (config.slow_factor + 1));
+								//usleep(rand() % (config.slow_factor + 1));
 
 
 								sprintf(buffer, "0-%d-%d-%d", i, j, k);
@@ -126,21 +132,18 @@ int main(int argc, char *argv[]) {
 										if (buffer[0] == '1') {
 											board[i][j] = k;
 											//printf("Numero correto encontrado\n");
-											goto after_while;
 										}
 										break;
 
 								}
 
-							after_while:
-								continue;
 							}
 						}
 
 					}
 					send(sock, "1", strlen("1"), 0);
 					printf("SOLVED\n");
-					exit_for:
+
 
 					//Solução encontrada
 					/*
@@ -189,6 +192,10 @@ void printBoard(int **matrix) {
 }
 
 void client_init(const int argc, char *argv[], client_config *config) {
+	signal(SIGINT, graceful_shutdown);
+	signal(SIGTERM, graceful_shutdown);
+
+
 	srand(time(NULL));
 	clear();
 	separator();
