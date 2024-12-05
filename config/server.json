@@ -10,5 +10,5 @@
   "task_queue_size": 1,
   "event_handler_threads": 2,
   "multiplayer_room_size":3,
-  "slow_factor": 1
+  "slow_factor": 1500000
 }

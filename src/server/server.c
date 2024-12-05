@@ -885,6 +885,14 @@ void *task_handler_multiplayer_coop(void *arg) {
 		oldest_request_time.tv_nsec = 999999999;
 
 		//PRE
+
+		for (int i =0; i < config.server_size; i++) {
+			int temp;
+			sem_getvalue(&shared_data->sems_server[i], &temp);
+			printf("client index:%d hasRequest: %d last requested: %d\n", i, temp, last_processed[i]);
+		}
+
+
 		sem_wait(&shared_data->sem_has_requests);
 
 		for (int i = 0; i < config.server_size; i++) {
@@ -900,6 +908,7 @@ void *task_handler_multiplayer_coop(void *arg) {
 
 		//ZC
 		//usleep(rand() % 1);
+		sleep(1.5);
 		Task task = shared_data->task_queue[selected_client];
 		int **solution = getMatrixFromJSON(
 			cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
@@ -1117,11 +1126,12 @@ void send_solution_attempt_multiplayer_casual(int x, int y, int novo_valor,
 
 void send_solution_attempt_multiplayer_coop(multiplayer_coop_room_shared_data_t *multiplayer_coop_room_shared_data,
 											int client_index) {
+
 	// PREPROTOCOLO
 	sem_wait(&multiplayer_coop_room_shared_data->sems_client[client_index]);
-
 	// ZC
-	//usleep(rand() % (config.slow_factor + 0));
+	//usleep(rand() % (config.slow_factor*2 + 0));
+
 	cJSON *json_board = cJSON_Parse(multiplayer_coop_room_shared_data->current_board);
 	if (json_board == NULL) {
 		printf("Error parsing JSON\n");
@@ -1165,9 +1175,6 @@ outside_for:
 	//usleep(rand() % (config.slow_factor + 0));
 }
 
-
-
-
 void send_solution_attempt_single_player(int x, int y, int novo_valor, sem_t *sem_sync_2,
 										singleplayer_room_shared_data_t *singleplayer_room_shared_data,
 										sem_t *sem_sync_1) {
@@ -1206,16 +1213,7 @@ bool receive_answer_multiplayer_casual(multiplayer_casual_room_shared_data_t *mu
 	sem_post(&multiplayer_casual_room_shared_data->sems_client[client_index]);
 	return response[0] == '0' ? false : true;
 }
-bool receive_answer_multiplayer_ranked(multiplayer_ranked_room_shared_data_t *multiplayer_ranked_room_shared_data,int client_index) {
-	char response[1024];
-	//PRE
 
-	//ZC
-		//sprintf(response, multiplayer_ranked_room_shared_data->task_queue[client_index].request);
-	//POS
-
-	return response[0] == '0' ? false : true;
-}
 void *client_handler(room_t *room, int client_socket, int client_index) {
 
 	char buffer[BUFFER_SIZE];
@@ -1234,7 +1232,7 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 	sem_t *sem_sync_1;
 	sem_t *sem_sync_2;
 
-	sleep(1);
+	sleep(2);
 
 	if (room->type == 0) {
 		char temp[255];
@@ -1348,21 +1346,19 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 			printf("mmap FAIL");
 			exit(EXIT_FAILURE);
 		}
-		printf("PRONTO PARA JOGAR!\nAssinalando a Salla que esta a espera\n");
+		printf("PRONTO PARA JOGAR!\nAssinalando a Sala que esta a espera\n");
 		sem_post(sem_room_full);
 	}
 
 
 	//TODO FIX UI
 	separator();
-	//printf("ESPERANDO\n");
+	printf("ESPERANDO\n");
 
 	while (true) {
 
-
 		new_round:
 		sem_wait(sem_game_start); // espera que o jogo comece
-
 		int **board;
 		bool is_first_attempt = true;
 
@@ -1376,6 +1372,9 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 			case 2:
 				board = getMatrixFromJSON(cJSON_Parse(multiplayer_casual_room_shared_data->starting_board));
 				break;
+			case 3:
+				board = getMatrixFromJSON(cJSON_Parse(multiplayer_coop_room_shared_data->current_board));
+			break;
 		}
 		if (room->type == 2) {
 			multiplayer_casual_room_shared_data->has_solution[client_index] = false;
@@ -1383,14 +1382,12 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 
 		sprintf(buffer, "0-%s", cJSON_Print(convertMatrixToJSON(board)));
 		send(client_socket, buffer, sizeof(buffer), 0); //UPDATE BOARD
-
 		send(client_socket, "3", sizeof("3"), 0); // START GAME
 
 		while (true) {
 			ssize_t recv_ret = recv(client_socket, buffer, sizeof(buffer), 0);
 			if (recv_ret == 0) {
 				//TODO REMOVE CLIENT FROM SERVER AND SHIT
-				printf("000\n");
 				return 0;
 			}
 			char *message = buffer;
@@ -1402,6 +1399,14 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 			switch (buffer[0]) {
 				case '0':
 					//Solution Request
+						if (room->type == 3) {
+							send_solution_attempt_multiplayer_coop(multiplayer_coop_room_shared_data, client_index);
+							board = getMatrixFromJSON(cJSON_Parse(multiplayer_coop_room_shared_data->current_board));
+							sprintf(buffer, "0-%s", cJSON_Print(convertMatrixToJSON(board)));
+							send(client_socket, buffer, sizeof(buffer), 0); //UPDATE BOARD
+							send(client_socket, "3", sizeof("3"), 0);
+							break;
+						}
 					sscanf(message, "%d-%d-%d",&i,&j,&k);
 					if (k >= 10) k /= 10;
 
@@ -1417,12 +1422,6 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 							break;
 						case 1:
 							send_solution_attempt_multiplayer_ranked(i,j,k,sem_sync_2,mutex_task,multiplayer_ranked_shared_data,client_socket,sem_sync_1);
-							if (receive_answer_multiplayer_ranked(multiplayer_ranked_shared_data, client_socket)) {
-								//send(client_socket, "2", sizeof("1"), 0);
-							}
-							else {
-								//send(client_socket, "1", sizeof("1"), 0);
-							}
 							break;
 						case 2:
 							send_solution_attempt_multiplayer_casual(i,j,k,multiplayer_casual_room_shared_data,client_index);
@@ -1433,8 +1432,6 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 							else {
 								send(client_socket, "1", sizeof("1"), 0);
 							}
-							break;
-						case 3:
 							break;
 					}
 					break;
@@ -1469,26 +1466,5 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 					_exit(0);
 			}
 		}
-	}
-
-	for (;;) {
-		//TODO FIX
-		//clear();
-
-		// SOLUCIONAR BOARD
-		/*
-				//JOGO COOPERATIVO
-				else {
-					while (true) {
-						//TODO FIX THIS SHIT COMPLETELY BROKEN
-						send_solution_attempt_multiplayer_coop(multiplayer_coop_room_shared_data, client_socket);
-					}
-				}
-
-				for (int i = 0; i < 9; i++) {
-					free(board[i]);
-				}
-				free(board);
-				*/
 	}
 }

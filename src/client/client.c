@@ -83,7 +83,6 @@ int main(int argc, char *argv[]) {
 	while (true) {
 		exit_for:
 		recv(sock, buffer, BUFFER_SIZE, 0);
-
 		char *message = buffer;
 		message += 2;
 		switch (buffer[0]) {
@@ -98,7 +97,6 @@ int main(int argc, char *argv[]) {
 				board[last_i][last_j] = last_k;
 			case '2':
 			//Wrong Guess
-
 			case '3':
 				//Game Start/Take a guess again
 				//JOGOS INDIVIDUAIS
@@ -124,44 +122,19 @@ int main(int argc, char *argv[]) {
 
 
 								goto exit_for;
-								switch (config.game_type) {
-									case 0:
-
-
-									case 1:
-									//TODO !IMPORTANT FIX --- BROKEN
-									//recv(sock, buffer, BUFFER_SIZE, 0);
-										if (buffer[0] == '1') {
-											board[i][j] = k;
-											//printf("Numero correto encontrado\n");
-										}
-										break;
-
-								}
-
 							}
 						}
-
 					}
 					send(sock, "1", strlen("1"), 0);
 					printf("SOLVED\n");
-
-
-					//Solução encontrada
-					/*
-					if (room->type == 2) {
-						send_solution_attempt_multiplayer_casual(-1, -1, -1, multiplayer_casual_room_shared_data,
-																client_index); //signal for has solution
-						multiplayer_casual_room_shared_data->has_solution[client_index] = true;
-						is_first_attempt = true;
-					}*/
-					//TODO
-					//clear();
-					//printf("ROOM: %s\n", room->name);
-					//TODO
-					//printBoard(board);
-					//sem_post(sem_solucao);
 				}
+				else {
+					usleep(rand() % config.slow_factor*2+1);
+					clear();
+					send(sock, "0", strlen("0"), 0);
+					printf("PEDIDO ENVIADO\n");
+				}
+
 				break;
 			case '4':
 				break;
