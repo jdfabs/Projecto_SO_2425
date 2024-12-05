@@ -22,7 +22,6 @@
 #include <time.h>
 #include <signal.h>
 
-
 #define separator() printf("--------------------------\n")
 /************************************
  * STATIC FUNCTION PROTOTYPES
@@ -289,9 +288,10 @@ void accept_clients() {
 	//sprintf(aux, "%d-%d-%s", client_socket, rooms[room_count].current_players - 1, rooms[room_count].name);
 	//printf("%s\n", aux);
 
-	if (fork() == 0) {
+	int pid = fork();
+	if (pid == 0) {
 		client_handler(&rooms[room_count], client_socket, rooms[room_count].current_players - 1);
-		exit(0);
+		_exit(0);
 	}
 	room_count++;
 	//send(client_socket, aux, sizeof(aux), 0);
@@ -300,6 +300,8 @@ void accept_clients() {
 	log_event(config.log_file, "Client handshake completed");
 	//Informa o cliente qual é o seu socket (para efeitos de retornar mensagem ao cliente certo)
 }
+
+
 
 void create_singleplayer_room(char *room_name) {
 	room_config_t *room_config = malloc(sizeof(room_config_t));
@@ -553,6 +555,7 @@ void *multiplayer_ranked_room_handler(void *arg) {
 	}
 }
 void *task_handler_multiplayer_ranked(void *arg) {
+
 	multiplayer_ranked_room_shared_data_t *shared_data = arg;
 	char temp[255];
 	sprintf(temp, "/sem_%s_producer", shared_data->room_name);
@@ -1185,14 +1188,11 @@ void send_solution_attempt_single_player(int x, int y, int novo_valor, sem_t *se
 bool receice_answer_single_player(sem_t *sem_sync_2, singleplayer_room_shared_data_t *singleplayer_room_shared_data) {
 
 
-						printf("333\n");
 	sem_wait(sem_sync_2); //espera pela resposta do server
 	//usleep(rand() % (config.slow_factor + 1));
-						printf("444\n");
 	bool answer = atoi(singleplayer_room_shared_data->buffer);
 	sem_post(sem_sync_2); //vai tratar das continhas (vai escrever outra vez) REDUNDANTE??
 
-						printf("555\n");
 	return answer;
 };
 bool receive_answer_multiplayer_casual(multiplayer_casual_room_shared_data_t *multiplayer_casual_room_shared_data,int client_index) {
@@ -1217,6 +1217,7 @@ bool receive_answer_multiplayer_ranked(multiplayer_ranked_room_shared_data_t *mu
 	return response[0] == '0' ? false : true;
 }
 void *client_handler(room_t *room, int client_socket, int client_index) {
+
 	char buffer[BUFFER_SIZE];
 	sprintf(buffer, "%d-%d-%s", client_socket, client_index, room->name);
 	send(client_socket, buffer, sizeof(buffer), 0);
@@ -1386,7 +1387,12 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 		send(client_socket, "3", sizeof("3"), 0); // START GAME
 
 		while (true) {
-			recv(client_socket, buffer, sizeof(buffer), 0);
+			ssize_t recv_ret = recv(client_socket, buffer, sizeof(buffer), 0);
+			if (recv_ret == 0) {
+				//TODO REMOVE CLIENT FROM SERVER AND SHIT
+				printf("000\n");
+				return 0;
+			}
 			char *message = buffer;
 			message += 2;
 			int i;
@@ -1397,18 +1403,17 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 				case '0':
 					//Solution Request
 					sscanf(message, "%d-%d-%d",&i,&j,&k);
+					if (k >= 10) k /= 10;
+
 					switch (room->type) {
 						case 0:
-							printf("000\n");
 							send_solution_attempt_single_player(i, j, k, sem_sync_2, singleplayer_room_shared_data, sem_sync_1);
-							printf("111\n");
 							if (receice_answer_single_player(sem_sync_2, singleplayer_room_shared_data)) {
 								send(client_socket, "2", sizeof("2"), 0);
 							}
 							else {
 								send(client_socket, "1", sizeof("1"), 0);
 							}
-							printf("222\n");
 							break;
 						case 1:
 							send_solution_attempt_multiplayer_ranked(i,j,k,sem_sync_2,mutex_task,multiplayer_ranked_shared_data,client_socket,sem_sync_1);

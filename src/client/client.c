@@ -48,7 +48,8 @@ void client_init(int argc, char *argv[], client_config *config);
 void connect_to_server();
 
 void graceful_shutdown() {
-	send(client_socket, "9", sizeof("9") , 0);
+	close(client_socket);
+
 	exit(0);
 }
 
@@ -82,6 +83,7 @@ int main(int argc, char *argv[]) {
 	while (true) {
 		exit_for:
 		recv(sock, buffer, BUFFER_SIZE, 0);
+
 		char *message = buffer;
 		message += 2;
 		switch (buffer[0]) {
