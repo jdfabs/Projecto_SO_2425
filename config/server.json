@@ -9,6 +9,6 @@
   "board_file_path": "./boards/boards.json",
   "task_queue_size": 1,
   "event_handler_threads": 2,
-  "multiplayer_room_size":6,
-  "slow_factor": 1500000
+  "multiplayer_room_size":100,
+  "slow_factor":0
 }

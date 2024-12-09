@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Define the executable and the parameter
-executable="/home/skipper/Documents/GitHub/Projecto_SO_2425/client"  # Change this to the path of your executable
-param="client_1"              # Change this to the parameter you want to use
 
-# Loop to run the executable 20 times
-for i in {1..200}
+executable="./client"  
+param="client_1"
+
+for i in {1..100}
 do
   $executable $param &
+  sleep 0.05
 done
 
-# Wait for all background processes to finish
+
 wait

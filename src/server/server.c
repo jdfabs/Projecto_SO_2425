@@ -551,23 +551,16 @@ void setup_multiplayer_casual_shared_memory(char room_name[100], multiplayer_cas
 	(*shared_data)->board_id = -1;
 	strcpy((*shared_data)->starting_board, "");
 
-	for (int i = 0; i < 20; i++) {
-		//inicializar os valores da fila de espera
-		(*shared_data)->task_queue[i].client_socket = -1;
-		sprintf((*shared_data)->task_queue[i].request, "\0");
-	}
+
 	(*shared_data)->counter = 0;
 
 
 	for (int i = 0; i < config.server_size; i++) {
+		(*shared_data)->task_queue[i].client_socket = -1;
+		sprintf((*shared_data)->task_queue[i].request, "\0");
 		sem_init(&(*shared_data)->sems_client[i], true, 1);
-	}
-
-	for (int i = 0; i < config.server_size; i++) {
-		sem_init(&(*shared_data)->sems_server[i], true, 0);
-	}
-	for (int i = 0; i < config.server_size; i++) {
 		(*shared_data)->has_solution[i] = false;
+		sem_init(&(*shared_data)->sems_server[i], true, 0);
 	}
 
 	//TODO LOGS
@@ -729,6 +722,7 @@ void multiplayer_coop_select_new_board_and_share(multiplayer_coop_room_shared_da
 }
 void *multiplayer_coop_room_handler(void *arg) {
 	struct timespec media;
+
 	media.tv_sec = 0;
 	media.tv_nsec = 0;
 	int time_counter = 0;

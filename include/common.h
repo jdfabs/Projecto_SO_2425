@@ -47,10 +47,10 @@ typedef struct multiplayer_casual_room_shared_data {
  int board_id;
  char starting_board[BUFFER_SIZE], room_name[BUFFER_SIZE];
 
- Task task_queue[20];//TODO malloc this?
- sem_t sems_client[20];
- sem_t sems_server[20];
- bool has_solution[20];
+ Task task_queue[500];//TODO malloc this?
+ sem_t sems_client[500];
+ sem_t sems_server[500];
+ bool has_solution[500];
 
  int counter;
 } multiplayer_casual_room_shared_data_t;
@@ -59,9 +59,9 @@ typedef struct multiplayer_coop_room_shared_data {
  int board_id;
  char current_board[BUFFER_SIZE], room_name[BUFFER_SIZE];
  //TODO
- Task task_queue[20];
- sem_t sems_server[20];
- sem_t sems_client[20];
+ Task task_queue[500];
+ sem_t sems_server[500];
+ sem_t sems_client[500];
  sem_t sem_has_requests;
 
 } multiplayer_coop_room_shared_data_t;
