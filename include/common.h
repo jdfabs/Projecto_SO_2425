@@ -36,6 +36,7 @@ typedef struct {
 
 typedef struct multiplayer_ranked_room_shared_data {
  int board_id;
+ int current_player;
  char starting_board[BUFFER_SIZE], room_name[BUFFER_SIZE];
 
  Task task_queue[5];
@@ -46,11 +47,12 @@ typedef struct multiplayer_ranked_room_shared_data {
 typedef struct multiplayer_casual_room_shared_data {
  int board_id;
  char starting_board[BUFFER_SIZE], room_name[BUFFER_SIZE];
-
+ int current_player;
  Task task_queue[500];//TODO malloc this?
  sem_t sems_client[500];
  sem_t sems_server[500];
  bool has_solution[500];
+ bool still_alive[500];
 
  int counter;
 } multiplayer_casual_room_shared_data_t;
@@ -58,7 +60,7 @@ typedef struct multiplayer_casual_room_shared_data {
 typedef struct multiplayer_coop_room_shared_data {
  int board_id;
  char current_board[BUFFER_SIZE], room_name[BUFFER_SIZE];
- //TODO
+ int current_player;
  Task task_queue[500];
  sem_t sems_server[500];
  sem_t sems_client[500];

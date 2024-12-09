@@ -49,7 +49,7 @@ int num_boards;
 
 int server_fd;
 
-room_t rooms[20];
+room_t rooms[100];
 int room_count = 0;
 
 int main(const int argc, char *argv[]) {
@@ -255,7 +255,6 @@ void create_new_room(int client_socket, int room_type) {
 
     if (fork() == 0) {
         client_handler(&rooms[room_count], client_socket, 0);
-        exit(0);
     }
 
     room_count++;
@@ -399,8 +398,8 @@ void setup_multiplayer_ranked_shared_memory(const char *room_name, multiplayer_r
 
     (*shared_data)->task_consumer_ptr = 0;
     (*shared_data)->task_productor_ptr = 0;
+	(*shared_data)->current_player = config.server_size;
 }
-
 void multiplayer_ranked_select_new_board_and_share(multiplayer_ranked_room_shared_data_t *shared_data) {
     srand(time(NULL));
     shared_data->board_id = rand() % num_boards;
@@ -408,7 +407,6 @@ void multiplayer_ranked_select_new_board_and_share(multiplayer_ranked_room_share
 
     strncpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")), sizeof(shared_data->starting_board));
 }
-
 void *multiplayer_ranked_room_handler(void *arg) {
     struct timespec media = {0, 0};
     int time_counter = 0;
@@ -462,17 +460,23 @@ void *multiplayer_ranked_room_handler(void *arg) {
     wait_for_full_room(sem_room_full, max_player);
     printf("Multiplayer Ranked %s: room full - let the games begin\n", room_name);
 
+
     while (1) {
+    	int current_players = shared_data->current_player;
+    	if (current_players == 0) {
+    		printf("SERVER IS EMPTY \n");
+			return 0;
+    	}
         multiplayer_ranked_select_new_board_and_share(shared_data);
 
         clock_gettime(CLOCK_MONOTONIC, &start);
-        for (int i = 0; i < max_player; i++) {
+        for (int i = 0; i < current_players; i++) {
             sem_post(sem_game_start);
         }
 
         printf("Multiplayer Ranked %s: game start has been signaled\n", room_name);
 
-        for (int i = 0; i < max_player; i++) {
+        for (int i = 0; i < current_players; i++) {
             sem_wait(sem_solution_found);
             clock_gettime(CLOCK_MONOTONIC, &end);
 
@@ -493,7 +497,6 @@ void *multiplayer_ranked_room_handler(void *arg) {
         printf("Average time for %s: %.10f\n", room_name, media.tv_sec + media.tv_nsec / 1e9);
     }
 }
-
 void *task_handler_multiplayer_ranked(void *arg) {
     multiplayer_ranked_room_shared_data_t *shared_data = (multiplayer_ranked_room_shared_data_t *)arg;
 
@@ -560,9 +563,10 @@ void setup_multiplayer_casual_shared_memory(char room_name[100], multiplayer_cas
 		sprintf((*shared_data)->task_queue[i].request, "\0");
 		sem_init(&(*shared_data)->sems_client[i], true, 1);
 		(*shared_data)->has_solution[i] = false;
+		(*shared_data)->still_alive[i] = true;
 		sem_init(&(*shared_data)->sems_server[i], true, 0);
 	}
-
+	(*shared_data)->current_player = config.server_size;
 	//TODO LOGS
 }
 void multiplayer_casual_select_new_board_and_share(multiplayer_casual_room_shared_data_t *shared_data) {
@@ -616,18 +620,22 @@ void *multiplayer_casual_room_handler(void *arg) {
 	printf("Multiplayer Casual %s: room full - set the games begin\n", room_name);
 
 	for (;;) {
-		//sleep(5);
+		int current_players = shared_data->current_player;
+		if (current_players == 0) {
+			printf("SERVER IS EMPTY \n");
+			return 0;
+		}
 		multiplayer_casual_select_new_board_and_share(shared_data);
 
 		//Start round
 		clock_gettime(CLOCK_MONOTONIC, &start);
-		for (int i = 0; i < max_player; i++) {
+		for (int i = 0; i < current_players; i++) {
 			sem_post(sem_game_start);
 		}
 		separator();
 		printf("Multiplayer Casual %s: game start has been signaled \n", room_name);
 
-		for (int i = 0; i < max_player; i++) {
+		for (int i = 0; i < current_players; i++) {
 			sem_wait(sem_solucao_encontrada);
 			clock_gettime(CLOCK_MONOTONIC, &end);
 			struct timespec final;
@@ -655,7 +663,7 @@ void *task_handler_multiplayer_casual(void *arg) {
 	while (1) {
 		//PREPROTOCOLO
 
-		if (shared_data->has_solution[current_index]) {
+		if (shared_data->has_solution[current_index] || !shared_data->still_alive[current_index]) {
 			current_index = (current_index + 1) % config.server_size;
 			continue;
 		}
@@ -708,7 +716,7 @@ void setup_multiplayer_coop_shared_memory(char room_name[100], multiplayer_coop_
 		sprintf((*shared_data)->task_queue[i].request, "\0");
 	}
 	sem_init(&(*shared_data)->sem_has_requests,true, 0);
-	//TODO LOGS
+	(*shared_data)->current_player = config.server_size;
 }
 void multiplayer_coop_select_new_board_and_share(multiplayer_coop_room_shared_data_t *shared_data) {
 	srand(time(NULL));
@@ -755,20 +763,24 @@ void *multiplayer_coop_room_handler(void *arg) {
 
 	//TODO LOGS
 
-	pthread_create(&soltution_checker, NULL, task_handler_multiplayer_coop, shared_data);
 
 	printf("%s of type Multiplayer COOP - started with a max of %d players\n", room_name, max_player);
 
 	wait_for_full_room(sem_room_full, max_player); // Espera que o room encha
 	printf("Multiplayer COOP %s: room full - set the games begin\n", room_name);
 
+	pthread_create(&soltution_checker, NULL, task_handler_multiplayer_coop, shared_data);
 	for (;;) {
-		//sleep(5);
+		int current_players = shared_data->current_player;
+		if (current_players == 0) {
+			printf("SERVER IS EMPTY \n");
+			return 0;
+		}
 		multiplayer_coop_select_new_board_and_share(shared_data);
 
 		//Start round
 		clock_gettime(CLOCK_MONOTONIC, &start);
-		for (int i = 0; i < max_player; i++) {
+		for (int i = 0; i < current_players; i++) {
 			sem_post(sem_game_start);
 		}
 		separator();
@@ -1321,7 +1333,30 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 			ssize_t recv_ret = recv(client_socket, buffer, sizeof(buffer), 0);
 			if (recv_ret == 0) {
 				//TODO REMOVE CLIENT FROM SERVER AND SHIT
-				return 0;
+				printf("999\n");
+				switch (room->type) {
+					case 0:
+						//TODO
+							break;
+					case 1:
+						multiplayer_ranked_shared_data->current_player--;
+						sem_post(sem_solucao);
+					break;
+					case 2:
+						multiplayer_casual_room_shared_data->current_player--;
+						multiplayer_casual_room_shared_data->starting_board[client_index] = false;
+						multiplayer_casual_room_shared_data->has_solution[client_index] = true;
+						sem_post(&multiplayer_casual_room_shared_data->sems_server[client_index]);
+						sem_post(sem_solucao);
+					break;
+					case 3:
+						multiplayer_coop_room_shared_data->current_player--;
+						if (multiplayer_coop_room_shared_data->current_player == 0) {
+							sem_post(sem_solucao);
+						}
+					break;
+				}
+				exit(0);
 			}
 			char *message = buffer;
 			message += 2;
@@ -1395,8 +1430,7 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 				case '7':
 					break;
 				case '9':
-					printf("Client Handler Exiting");
-					_exit(0);
+				 break;
 			}
 		}
 	}

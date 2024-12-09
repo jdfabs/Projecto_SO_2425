@@ -48,6 +48,7 @@ void client_init(int argc, char *argv[], client_config *config);
 void connect_to_server();
 
 void graceful_shutdown() {
+	send(client_socket, "9", BUFFER_SIZE, 0);
 	close(client_socket);
 
 	exit(0);
