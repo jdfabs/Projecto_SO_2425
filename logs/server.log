@@ -2260,3 +2260,591 @@
 [Thu Dec  5 22:14:51 2024] Server Gracefully Shutdown
 [Thu Dec  5 22:14:51 2024] Server Gracefully Shutdown
 [Thu Dec  5 22:14:51 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:22:36 2024] Config server carregada.
+[Thu Dec  5 22:22:36 2024] Servidor começou
+[Thu Dec  5 22:22:36 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 22:22:36 2024] A começar setup do socket de connecção
+[Thu Dec  5 22:22:36 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 22:22:36 2024] Socket deu bind com sucesso
+[Thu Dec  5 22:22:36 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 22:22:43 2024] Receiving new connection
+[Thu Dec  5 22:22:43 2024] New Singleplayer room created and first client connected
+[Thu Dec  5 22:22:43 2024] Client has connected to room: room_0, with ID 1 and socket: 4
+[Thu Dec  5 22:22:43 2024] Client handshake completed
+[Thu Dec  5 22:23:12 2024] Receiving new connection
+[Thu Dec  5 22:23:12 2024] New Ranked room created and first client connected
+[Thu Dec  5 22:23:12 2024] Client has connected to room: room_1, with ID 1 and socket: 7
+[Thu Dec  5 22:23:12 2024] Client handshake completed
+[Thu Dec  5 22:23:13 2024] Receiving new connection
+[Thu Dec  5 22:23:13 2024] Client has been assigned room_1, id: 1, socket: 9
+[Thu Dec  5 22:23:13 2024] Receiving new connection
+[Thu Dec  5 22:23:13 2024] Client has been assigned room_1, id: 2, socket: 8
+[Thu Dec  5 22:23:39 2024] Config server carregada.
+[Thu Dec  5 22:23:39 2024] Servidor começou
+[Thu Dec  5 22:23:39 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 22:23:39 2024] A começar setup do socket de connecção
+[Thu Dec  5 22:23:39 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 22:23:39 2024] Socket deu bind com sucesso
+[Thu Dec  5 22:23:39 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 22:23:41 2024] Receiving new connection
+[Thu Dec  5 22:23:41 2024] New Casual room created and first client connected
+[Thu Dec  5 22:23:41 2024] Client has connected to room: room_0, with ID 1 and socket: 4
+[Thu Dec  5 22:23:41 2024] Client handshake completed
+[Thu Dec  5 22:23:43 2024] Receiving new connection
+[Thu Dec  5 22:23:43 2024] Client has been assigned room_0, id: 1, socket: 6
+[Thu Dec  5 22:23:46 2024] Receiving new connection
+[Thu Dec  5 22:23:46 2024] Client has been assigned room_0, id: 2, socket: 7
+[Thu Dec  5 22:40:46 2024] Server shutting down gracefully
+[Thu Dec  5 22:40:46 2024] Server shutting down gracefully
+[Thu Dec  5 22:40:46 2024] Server shutting down gracefully
+[Thu Dec  5 22:40:46 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:40:46 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:40:46 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:40:47 2024] Config server carregada.
+[Thu Dec  5 22:40:47 2024] Servidor começou
+[Thu Dec  5 22:40:47 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 22:40:47 2024] A começar setup do socket de connecção
+[Thu Dec  5 22:40:47 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 22:40:47 2024] Socket deu bind com sucesso
+[Thu Dec  5 22:40:47 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 22:40:49 2024] Receiving new connection
+[Thu Dec  5 22:40:49 2024] New Casual room created and first client connected
+[Thu Dec  5 22:40:49 2024] Client has connected to room: room_0, with ID 1 and socket: 4
+[Thu Dec  5 22:40:49 2024] Client handshake completed
+[Thu Dec  5 22:40:50 2024] Receiving new connection
+[Thu Dec  5 22:40:50 2024] Client has been assigned room_0, id: 1, socket: 6
+[Thu Dec  5 22:40:52 2024] Receiving new connection
+[Thu Dec  5 22:40:52 2024] Client has been assigned room_0, id: 2, socket: 7
+[Thu Dec  5 22:40:56 2024] Server shutting down gracefully
+[Thu Dec  5 22:40:56 2024] Server shutting down gracefully
+[Thu Dec  5 22:40:56 2024] Server shutting down gracefully
+[Thu Dec  5 22:40:56 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:40:56 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:40:56 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:41:24 2024] Config server carregada.
+[Thu Dec  5 22:41:24 2024] Servidor começou
+[Thu Dec  5 22:41:24 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 22:41:24 2024] A começar setup do socket de connecção
+[Thu Dec  5 22:41:24 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 22:41:24 2024] Socket deu bind com sucesso
+[Thu Dec  5 22:41:24 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 22:41:26 2024] Receiving new connection
+[Thu Dec  5 22:41:26 2024] New Casual room created and first client connected
+[Thu Dec  5 22:41:26 2024] Client has connected to room: room_0, with ID 1 and socket: 4
+[Thu Dec  5 22:41:26 2024] Client handshake completed
+[Thu Dec  5 22:41:28 2024] Receiving new connection
+[Thu Dec  5 22:41:28 2024] Client has been assigned room_0, id: 1, socket: 7
+[Thu Dec  5 22:41:29 2024] Receiving new connection
+[Thu Dec  5 22:41:29 2024] Client has been assigned room_0, id: 2, socket: 5
+[Thu Dec  5 22:41:31 2024] Server shutting down gracefully
+[Thu Dec  5 22:41:31 2024] Server shutting down gracefully
+[Thu Dec  5 22:41:31 2024] Server shutting down gracefully
+[Thu Dec  5 22:41:31 2024] Server shutting down gracefully
+[Thu Dec  5 22:41:31 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:41:31 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:41:31 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:41:31 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:43:02 2024] Config server carregada.
+[Thu Dec  5 22:43:02 2024] Servidor começou
+[Thu Dec  5 22:43:02 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 22:43:02 2024] A começar setup do socket de connecção
+[Thu Dec  5 22:43:02 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 22:43:02 2024] Socket deu bind com sucesso
+[Thu Dec  5 22:43:02 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 22:43:04 2024] Receiving new connection
+[Thu Dec  5 22:43:04 2024] New Casual room created and first client connected
+[Thu Dec  5 22:43:04 2024] Client has connected to room: room_0, with ID 1 and socket: 4
+[Thu Dec  5 22:43:04 2024] Client handshake completed
+[Thu Dec  5 22:43:06 2024] Receiving new connection
+[Thu Dec  5 22:43:06 2024] Client has been assigned room_0, id: 1, socket: 7
+[Thu Dec  5 22:43:11 2024] Server shutting down gracefully
+[Thu Dec  5 22:43:11 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:43:13 2024] Config server carregada.
+[Thu Dec  5 22:43:13 2024] Servidor começou
+[Thu Dec  5 22:43:13 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 22:43:13 2024] A começar setup do socket de connecção
+[Thu Dec  5 22:43:13 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 22:43:13 2024] Socket deu bind com sucesso
+[Thu Dec  5 22:43:13 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 22:43:14 2024] Receiving new connection
+[Thu Dec  5 22:43:14 2024] New Casual room created and first client connected
+[Thu Dec  5 22:43:14 2024] Client has connected to room: room_0, with ID 1 and socket: 4
+[Thu Dec  5 22:43:14 2024] Client handshake completed
+[Thu Dec  5 22:43:16 2024] Receiving new connection
+[Thu Dec  5 22:43:16 2024] Client has been assigned room_0, id: 1, socket: 7
+[Thu Dec  5 22:43:17 2024] Receiving new connection
+[Thu Dec  5 22:43:17 2024] Client has been assigned room_0, id: 2, socket: 6
+[Thu Dec  5 22:43:26 2024] Server shutting down gracefully
+[Thu Dec  5 22:43:26 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:43:30 2024] Config server carregada.
+[Thu Dec  5 22:43:30 2024] Servidor começou
+[Thu Dec  5 22:43:30 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 22:43:30 2024] A começar setup do socket de connecção
+[Thu Dec  5 22:43:30 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 22:43:30 2024] Socket deu bind com sucesso
+[Thu Dec  5 22:43:30 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 22:43:32 2024] Receiving new connection
+[Thu Dec  5 22:43:32 2024] New Casual room created and first client connected
+[Thu Dec  5 22:43:32 2024] Client has connected to room: room_0, with ID 1 and socket: 4
+[Thu Dec  5 22:43:32 2024] Client handshake completed
+[Thu Dec  5 22:43:33 2024] Receiving new connection
+[Thu Dec  5 22:43:33 2024] Client has been assigned room_0, id: 1, socket: 7
+[Thu Dec  5 22:43:34 2024] Receiving new connection
+[Thu Dec  5 22:43:34 2024] Client has been assigned room_0, id: 2, socket: 6
+[Thu Dec  5 22:43:41 2024] Server shutting down gracefully
+[Thu Dec  5 22:43:41 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:46:32 2024] Config server carregada.
+[Thu Dec  5 22:46:32 2024] Servidor começou
+[Thu Dec  5 22:46:32 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 22:46:32 2024] A começar setup do socket de connecção
+[Thu Dec  5 22:46:32 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 22:46:32 2024] Socket deu bind com sucesso
+[Thu Dec  5 22:46:32 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 22:46:33 2024] Receiving new connection
+[Thu Dec  5 22:46:33 2024] New room created and first client connected
+[Thu Dec  5 22:46:34 2024] Receiving new connection
+[Thu Dec  5 22:46:34 2024] Client assigned to room
+[Thu Dec  5 22:46:39 2024] Receiving new connection
+[Thu Dec  5 22:46:39 2024] Client assigned to room
+[Thu Dec  5 22:46:45 2024] Server shutting down gracefully
+[Thu Dec  5 22:46:45 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:47:07 2024] Config server carregada.
+[Thu Dec  5 22:47:07 2024] Servidor começou
+[Thu Dec  5 22:47:07 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 22:47:07 2024] A começar setup do socket de connecção
+[Thu Dec  5 22:47:07 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 22:47:07 2024] Socket deu bind com sucesso
+[Thu Dec  5 22:47:07 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 22:47:09 2024] Receiving new connection
+[Thu Dec  5 22:47:09 2024] New Casual room created and first client connected
+[Thu Dec  5 22:47:09 2024] Client has connected to room: room_0, with ID 1 and socket: 4
+[Thu Dec  5 22:47:09 2024] Client handshake completed
+[Thu Dec  5 22:47:10 2024] Receiving new connection
+[Thu Dec  5 22:47:10 2024] Client has been assigned room_0, id: 1, socket: 7
+[Thu Dec  5 22:47:11 2024] Receiving new connection
+[Thu Dec  5 22:47:11 2024] Client has been assigned room_0, id: 2, socket: 5
+[Thu Dec  5 22:47:18 2024] Server shutting down gracefully
+[Thu Dec  5 22:47:18 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:50:27 2024] Config server carregada.
+[Thu Dec  5 22:50:27 2024] Servidor começou
+[Thu Dec  5 22:50:27 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 22:50:27 2024] A começar setup do socket de connecção
+[Thu Dec  5 22:50:27 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 22:50:27 2024] Socket deu bind com sucesso
+[Thu Dec  5 22:50:27 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 22:50:28 2024] Receiving new connection
+[Thu Dec  5 22:50:28 2024] New Casual room created and first client connected
+[Thu Dec  5 22:50:28 2024] Client connected to room: room_0, with ID: 1, Socket: 4
+[Thu Dec  5 22:50:28 2024] Client handshake completed
+[Thu Dec  5 22:50:31 2024] Receiving new connection
+[Thu Dec  5 22:50:31 2024] Client assigned to room: room_0, ID: 1, Socket: 7
+[Thu Dec  5 22:50:32 2024] Receiving new connection
+[Thu Dec  5 22:50:32 2024] Client assigned to room: room_0, ID: 2, Socket: 6
+[Thu Dec  5 22:50:38 2024] Receiving new connection
+[Thu Dec  5 22:50:38 2024] New Ranked room created and first client connected
+[Thu Dec  5 22:50:38 2024] Client connected to room: room_1, with ID: 1, Socket: 8
+[Thu Dec  5 22:50:38 2024] Client handshake completed
+[Thu Dec  5 22:50:40 2024] Receiving new connection
+[Thu Dec  5 22:50:40 2024] Client assigned to room: room_1, ID: 1, Socket: 11
+[Thu Dec  5 22:50:42 2024] Receiving new connection
+[Thu Dec  5 22:50:42 2024] Client assigned to room: room_1, ID: 2, Socket: 9
+[Thu Dec  5 22:50:51 2024] Receiving new connection
+[Thu Dec  5 22:50:51 2024] New Singleplayer room created and first client connected
+[Thu Dec  5 22:50:51 2024] Client connected to room: room_2, with ID: 1, Socket: 12
+[Thu Dec  5 22:50:51 2024] Client handshake completed
+[Thu Dec  5 22:50:53 2024] Receiving new connection
+[Thu Dec  5 22:50:53 2024] New Singleplayer room created and first client connected
+[Thu Dec  5 22:50:53 2024] Client connected to room: room_3, with ID: 1, Socket: 13
+[Thu Dec  5 22:50:53 2024] Client handshake completed
+[Thu Dec  5 22:50:57 2024] Receiving new connection
+[Thu Dec  5 22:50:57 2024] New Singleplayer room created and first client connected
+[Thu Dec  5 22:50:57 2024] Client connected to room: room_4, with ID: 1, Socket: 17
+[Thu Dec  5 22:50:57 2024] Client handshake completed
+[Thu Dec  5 22:51:08 2024] Receiving new connection
+[Thu Dec  5 22:51:08 2024] New Coop room created and first client connected
+[Thu Dec  5 22:51:08 2024] Client connected to room: room_5, with ID: 1, Socket: 19
+[Thu Dec  5 22:51:08 2024] Client handshake completed
+[Thu Dec  5 22:51:10 2024] Receiving new connection
+[Thu Dec  5 22:51:10 2024] Client assigned to room: room_5, ID: 1, Socket: 20
+[Thu Dec  5 22:51:12 2024] Receiving new connection
+[Thu Dec  5 22:51:12 2024] Client assigned to room: room_5, ID: 2, Socket: 21
+[Thu Dec  5 22:51:50 2024] Server shutting down gracefully
+[Thu Dec  5 22:51:50 2024] Server Gracefully Shutdown
+[Thu Dec  5 22:57:03 2024] Config server carregada.
+[Thu Dec  5 22:57:03 2024] Servidor começou
+[Thu Dec  5 22:57:03 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 22:57:03 2024] A começar setup do socket de connecção
+[Thu Dec  5 22:57:03 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 22:57:03 2024] Socket deu bind com sucesso
+[Thu Dec  5 22:57:03 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 22:57:06 2024] Receiving new connection
+[Thu Dec  5 22:57:06 2024] New Singleplayer room created and first client connected
+[Thu Dec  5 22:57:06 2024] Client connected to room: room_0, with ID: 1, Socket: 4
+[Thu Dec  5 22:57:06 2024] Client handshake completed
+[Thu Dec  5 22:57:09 2024] Receiving new connection
+[Thu Dec  5 22:57:09 2024] New Ranked room created and first client connected
+[Thu Dec  5 22:57:09 2024] Client connected to room: room_1, with ID: 1, Socket: 6
+[Thu Dec  5 22:57:09 2024] Client handshake completed
+[Thu Dec  5 22:57:11 2024] Receiving new connection
+[Thu Dec  5 22:57:11 2024] Client assigned to room: room_1, ID: 1, Socket: 9
+[Thu Dec  5 22:57:15 2024] Receiving new connection
+[Thu Dec  5 22:57:15 2024] Client assigned to room: room_1, ID: 2, Socket: 7
+[Thu Dec  5 22:57:22 2024] Server shutting down gracefully
+[Thu Dec  5 22:57:22 2024] Server Gracefully Shutdown
+[Thu Dec  5 23:00:21 2024] Config server carregada.
+[Thu Dec  5 23:00:21 2024] Servidor começou
+[Thu Dec  5 23:00:21 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 23:00:21 2024] A começar setup do socket de connecção
+[Thu Dec  5 23:00:21 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 23:00:21 2024] Socket deu bind com sucesso
+[Thu Dec  5 23:00:21 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 23:00:22 2024] Receiving new connection
+[Thu Dec  5 23:00:22 2024] New Ranked room created and first client connected
+[Thu Dec  5 23:00:22 2024] Client connected to room: room_0, with ID: 1, Socket: 4
+[Thu Dec  5 23:00:22 2024] Client handshake completed
+[Thu Dec  5 23:00:24 2024] Receiving new connection
+[Thu Dec  5 23:00:24 2024] Client assigned to room: room_0, ID: 1, Socket: 7
+[Thu Dec  5 23:00:25 2024] Receiving new connection
+[Thu Dec  5 23:00:25 2024] Client assigned to room: room_0, ID: 2, Socket: 6
+[Thu Dec  5 23:00:35 2024] Receiving new connection
+[Thu Dec  5 23:00:35 2024] New Ranked room created and first client connected
+[Thu Dec  5 23:00:35 2024] Client connected to room: room_1, with ID: 1, Socket: 8
+[Thu Dec  5 23:00:35 2024] Client handshake completed
+[Thu Dec  5 23:00:40 2024] Receiving new connection
+[Thu Dec  5 23:00:40 2024] Client assigned to room: room_1, ID: 1, Socket: 11
+[Thu Dec  5 23:00:41 2024] Receiving new connection
+[Thu Dec  5 23:00:41 2024] Client assigned to room: room_1, ID: 2, Socket: 10
+[Thu Dec  5 23:04:05 2024] Server shutting down gracefully
+[Thu Dec  5 23:04:05 2024] Server Gracefully Shutdown
+[Thu Dec  5 23:04:06 2024] Config server carregada.
+[Thu Dec  5 23:04:06 2024] Servidor começou
+[Thu Dec  5 23:04:06 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 23:04:06 2024] A começar setup do socket de connecção
+[Thu Dec  5 23:04:06 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 23:04:06 2024] Socket deu bind com sucesso
+[Thu Dec  5 23:04:06 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 23:04:09 2024] Receiving new connection
+[Thu Dec  5 23:04:09 2024] New Casual room created and first client connected
+[Thu Dec  5 23:04:09 2024] Client connected to room: room_0, with ID: 1, Socket: 4
+[Thu Dec  5 23:04:09 2024] Client handshake completed
+[Thu Dec  5 23:04:12 2024] Receiving new connection
+[Thu Dec  5 23:04:12 2024] Client assigned to room: room_0, ID: 1, Socket: 5
+[Thu Dec  5 23:04:14 2024] Receiving new connection
+[Thu Dec  5 23:04:14 2024] Client assigned to room: room_0, ID: 2, Socket: 7
+[Thu Dec  5 23:04:32 2024] Receiving new connection
+[Thu Dec  5 23:04:32 2024] New Casual room created and first client connected
+[Thu Dec  5 23:04:32 2024] Client connected to room: room_1, with ID: 1, Socket: 8
+[Thu Dec  5 23:04:32 2024] Client handshake completed
+[Thu Dec  5 23:04:33 2024] Receiving new connection
+[Thu Dec  5 23:04:33 2024] Client assigned to room: room_1, ID: 1, Socket: 11
+[Thu Dec  5 23:04:35 2024] Receiving new connection
+[Thu Dec  5 23:04:35 2024] Client assigned to room: room_1, ID: 2, Socket: 9
+[Thu Dec  5 23:04:59 2024] Server shutting down gracefully
+[Thu Dec  5 23:04:59 2024] Server Gracefully Shutdown
+[Thu Dec  5 23:05:10 2024] Config server carregada.
+[Thu Dec  5 23:05:10 2024] Servidor começou
+[Thu Dec  5 23:05:10 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 23:05:10 2024] A começar setup do socket de connecção
+[Thu Dec  5 23:05:10 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 23:05:10 2024] Socket deu bind com sucesso
+[Thu Dec  5 23:05:10 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 23:05:12 2024] Receiving new connection
+[Thu Dec  5 23:05:12 2024] New Casual room created and first client connected
+[Thu Dec  5 23:05:12 2024] Client connected to room: room_0, with ID: 1, Socket: 4
+[Thu Dec  5 23:05:12 2024] Client handshake completed
+[Thu Dec  5 23:05:13 2024] Receiving new connection
+[Thu Dec  5 23:05:13 2024] Client assigned to room: room_0, ID: 1, Socket: 7
+[Thu Dec  5 23:05:15 2024] Receiving new connection
+[Thu Dec  5 23:05:15 2024] Client assigned to room: room_0, ID: 2, Socket: 6
+[Thu Dec  5 23:05:25 2024] Server shutting down gracefully
+[Thu Dec  5 23:05:25 2024] Server Gracefully Shutdown
+[Thu Dec  5 23:14:09 2024] Config server carregada.
+[Thu Dec  5 23:14:09 2024] Servidor começou
+[Thu Dec  5 23:14:09 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 23:14:09 2024] A começar setup do socket de connecção
+[Thu Dec  5 23:14:09 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 23:14:09 2024] Socket deu bind com sucesso
+[Thu Dec  5 23:14:09 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 23:14:22 2024] Receiving new connection
+[Thu Dec  5 23:14:22 2024] New Casual room created and first client connected
+[Thu Dec  5 23:14:22 2024] Client connected to room: room_0, with ID: 1, Socket: 4
+[Thu Dec  5 23:14:22 2024] Client handshake completed
+[Thu Dec  5 23:14:23 2024] Receiving new connection
+[Thu Dec  5 23:14:23 2024] Client assigned to room: room_0, ID: 1, Socket: 6
+[Thu Dec  5 23:14:26 2024] Receiving new connection
+[Thu Dec  5 23:14:26 2024] New Ranked room created and first client connected
+[Thu Dec  5 23:14:26 2024] Client connected to room: room_1, with ID: 1, Socket: 7
+[Thu Dec  5 23:14:26 2024] Client handshake completed
+[Thu Dec  5 23:14:35 2024] Receiving new connection
+[Thu Dec  5 23:14:35 2024] Client assigned to room: room_0, ID: 2, Socket: 10
+[Thu Dec  5 23:14:39 2024] Receiving new connection
+[Thu Dec  5 23:14:39 2024] New Casual room created and first client connected
+[Thu Dec  5 23:14:39 2024] Client connected to room: room_2, with ID: 1, Socket: 9
+[Thu Dec  5 23:14:39 2024] Client handshake completed
+[Thu Dec  5 23:14:43 2024] Server shutting down gracefully
+[Thu Dec  5 23:14:43 2024] Server Gracefully Shutdown
+[Thu Dec  5 23:14:44 2024] Config server carregada.
+[Thu Dec  5 23:14:44 2024] Servidor começou
+[Thu Dec  5 23:14:44 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 23:14:44 2024] A começar setup do socket de connecção
+[Thu Dec  5 23:14:44 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 23:14:44 2024] Socket deu bind com sucesso
+[Thu Dec  5 23:14:44 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 23:14:46 2024] Receiving new connection
+[Thu Dec  5 23:14:46 2024] Client handshake completed
+[Thu Dec  5 23:14:47 2024] Receiving new connection
+[Thu Dec  5 23:14:47 2024] Client handshake completed
+[Thu Dec  5 23:14:49 2024] Receiving new connection
+[Thu Dec  5 23:14:49 2024] Client handshake completed
+[Thu Dec  5 23:14:51 2024] Receiving new connection
+[Thu Dec  5 23:14:51 2024] Client handshake completed
+[Thu Dec  5 23:14:53 2024] Receiving new connection
+[Thu Dec  5 23:14:53 2024] Client handshake completed
+[Thu Dec  5 23:14:54 2024] Receiving new connection
+[Thu Dec  5 23:14:54 2024] Client handshake completed
+[Thu Dec  5 23:15:03 2024] Server shutting down gracefully
+[Thu Dec  5 23:15:03 2024] Server Gracefully Shutdown
+[Thu Dec  5 23:15:04 2024] Config server carregada.
+[Thu Dec  5 23:15:04 2024] Servidor começou
+[Thu Dec  5 23:15:04 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 23:15:04 2024] A começar setup do socket de connecção
+[Thu Dec  5 23:15:04 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 23:15:04 2024] Socket deu bind com sucesso
+[Thu Dec  5 23:15:04 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 23:15:05 2024] Receiving new connection
+[Thu Dec  5 23:15:05 2024] New Casual room created and first client connected
+[Thu Dec  5 23:15:05 2024] Client connected to room: room_0, with ID: 1, Socket: 4
+[Thu Dec  5 23:15:05 2024] Client handshake completed
+[Thu Dec  5 23:15:07 2024] Receiving new connection
+[Thu Dec  5 23:15:07 2024] Client assigned to room: room_0, ID: 1, Socket: 7
+[Thu Dec  5 23:15:11 2024] Receiving new connection
+[Thu Dec  5 23:15:11 2024] Client assigned to room: room_0, ID: 2, Socket: 5
+[Thu Dec  5 23:15:16 2024] Receiving new connection
+[Thu Dec  5 23:15:16 2024] New Casual room created and first client connected
+[Thu Dec  5 23:15:16 2024] Client connected to room: room_1, with ID: 1, Socket: 8
+[Thu Dec  5 23:15:16 2024] Client handshake completed
+[Thu Dec  5 23:15:19 2024] Receiving new connection
+[Thu Dec  5 23:15:19 2024] Client assigned to room: room_1, ID: 1, Socket: 11
+[Thu Dec  5 23:15:21 2024] Receiving new connection
+[Thu Dec  5 23:15:21 2024] Client assigned to room: room_1, ID: 2, Socket: 9
+[Thu Dec  5 23:15:37 2024] Receiving new connection
+[Thu Dec  5 23:15:37 2024] New Coop room created and first client connected
+[Thu Dec  5 23:15:37 2024] Client connected to room: room_2, with ID: 1, Socket: 12
+[Thu Dec  5 23:15:37 2024] Client handshake completed
+[Thu Dec  5 23:15:40 2024] Receiving new connection
+[Thu Dec  5 23:15:40 2024] Client assigned to room: room_2, ID: 1, Socket: 13
+[Thu Dec  5 23:15:44 2024] Receiving new connection
+[Thu Dec  5 23:15:44 2024] Client assigned to room: room_2, ID: 2, Socket: 15
+[Thu Dec  5 23:15:48 2024] Receiving new connection
+[Thu Dec  5 23:15:48 2024] New Ranked room created and first client connected
+[Thu Dec  5 23:15:48 2024] Client connected to room: room_3, with ID: 1, Socket: 16
+[Thu Dec  5 23:15:48 2024] Client handshake completed
+[Thu Dec  5 23:15:50 2024] Receiving new connection
+[Thu Dec  5 23:15:50 2024] Client assigned to room: room_3, ID: 1, Socket: 19
+[Thu Dec  5 23:15:51 2024] Receiving new connection
+[Thu Dec  5 23:15:51 2024] Client assigned to room: room_3, ID: 2, Socket: 17
+[Thu Dec  5 23:16:23 2024] Server shutting down gracefully
+[Thu Dec  5 23:16:23 2024] Server Gracefully Shutdown
+[Thu Dec  5 23:17:07 2024] Config server carregada.
+[Thu Dec  5 23:17:07 2024] Servidor começou
+[Thu Dec  5 23:17:07 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 23:17:07 2024] A começar setup do socket de connecção
+[Thu Dec  5 23:17:07 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 23:17:07 2024] Socket deu bind com sucesso
+[Thu Dec  5 23:17:07 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 23:17:16 2024] Receiving new connection
+[Thu Dec  5 23:17:16 2024] New Ranked room created and first client connected
+[Thu Dec  5 23:17:16 2024] Client connected to room: room_0, with ID: 1, Socket: 4
+[Thu Dec  5 23:17:16 2024] Client handshake completed
+[Thu Dec  5 23:17:18 2024] Receiving new connection
+[Thu Dec  5 23:17:18 2024] Client assigned to room: room_0, ID: 1, Socket: 6
+[Thu Dec  5 23:17:20 2024] Receiving new connection
+[Thu Dec  5 23:17:20 2024] Client assigned to room: room_0, ID: 2, Socket: 7
+[Thu Dec  5 23:17:23 2024] Receiving new connection
+[Thu Dec  5 23:17:23 2024] Client assigned to room: room_0, ID: 3, Socket: 8
+[Thu Dec  5 23:17:25 2024] Receiving new connection
+[Thu Dec  5 23:17:25 2024] Client assigned to room: room_0, ID: 4, Socket: 9
+[Thu Dec  5 23:17:28 2024] Receiving new connection
+[Thu Dec  5 23:17:28 2024] Client assigned to room: room_0, ID: 5, Socket: 10
+[Thu Dec  5 23:17:30 2024] Receiving new connection
+[Thu Dec  5 23:17:30 2024] New Casual room created and first client connected
+[Thu Dec  5 23:17:30 2024] Client connected to room: room_1, with ID: 1, Socket: 11
+[Thu Dec  5 23:17:30 2024] Client handshake completed
+[Thu Dec  5 23:17:52 2024] Receiving new connection
+[Thu Dec  5 23:17:52 2024] Client assigned to room: room_1, ID: 1, Socket: 13
+[Thu Dec  5 23:18:15 2024] Receiving new connection
+[Thu Dec  5 23:18:15 2024] Client assigned to room: room_1, ID: 2, Socket: 14
+[Thu Dec  5 23:18:23 2024] Receiving new connection
+[Thu Dec  5 23:18:23 2024] Client assigned to room: room_1, ID: 3, Socket: 15
+[Thu Dec  5 23:18:27 2024] Receiving new connection
+[Thu Dec  5 23:18:27 2024] Client assigned to room: room_1, ID: 4, Socket: 16
+[Thu Dec  5 23:18:28 2024] Receiving new connection
+[Thu Dec  5 23:18:28 2024] Client assigned to room: room_1, ID: 5, Socket: 17
+[Thu Dec  5 23:19:48 2024] Receiving new connection
+[Thu Dec  5 23:19:48 2024] New Coop room created and first client connected
+[Thu Dec  5 23:19:48 2024] Client connected to room: room_2, with ID: 1, Socket: 18
+[Thu Dec  5 23:19:48 2024] Client handshake completed
+[Thu Dec  5 23:19:49 2024] Receiving new connection
+[Thu Dec  5 23:19:49 2024] Client assigned to room: room_2, ID: 1, Socket: 21
+[Thu Dec  5 23:19:50 2024] Receiving new connection
+[Thu Dec  5 23:19:50 2024] Client assigned to room: room_2, ID: 2, Socket: 19
+[Thu Dec  5 23:19:51 2024] Receiving new connection
+[Thu Dec  5 23:19:51 2024] Client assigned to room: room_2, ID: 3, Socket: 22
+[Thu Dec  5 23:19:51 2024] Receiving new connection
+[Thu Dec  5 23:19:51 2024] Client assigned to room: room_2, ID: 4, Socket: 23
+[Thu Dec  5 23:19:52 2024] Receiving new connection
+[Thu Dec  5 23:19:52 2024] Client assigned to room: room_2, ID: 5, Socket: 24
+[Thu Dec  5 23:21:41 2024] Server shutting down gracefully
+[Thu Dec  5 23:21:41 2024] Server Gracefully Shutdown
+[Thu Dec  5 23:21:43 2024] Config server carregada.
+[Thu Dec  5 23:21:43 2024] Servidor começou
+[Thu Dec  5 23:21:43 2024] Boards carregados para memoria com sucesso
+[Thu Dec  5 23:21:43 2024] A começar setup do socket de connecção
+[Thu Dec  5 23:21:43 2024] Socket criado com sucesso. socket_fd: 3
+[Thu Dec  5 23:21:43 2024] Socket deu bind com sucesso
+[Thu Dec  5 23:21:43 2024] Server começou a ouvir conecções ao servidor
+[Thu Dec  5 23:22:08 2024] Receiving new connection
+[Thu Dec  5 23:22:08 2024] New Coop room created and first client connected
+[Thu Dec  5 23:22:08 2024] Client connected to room: room_0, with ID: 1, Socket: 4
+[Thu Dec  5 23:22:08 2024] Client handshake completed
+[Thu Dec  5 23:22:10 2024] Receiving new connection
+[Thu Dec  5 23:22:10 2024] Client assigned to room: room_0, ID: 1, Socket: 7
+[Thu Dec  5 23:22:12 2024] Receiving new connection
+[Thu Dec  5 23:22:12 2024] Client assigned to room: room_0, ID: 2, Socket: 5
+[Thu Dec  5 23:22:13 2024] Receiving new connection
+[Thu Dec  5 23:22:13 2024] Client assigned to room: room_0, ID: 3, Socket: 8
+[Thu Dec  5 23:22:14 2024] Receiving new connection
+[Thu Dec  5 23:22:14 2024] Client assigned to room: room_0, ID: 4, Socket: 9
+[Thu Dec  5 23:22:16 2024] Receiving new connection
+[Thu Dec  5 23:22:16 2024] Client assigned to room: room_0, ID: 5, Socket: 10
+[Thu Dec  5 23:23:25 2024] Receiving new connection
+[Thu Dec  5 23:23:25 2024] New Coop room created and first client connected
+[Thu Dec  5 23:23:25 2024] Client connected to room: room_1, with ID: 1, Socket: 11
+[Thu Dec  5 23:23:25 2024] Client handshake completed
+[Thu Dec  5 23:23:26 2024] Receiving new connection
+[Thu Dec  5 23:23:26 2024] Client assigned to room: room_1, ID: 1, Socket: 14
+[Thu Dec  5 23:23:27 2024] Receiving new connection
+[Thu Dec  5 23:23:27 2024] Client assigned to room: room_1, ID: 2, Socket: 12
+[Thu Dec  5 23:23:30 2024] Receiving new connection
+[Thu Dec  5 23:23:30 2024] Client assigned to room: room_1, ID: 3, Socket: 15
+[Thu Dec  5 23:23:31 2024] Receiving new connection
+[Thu Dec  5 23:23:31 2024] Client assigned to room: room_1, ID: 4, Socket: 16
+[Thu Dec  5 23:24:11 2024] Server shutting down gracefully
+[Thu Dec  5 23:24:11 2024] Server Gracefully Shutdown
+[Sun Dec  8 02:13:14 2024] Config server carregada.
+[Sun Dec  8 02:13:14 2024] Servidor começou
+[Sun Dec  8 02:13:14 2024] Boards carregados para memoria com sucesso
+[Sun Dec  8 02:13:14 2024] A começar setup do socket de connecção
+[Sun Dec  8 02:13:14 2024] Socket criado com sucesso. socket_fd: 3
+[Sun Dec  8 02:13:14 2024] Socket deu bind com sucesso
+[Sun Dec  8 02:13:14 2024] Server começou a ouvir conecções ao servidor
+[Sun Dec  8 02:13:24 2024] Receiving new connection
+[Sun Dec  8 02:13:24 2024] New Casual room created and first client connected
+[Sun Dec  8 02:13:24 2024] Client connected to room: room_0, with ID: 1, Socket: 4
+[Sun Dec  8 02:13:24 2024] Client handshake completed
+[Sun Dec  8 02:13:54 2024] Receiving new connection
+[Sun Dec  8 02:13:54 2024] Client handshake completed
+[Sun Dec  8 02:14:04 2024] Receiving new connection
+[Sun Dec  8 02:14:04 2024] Client handshake completed
+[Mon Dec  9 19:10:23 2024] Config server carregada.
+[Mon Dec  9 19:10:23 2024] Servidor começou
+[Mon Dec  9 19:10:23 2024] Boards carregados para memoria com sucesso
+[Mon Dec  9 19:10:23 2024] A começar setup do socket de connecção
+[Mon Dec  9 19:10:23 2024] Socket criado com sucesso. socket_fd: 3
+[Mon Dec  9 19:10:23 2024] Socket deu bind com sucesso
+[Mon Dec  9 19:10:23 2024] Server começou a ouvir conecções ao servidor
+[Mon Dec  9 19:10:33 2024] Receiving new connection
+[Mon Dec  9 19:10:33 2024] New Singleplayer room created and first client connected
+[Mon Dec  9 19:10:33 2024] Client connected to room: room_0, with ID: 1, Socket: 4
+[Mon Dec  9 19:10:33 2024] Client handshake completed
+[Mon Dec  9 19:11:07 2024] Receiving new connection
+[Mon Dec  9 19:11:07 2024] New Ranked room created and first client connected
+[Mon Dec  9 19:11:07 2024] Client connected to room: room_1, with ID: 1, Socket: 6
+[Mon Dec  9 19:11:07 2024] Client handshake completed
+[Mon Dec  9 19:11:08 2024] Receiving new connection
+[Mon Dec  9 19:11:08 2024] Client assigned to room: room_1, ID: 1, Socket: 8
+[Mon Dec  9 19:11:14 2024] Receiving new connection
+[Mon Dec  9 19:11:14 2024] Client assigned to room: room_1, ID: 2, Socket: 9
+[Mon Dec  9 19:11:37 2024] Receiving new connection
+[Mon Dec  9 19:11:37 2024] Client assigned to room: room_1, ID: 3, Socket: 10
+[Mon Dec  9 19:11:38 2024] Receiving new connection
+[Mon Dec  9 19:11:38 2024] Client assigned to room: room_1, ID: 4, Socket: 11
+[Mon Dec  9 19:11:38 2024] Receiving new connection
+[Mon Dec  9 19:11:38 2024] Client assigned to room: room_1, ID: 5, Socket: 12
+[Mon Dec  9 19:12:17 2024] Config server carregada.
+[Mon Dec  9 19:12:17 2024] Servidor começou
+[Mon Dec  9 19:12:17 2024] Boards carregados para memoria com sucesso
+[Mon Dec  9 19:12:17 2024] A começar setup do socket de connecção
+[Mon Dec  9 19:12:17 2024] Socket criado com sucesso. socket_fd: 3
+[Mon Dec  9 19:12:17 2024] Socket deu bind com sucesso
+[Mon Dec  9 19:12:17 2024] Server começou a ouvir conecções ao servidor
+[Mon Dec  9 19:12:19 2024] Receiving new connection
+[Mon Dec  9 19:12:19 2024] New Casual room created and first client connected
+[Mon Dec  9 19:12:19 2024] Client connected to room: room_0, with ID: 1, Socket: 4
+[Mon Dec  9 19:12:19 2024] Client handshake completed
+[Mon Dec  9 19:12:20 2024] Receiving new connection
+[Mon Dec  9 19:12:20 2024] Client assigned to room: room_0, ID: 1, Socket: 7
+[Mon Dec  9 19:12:21 2024] Receiving new connection
+[Mon Dec  9 19:12:21 2024] Client assigned to room: room_0, ID: 2, Socket: 6
+[Mon Dec  9 19:12:23 2024] Receiving new connection
+[Mon Dec  9 19:12:23 2024] Client assigned to room: room_0, ID: 3, Socket: 8
+[Mon Dec  9 19:12:24 2024] Receiving new connection
+[Mon Dec  9 19:12:24 2024] Client assigned to room: room_0, ID: 4, Socket: 9
+[Mon Dec  9 19:12:25 2024] Receiving new connection
+[Mon Dec  9 19:12:25 2024] Client assigned to room: room_0, ID: 5, Socket: 10
+[Mon Dec  9 19:12:36 2024] Receiving new connection
+[Mon Dec  9 19:12:36 2024] New Ranked room created and first client connected
+[Mon Dec  9 19:12:36 2024] Client connected to room: room_1, with ID: 1, Socket: 11
+[Mon Dec  9 19:12:36 2024] Client handshake completed
+[Mon Dec  9 19:12:37 2024] Receiving new connection
+[Mon Dec  9 19:12:37 2024] Client assigned to room: room_1, ID: 1, Socket: 13
+[Mon Dec  9 19:12:39 2024] Receiving new connection
+[Mon Dec  9 19:12:39 2024] Client assigned to room: room_1, ID: 2, Socket: 14
+[Mon Dec  9 19:12:40 2024] Receiving new connection
+[Mon Dec  9 19:12:40 2024] Client assigned to room: room_1, ID: 3, Socket: 15
+[Mon Dec  9 19:12:42 2024] Receiving new connection
+[Mon Dec  9 19:12:42 2024] Client assigned to room: room_1, ID: 4, Socket: 16
+[Mon Dec  9 19:12:44 2024] Receiving new connection
+[Mon Dec  9 19:12:44 2024] Client assigned to room: room_1, ID: 5, Socket: 17
+[Mon Dec  9 19:12:54 2024] Receiving new connection
+[Mon Dec  9 19:12:54 2024] New Coop room created and first client connected
+[Mon Dec  9 19:12:54 2024] Client connected to room: room_2, with ID: 1, Socket: 18
+[Mon Dec  9 19:12:54 2024] Client handshake completed
+[Mon Dec  9 19:12:57 2024] Receiving new connection
+[Mon Dec  9 19:12:57 2024] Client assigned to room: room_2, ID: 1, Socket: 20
+[Mon Dec  9 19:12:59 2024] Receiving new connection
+[Mon Dec  9 19:12:59 2024] Client assigned to room: room_2, ID: 2, Socket: 21
+[Mon Dec  9 19:13:02 2024] Receiving new connection
+[Mon Dec  9 19:13:02 2024] Client assigned to room: room_2, ID: 3, Socket: 22
+[Mon Dec  9 19:13:04 2024] Receiving new connection
+[Mon Dec  9 19:13:04 2024] Client assigned to room: room_2, ID: 4, Socket: 23
+[Mon Dec  9 19:13:06 2024] Receiving new connection
+[Mon Dec  9 19:13:06 2024] Client assigned to room: room_2, ID: 5, Socket: 24
+[Mon Dec  9 19:13:43 2024] Receiving new connection
+[Mon Dec  9 19:13:43 2024] New Singleplayer room created and first client connected
+[Mon Dec  9 19:13:43 2024] Client connected to room: room_3, with ID: 1, Socket: 25
+[Mon Dec  9 19:13:43 2024] Client handshake completed
+[Mon Dec  9 19:13:45 2024] Receiving new connection
+[Mon Dec  9 19:13:45 2024] New Singleplayer room created and first client connected
+[Mon Dec  9 19:13:45 2024] Client connected to room: room_4, with ID: 1, Socket: 27
+[Mon Dec  9 19:13:45 2024] Client handshake completed
+[Mon Dec  9 19:13:48 2024] Receiving new connection
+[Mon Dec  9 19:13:48 2024] New Singleplayer room created and first client connected
+[Mon Dec  9 19:13:48 2024] Client connected to room: room_5, with ID: 1, Socket: 30
+[Mon Dec  9 19:13:48 2024] Client handshake completed
+[Mon Dec  9 19:13:50 2024] Receiving new connection
+[Mon Dec  9 19:13:50 2024] New Singleplayer room created and first client connected
+[Mon Dec  9 19:13:50 2024] Client connected to room: room_6, with ID: 1, Socket: 32
+[Mon Dec  9 19:13:50 2024] Client handshake completed
+[Mon Dec  9 19:13:53 2024] Receiving new connection
+[Mon Dec  9 19:13:53 2024] New Singleplayer room created and first client connected
+[Mon Dec  9 19:13:53 2024] Client connected to room: room_7, with ID: 1, Socket: 34
+[Mon Dec  9 19:13:53 2024] Client handshake completed
+[Mon Dec  9 19:13:56 2024] Receiving new connection
+[Mon Dec  9 19:13:56 2024] New Singleplayer room created and first client connected
+[Mon Dec  9 19:13:56 2024] Client connected to room: room_8, with ID: 1, Socket: 36
+[Mon Dec  9 19:13:56 2024] Client handshake completed
+[Mon Dec  9 19:14:25 2024] Receiving new connection
+[Mon Dec  9 19:14:25 2024] New Singleplayer room created and first client connected
+[Mon Dec  9 19:14:25 2024] Client connected to room: room_9, with ID: 1, Socket: 38
+[Mon Dec  9 19:14:25 2024] Client handshake completed

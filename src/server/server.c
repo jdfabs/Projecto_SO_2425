@@ -27,34 +27,21 @@
  * STATIC FUNCTION PROTOTYPES
  ************************************/
 void server_init(int argc, char **argv);
-
 void setup_server_main_socket();
-
 void graceful_shutdown();
-
 void accept_clients();
-
 void *singleplayer_room_handler(void *arg);
-
 void *multiplayer_ranked_room_handler(void *arg);
-
 void *task_handler_multiplayer_ranked(void *arg);
-
 void *multiplayer_casual_room_handler(void *arg);
-
 void *task_handler_multiplayer_casual(void *arg);
-
 void *multiplayer_coop_room_handler(void *arg);
-
 void *task_handler_multiplayer_coop(void *arg);
-
 void create_singleplayer_room(char *room_name);
-
 void create_multiplayer_room(int max_players, char *room_name, multiplayer_room_type_t room_type);
-
 void clean_room_shm(void);
-
 void *client_handler(room_t *room, int client_socket, int client_id);
+void create_new_room(int client_socket, int room_type);
 
 server_config config;
 cJSON *boards;
@@ -74,7 +61,6 @@ int main(const int argc, char *argv[]) {
 		accept_clients(); //Aceitar connectões e handshake
 	}
 }
-
 
 //BASIC SERVER AUX FUNCTIONS
 void server_init(const int argc, char **argv) {
@@ -164,144 +150,116 @@ void graceful_shutdown() {
 	log_event(config.log_file, "Server shutting down gracefully");
 	close(server_fd);
 	for (int i = 0; i < room_count; i++) {
-		// Assuming 'room_count' defines the number of rooms
-		char temp[256]; // Buffer for semaphore names
-		int result;
+		char temp[256];
 
-		sprintf(temp, "sem_%s_game_start", rooms[i].name);
-		result = sem_unlink(temp);
-		if (result == -1) perror("Error unlinking sem_game_start");
-
-		sprintf(temp, "sem_%s_solucao", rooms[i].name);
-		result = sem_unlink(temp);
-		if (result == -1) perror("Error unlinking sem_solucao");
-
-		sprintf(temp, "sem_%s_room_full", rooms[i].name);
-		result = sem_unlink(temp);
-		if (result == -1) perror("Error unlinking sem_room_full");
-
-		sprintf(temp, "sem_%s_producer", rooms[i].name);
-		result = sem_unlink(temp);
-		if (result == -1) perror("Error unlinking sem_producer");
-
-		sprintf(temp, "sem_%s_consumer", rooms[i].name);
-		result = sem_unlink(temp);
-		if (result == -1) perror("Error unlinking sem_consumer");
-
-		sprintf(temp, "mut_%s_task", rooms[i].name);
-		result = sem_unlink(temp);
-		if (result == -1) perror("Error unlinking mut_task");
-
-
+		const char *semaphores[] = {"game_start", "solucao", "room_full", "producer", "consumer", "task", "client", "server", "task_client", "task_server"};
+		for (int j = 0; j < sizeof(semaphores) / sizeof(semaphores[0]); j++) {
+			sprintf(temp, "sem_%s_%s", rooms[i].name, semaphores[j]);
+			sem_unlink(temp);
+		}
 		clean_room_shm();
-
-
-		sprintf(temp, "sem_%s_client", rooms[i].name);
-		result = sem_unlink(temp);
-		if (result == -1) perror("Error unlinking sem_client");
-
-		sprintf(temp, "sem_%s_server", rooms[i].name);
-		result = sem_unlink(temp);
-		if (result == -1) perror("Error unlinking mut_server");
-
-		sprintf(temp, "mut_%s_task_client", rooms[i].name);
-		result = sem_unlink(temp);
-		if (result == -1) perror("Error unlinking sem_task_client");
-
-		sprintf(temp, "mut_%s_task_server", rooms[i].name);
-		result = sem_unlink(temp);
-		if (result == -1) perror("Error unlinking mut_task_server");
 	}
-
 	log_event(config.log_file, "Server Gracefully Shutdown");
-	// Add more cleanup code if necessary
 	exit(EXIT_SUCCESS);
 }
 
 void accept_clients() {
-	struct sockaddr_un address;
-	socklen_t addr_len = sizeof(address);
-	const int client_socket = accept(server_fd, (struct sockaddr *) &address, &addr_len);
-	if (client_socket < 0) {
-		perror("Accept failed");
-	}
-	log_event(config.log_file, "Receiving new connection");
-	printf("New connection -");
-	//HANDSHAKE
-	char aux[100];
-	recv(client_socket, aux, 100, 0);
-	for (int i = 0; i < room_count; i++) {
-		if (rooms[i].current_players < rooms[i].max_players && atoi(aux) == rooms[i].type) {
-			printf(" Theres a room with correct type and space - Connecting to: %s\n", rooms[i].name);
-			rooms[i].current_players++;
+    struct sockaddr_un address;
+    socklen_t addr_len = sizeof(address);
+    int client_socket = accept(server_fd, (struct sockaddr *)&address, &addr_len);
 
+    if (client_socket < 0) {
+        perror("Accept failed");
+        return;
+    }
 
-			if (fork() == 0) {
-				client_handler(&rooms[i], client_socket, rooms[i].current_players - 1);
-				exit(0);
-			}
+    log_event(config.log_file, "Receiving new connection");
+    printf("New connection -");
 
-			//sprintf(aux, "%d-%d-%s%d", client_socket, rooms[i].current_players - 1, "room_", i);
-			//send(client_socket, aux, strlen(aux), 0);
+    // HANDSHAKE
+    char client_request[100];
+    if (recv(client_socket, client_request, sizeof(client_request), 0) <= 0) {
+        perror("Failed to receive client handshake");
+        close(client_socket);
+        return;
+    }
 
+    int requested_type = atoi(client_request);
 
-			char temp[255];
-			sprintf(temp, "Client has been assigned %s, id: %d, socket: %d", rooms[i].name,
-					rooms[i].current_players - 1, client_socket);
-			log_event(config.log_file, temp);
+    for (int i = 0; i < room_count; i++) {
+        if (rooms[i].current_players < rooms[i].max_players && rooms[i].type == requested_type) {
+            printf(" Room with correct type and space found - Connecting to: %s\n", rooms[i].name);
+            rooms[i].current_players++;
 
-			return;
-		}
-	}
-	printf(" No apropriate room - ");
+            if (fork() == 0) {
+                client_handler(&rooms[i], client_socket, rooms[i].current_players - 1);
+                exit(0);
+            }
 
-	snprintf(rooms[room_count].name, 255, "room_%d", room_count);
-	rooms[room_count].current_players = 1;
-	rooms[room_count].type = atoi(aux);
+            char log_msg[255];
+            snprintf(log_msg, sizeof(log_msg),
+                     "Client assigned to room: %s, ID: %d, Socket: %d",
+                     rooms[i].name, rooms[i].current_players - 1, client_socket);
+            log_event(config.log_file, log_msg);
 
-	if (atoi(aux) != 0) rooms[room_count].max_players = config.server_size;
-	if (atoi(aux) == 0) {
-		printf("Type: SINGLEPLAYER\n");
-		create_singleplayer_room(rooms[room_count].name);
-		log_event(config.log_file, "New Singleplayer room created and first client connected");
-	} else if (atoi(aux) == 1) {
-		printf("Type: RANKED\n");
-		multiplayer_room_type_t room_type = RANKED;
-		create_multiplayer_room(rooms[room_count].max_players, rooms[room_count].name, room_type);
-		log_event(config.log_file, "New Ranked room created and first client connected");
-	} else if (atoi(aux) == 2) {
-		printf("Type: CASUAL\n");
-		multiplayer_room_type_t room_type = CASUAL;
-		create_multiplayer_room(rooms[room_count].max_players, rooms[room_count].name, room_type);
-		log_event(config.log_file, "New Casual room created and first client connected");
-	} else if (atoi(aux) == 3) {
-		printf("Type: COOP");
-		multiplayer_room_type_t room_type = COOP;
-		create_multiplayer_room(rooms[room_count].max_players, rooms[room_count].name, room_type);
-		log_event(config.log_file, "New Coop room created and first client connected");
-	}
-	char temp[255];
-	sprintf(temp, "Client has connected to room: %s, with ID 1 and socket: %d", rooms[room_count].name, client_socket);
-	log_event(config.log_file, temp);
+            return;
+        }
+    }
 
-
-	//sprintf(aux, "%d-%d-%s", client_socket, rooms[room_count].current_players - 1, rooms[room_count].name);
-	//printf("%s\n", aux);
-
-	int pid = fork();
-	if (pid == 0) {
-		client_handler(&rooms[room_count], client_socket, rooms[room_count].current_players - 1);
-		_exit(0);
-	}
-	room_count++;
-	//send(client_socket, aux, sizeof(aux), 0);
-
-
-	log_event(config.log_file, "Client handshake completed");
-	//Informa o cliente qual é o seu socket (para efeitos de retornar mensagem ao cliente certo)
+    printf(" No appropriate room found - Creating new room\n");
+    create_new_room(client_socket, requested_type);
+    log_event(config.log_file, "Client handshake completed");
 }
 
+void create_new_room(int client_socket, int room_type) {
+    snprintf(rooms[room_count].name, sizeof(rooms[room_count].name), "room_%d", room_count);
+    rooms[room_count].current_players = 1;
+    rooms[room_count].type = room_type;
+    rooms[room_count].max_players = (room_type == 0) ? 1 : config.server_size;
 
+    const char *room_type_str = NULL;
+    switch (room_type) {
+        case 0:
+            room_type_str = "SINGLEPLAYER";
+            create_singleplayer_room(rooms[room_count].name);
+            log_event(config.log_file, "New Singleplayer room created and first client connected");
+            break;
+        case 1:
+            room_type_str = "RANKED";
+            create_multiplayer_room(rooms[room_count].max_players, rooms[room_count].name, RANKED);
+            log_event(config.log_file, "New Ranked room created and first client connected");
+            break;
+        case 2:
+            room_type_str = "CASUAL";
+            create_multiplayer_room(rooms[room_count].max_players, rooms[room_count].name, CASUAL);
+            log_event(config.log_file, "New Casual room created and first client connected");
+            break;
+        case 3:
+            room_type_str = "COOP";
+            create_multiplayer_room(rooms[room_count].max_players, rooms[room_count].name, COOP);
+            log_event(config.log_file, "New Coop room created and first client connected");
+            break;
+        default:
+            printf("Unknown room type\n");
+            close(client_socket);
+            return;
+    }
+
+    printf("Type: %s\n", room_type_str);
+
+    char log_msg[255];
+    snprintf(log_msg, sizeof(log_msg),
+             "Client connected to room: %s, with ID: 1, Socket: %d",
+             rooms[room_count].name, client_socket);
+    log_event(config.log_file, log_msg);
+
+    if (fork() == 0) {
+        client_handler(&rooms[room_count], client_socket, 0);
+        exit(0);
+    }
+
+    room_count++;
+}
 
 void create_singleplayer_room(char *room_name) {
 	room_config_t *room_config = malloc(sizeof(room_config_t));
@@ -311,18 +269,17 @@ void create_singleplayer_room(char *room_name) {
 	}
 
 	room_config->max_players = 1;
-	room_config->room_name = malloc(strlen(room_name) + 1);
+	room_config->room_name = strdup(room_name);
 	if (!room_config->room_name) {
 		perror("Failed to allocate memory for room_name");
 		free(room_config);
 		exit(EXIT_FAILURE);
 	}
 
-	sprintf(room_config->room_name, "%s", room_name);
-
 	pthread_t temp_thread;
 	if (pthread_create(&temp_thread, NULL, singleplayer_room_handler, room_config) != 0) {
-		perror("ptread_create fail");
+		perror("pthread_create failed");
+		free(room_config->room_name);
 		free(room_config);
 		exit(EXIT_FAILURE);
 	}
@@ -336,32 +293,31 @@ void create_multiplayer_room(int max_players, char *room_name, multiplayer_room_
 	}
 
 	room_config->max_players = max_players;
-
-	room_config->room_name = malloc(strlen(room_name) + 1);
+	room_config->room_name = strdup(room_name);
 	if (!room_config->room_name) {
 		perror("Failed to allocate memory for room_name");
 		free(room_config);
 		exit(EXIT_FAILURE);
 	}
 
-	sprintf(room_config->room_name, "%s", room_name);
-
 	pthread_t temp_thread;
-
 	void *function;
+
 	switch (room_type) {
 		case 0:
 			function = multiplayer_ranked_room_handler;
-			break;
+		break;
 		case 1:
 			function = multiplayer_casual_room_handler;
-			break;
+		break;
 		case 2:
 			function = multiplayer_coop_room_handler;
-			break;
+		break;
 		default:
-			perror("Invalid room->room_name");
-			exit(EXIT_FAILURE);
+			perror("Invalid room type");
+		free(room_config->room_name);
+		free(room_config);
+		exit(EXIT_FAILURE);
 	}
 
 	if (pthread_create(&temp_thread, NULL, function, room_config) != 0) {
@@ -404,198 +360,178 @@ void clean_room_shm(void) {
 	shm_unlink("room_19");
 	shm_unlink("room_18");
 }
-int compare_timespecs(struct timespec *a, struct timespec *b) {
-	if (a->tv_sec < b->tv_sec) {
-		return -1;
-	} else if (a->tv_sec > b->tv_sec) {
-		return 1;
-	} else {
-		// If seconds are equal, compare nanoseconds
-		if (a->tv_nsec < b->tv_nsec) {
-			return -1;
-		} else if (a->tv_nsec > b->tv_nsec) {
-			return 1;
-		} else {
-			return 0;
-		}
+int compare_timespecs(const struct timespec *a, const struct timespec *b) {
+	if (a->tv_sec != b->tv_sec) {
+		return (a->tv_sec < b->tv_sec) ? -1 : 1;
 	}
+	return (a->tv_nsec < b->tv_nsec) ? -1 : (a->tv_nsec > b->tv_nsec ? 1 : 0);
 }
+
 
 //ROOM FUNCTIONS
 //RANKED
-void setup_multiplayer_ranked_shared_memory(char room_name[100], multiplayer_ranked_room_shared_data_t **shared_data) {
-	const int room_shared_memory = shm_open(room_name, O_CREAT | O_RDWR, 0666);
-	if (room_shared_memory == -1) {
-		perror("shm_open falhou");
-		exit(EXIT_FAILURE);
-	}
-	if (ftruncate(room_shared_memory, sizeof(multiplayer_ranked_room_shared_data_t)) == -1) {
-		perror("ftruncate falhou");
-		exit(EXIT_FAILURE);
-	}
+void setup_multiplayer_ranked_shared_memory(const char *room_name, multiplayer_ranked_room_shared_data_t **shared_data) {
+    int room_shared_memory = shm_open(room_name, O_CREAT | O_RDWR, 0666);
+    if (room_shared_memory == -1) {
+        perror("shm_open failed");
+        exit(EXIT_FAILURE);
+    }
 
-	*shared_data = mmap(NULL, sizeof(multiplayer_ranked_room_shared_data_t), PROT_READ | PROT_WRITE, MAP_SHARED,
-						room_shared_memory, 0);
-	sprintf((*shared_data)->room_name, room_name);
-	(*shared_data)->board_id = -1;
-	strcpy((*shared_data)->starting_board, "");
+    if (ftruncate(room_shared_memory, sizeof(multiplayer_ranked_room_shared_data_t)) == -1) {
+        perror("ftruncate failed");
+        exit(EXIT_FAILURE);
+    }
 
-	for (int i = 0; i < 5; i++) {
-		//inicializar os valores da fila de espera
-		(*shared_data)->task_queue[i].client_socket = -1;
-		sprintf((*shared_data)->task_queue[i].request, "\0");
-	}
+    *shared_data = mmap(NULL, sizeof(multiplayer_ranked_room_shared_data_t), PROT_READ | PROT_WRITE, MAP_SHARED, room_shared_memory, 0);
+    if (*shared_data == MAP_FAILED) {
+        perror("mmap failed");
+        exit(EXIT_FAILURE);
+    }
 
-	(*shared_data)->task_consumer_ptr = 0;
-	(*shared_data)->task_productor_ptr = 0;
-	//TODO LOG
+    strncpy((*shared_data)->room_name, room_name, sizeof((*shared_data)->room_name));
+    (*shared_data)->board_id = -1;
+    (*shared_data)->starting_board[0] = '\0';
+
+    for (int i = 0; i < 5; i++) {
+        (*shared_data)->task_queue[i].client_socket = -1;
+        (*shared_data)->task_queue[i].request[0] = '\0';
+    }
+
+    (*shared_data)->task_consumer_ptr = 0;
+    (*shared_data)->task_productor_ptr = 0;
 }
+
 void multiplayer_ranked_select_new_board_and_share(multiplayer_ranked_room_shared_data_t *shared_data) {
-	srand(time(NULL));
-	shared_data->board_id = rand() % num_boards;
-	int random_board = shared_data->board_id;
+    srand(time(NULL));
+    shared_data->board_id = rand() % num_boards;
+    const cJSON *round_board = cJSON_GetArrayItem(boards, shared_data->board_id);
 
-	const cJSON *round_board = cJSON_GetArrayItem(boards, random_board);
-	//broadcast new board
-
-	strcpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
-	//TODO LOG
+    strncpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")), sizeof(shared_data->starting_board));
 }
+
 void *multiplayer_ranked_room_handler(void *arg) {
-	struct timespec media;
-	media.tv_sec = 0;
-	media.tv_nsec = 0;
-	int time_counter = 0;
+    struct timespec media = {0, 0};
+    int time_counter = 0;
 
-	room_config_t *room_config = arg;
+    room_config_t *room_config = (room_config_t *)arg;
+    char room_name[100];
+    snprintf(room_name, sizeof(room_name), "%s", room_config->room_name);
 
-	char room_name[100];
-	sprintf(room_name, "%s", room_config->room_name);
+    int max_player = room_config->max_players;
+    struct timespec start, end;
+    multiplayer_ranked_room_shared_data_t *shared_data;
+    pthread_t solution_checker;
 
-	const int max_player = room_config->max_players;
+    setup_multiplayer_ranked_shared_memory(room_name, &shared_data);
 
-	struct timespec start;
-	struct timespec end;
-	multiplayer_ranked_room_shared_data_t *shared_data;
-	pthread_t soltution_checker;
+    char temp[255];
+    snprintf(temp, sizeof(temp), "/sem_%s_solucao", room_name);
+    sem_unlink(temp);
+    sem_t *sem_solution_found = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
 
-	setup_multiplayer_ranked_shared_memory(room_name, &shared_data);
+    snprintf(temp, sizeof(temp), "/sem_%s_room_full", room_name);
+    sem_unlink(temp);
+    sem_t *sem_room_full = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
 
-	char temp[255];
-	sprintf(temp, "/sem_%s_solucao", room_name);
-	sem_unlink(temp);
-	sem_t *sem_solucao_encontrada = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
+    snprintf(temp, sizeof(temp), "/sem_%s_game_start", room_name);
+    sem_unlink(temp);
+    sem_t *sem_game_start = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
 
-	sprintf(temp, "/sem_%s_room_full", room_name);
-	sem_unlink(temp);
-	sem_t *sem_room_full = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
+    snprintf(temp, sizeof(temp), "/mut_%s_task_server", room_name);
+    sem_unlink(temp);
+    sem_open(temp, O_CREAT | O_RDWR, 0666, 1);
 
-	sprintf(temp, "/sem_%s_game_start", room_name);
-	sem_unlink(temp);
-	sem_t *sem_game_start = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
+    snprintf(temp, sizeof(temp), "/mut_%s_task_client", room_name);
+    sem_unlink(temp);
+    sem_open(temp, O_CREAT | O_RDWR, 0666, 1);
 
-	sprintf(temp, "/mut_%s_task_server", room_name);
-	sem_unlink(temp);
-	sem_open(temp, O_CREAT | O_RDWR, 0666, 1);
+    snprintf(temp, sizeof(temp), "/sem_%s_producer", room_name);
+    sem_unlink(temp);
+    sem_open(temp, O_CREAT | O_RDWR, 0666, 5);
 
-	sprintf(temp, "/mut_%s_task_client", room_name);
-	sem_unlink(temp);
-	sem_open(temp, O_CREAT | O_RDWR, 0666, 1);
+    snprintf(temp, sizeof(temp), "/sem_%s_consumer", room_name);
+    sem_unlink(temp);
+    sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
 
-	sprintf(temp, "/sem_%s_producer", room_name);
-	sem_unlink(temp);
-	sem_open(temp, O_CREAT | O_RDWR, 0666, 5); //MUDAR PARA VARIAVEL NO CONFIG
+    pthread_create(&solution_checker, NULL, task_handler_multiplayer_ranked, shared_data);
+    pthread_create(&solution_checker, NULL, task_handler_multiplayer_ranked, shared_data);
+    pthread_create(&solution_checker, NULL, task_handler_multiplayer_ranked, shared_data);
 
-	sprintf(temp, "/sem_%s_consumer", room_name);
-	sem_unlink(temp);
-	sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
+    printf("%s of type Multiplayer Ranked - started with a max of %d players\n", room_name, max_player);
 
+    wait_for_full_room(sem_room_full, max_player);
+    printf("Multiplayer Ranked %s: room full - let the games begin\n", room_name);
 
-	//3 consumidores
-	pthread_create(&soltution_checker, NULL, task_handler_multiplayer_ranked, shared_data);
-	pthread_create(&soltution_checker, NULL, task_handler_multiplayer_ranked, shared_data);
-	pthread_create(&soltution_checker, NULL, task_handler_multiplayer_ranked, shared_data);
+    while (1) {
+        multiplayer_ranked_select_new_board_and_share(shared_data);
 
-	//TODO LOGS
-	printf("%s of type Multiplayer Ranked - started with a max of %d players\n", room_name, max_player);
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        for (int i = 0; i < max_player; i++) {
+            sem_post(sem_game_start);
+        }
 
+        printf("Multiplayer Ranked %s: game start has been signaled\n", room_name);
 
-	wait_for_full_room(sem_room_full, max_player); // Espera que o room encha
-	printf("Multiplayer Ranked %s: room full - set the games begin\n", room_name);
+        for (int i = 0; i < max_player; i++) {
+            sem_wait(sem_solution_found);
+            clock_gettime(CLOCK_MONOTONIC, &end);
 
-	// ReSharper disable once CppDFAEndlessLoop
-	for (;;) {
-		//sleep(5);
-		multiplayer_ranked_select_new_board_and_share(shared_data);
+            struct timespec round_time = {
+                .tv_sec = end.tv_sec - start.tv_sec,
+                .tv_nsec = end.tv_nsec - start.tv_nsec
+            };
 
-		//Start round
-		clock_gettime(CLOCK_MONOTONIC, &start);
-		for (int i = 0; i < max_player; i++) {
-			sem_post(sem_game_start);
-		}
-		separator();
-		printf("Multiplayer Ranked %s: game start has been signaled \n", room_name);
+            time_counter++;
+            double new_avg = ((media.tv_sec + media.tv_nsec / 1e9) * (time_counter - 1) +
+                             (round_time.tv_sec + round_time.tv_nsec / 1e9)) / time_counter;
+            media.tv_sec = (time_t)new_avg;
+            media.tv_nsec = (long)((new_avg - media.tv_sec) * 1e9);
 
-		for (int i = 0; i < max_player; i++) {
-			sem_wait(sem_solucao_encontrada);
-			clock_gettime(CLOCK_MONOTONIC, &end);
-			struct timespec final;
-			final.tv_sec = end.tv_sec - start.tv_sec;
-			final.tv_nsec = end.tv_nsec - start.tv_nsec;
+            printf("New time for %s: %.10f\n", room_name, round_time.tv_sec + round_time.tv_nsec / 1e9);
+        }
 
-			time_counter++;
-			double new_avg = ((media.tv_sec + media.tv_nsec / 1e9) * (time_counter - 1) + (
-								final.tv_sec + final.tv_nsec / 1e9)) / time_counter;
-			media.tv_sec = (time_t) new_avg;
-			media.tv_nsec = (long) ((new_avg - media.tv_sec) * 1e9);
-
-			printf("Novo tempo em %s: %.10f\n", room_name, final.tv_sec + final.tv_nsec / 1e9);
-		}
-		printf("Media de %s: %.10f\n", room_name, media.tv_sec + media.tv_nsec / 1e9);
-	}
+        printf("Average time for %s: %.10f\n", room_name, media.tv_sec + media.tv_nsec / 1e9);
+    }
 }
+
 void *task_handler_multiplayer_ranked(void *arg) {
+    multiplayer_ranked_room_shared_data_t *shared_data = (multiplayer_ranked_room_shared_data_t *)arg;
 
-	multiplayer_ranked_room_shared_data_t *shared_data = arg;
-	char temp[255];
-	sprintf(temp, "/sem_%s_producer", shared_data->room_name);
-	sem_t *sem_prod = sem_open(temp, 0);
-	sprintf(temp, "/sem_%s_consumer", shared_data->room_name);
-	sem_t *sem_cons = sem_open(temp, 0);
-	sprintf(temp, "/mut_%s_task_server", shared_data->room_name);
-	sem_t *mutex_task = sem_open(temp, 0);
+    char temp[255];
+    snprintf(temp, sizeof(temp), "/sem_%s_producer", shared_data->room_name);
+    sem_t *sem_prod = sem_open(temp, 0);
 
-	//TODO LOGS
+    snprintf(temp, sizeof(temp), "/sem_%s_consumer", shared_data->room_name);
+    sem_t *sem_cons = sem_open(temp, 0);
 
-	//PROBLEMA PRODUTORES CONSUMIDORES--- CONSUMIDOR
-	// ReSharper disable once CppDFAEndlessLoop
-	while (1) {
-		//printf("TASK_HANDLER_MULTIPLAYER_RANKED - %s -- Waiting\n", shared_data->room_name);
+    snprintf(temp, sizeof(temp), "/mut_%s_task_server", shared_data->room_name);
+    sem_t *mutex_task = sem_open(temp, 0);
 
-		//PREPROTOCOLO
-		sem_wait(sem_cons);
-		sem_wait(mutex_task);
+    while (1) {
+        sem_wait(sem_cons);
+        sem_wait(mutex_task);
 
-		//ZONA CRITICA --- ler task
+        Task task = shared_data->task_queue[shared_data->task_consumer_ptr];
+        shared_data->task_consumer_ptr = (shared_data->task_consumer_ptr + 1) % 5;
 
-		Task task = shared_data->task_queue[shared_data->task_consumer_ptr];
-		shared_data->task_consumer_ptr = (shared_data->task_consumer_ptr + 1) % 5;
+        sem_post(mutex_task);
+        sem_post(sem_prod);
 
-		//usleep(rand() % 1);
-		//POS PROTOCOLO
-		sem_post(mutex_task);
-		sem_post(sem_prod);
+        int **solution = getMatrixFromJSON(
+            cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
 
-		int **solution = getMatrixFromJSON(
-			cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
+        int row = task.request[2] - '0';
+        int col = task.request[4] - '0';
+        int value = task.request[6] - '0';
 
-		if (solution[task.request[2] - '0'][task.request[4] - '0'] != task.request[6] - '0') {
-			send(task.client_socket, "2", sizeof("0"), 0);
-		} else {
-			send(task.client_socket, "1", sizeof("1"), 0);
-		}
-	}
+        if (solution[row][col] != value) {
+            send(task.client_socket, "2", sizeof("2"), 0);
+        } else {
+            send(task.client_socket, "1", sizeof("1"), 0);
+        }
+    }
 }
+
 
 //CASUAL
 void setup_multiplayer_casual_shared_memory(char room_name[100], multiplayer_casual_room_shared_data_t **shared_data) {
@@ -908,7 +844,7 @@ void *task_handler_multiplayer_coop(void *arg) {
 
 		//ZC
 		//usleep(rand() % 1);
-		sleep(1.5);
+		//sleep(1.5);
 		Task task = shared_data->task_queue[selected_client];
 		int **solution = getMatrixFromJSON(
 			cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
@@ -1215,6 +1151,9 @@ bool receive_answer_multiplayer_casual(multiplayer_casual_room_shared_data_t *mu
 }
 
 void *client_handler(room_t *room, int client_socket, int client_index) {
+	signal(SIGINT, NULL);
+	signal(SIGTERM, NULL);
+
 
 	char buffer[BUFFER_SIZE];
 	sprintf(buffer, "%d-%d-%s", client_socket, client_index, room->name);
@@ -1440,7 +1379,7 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 					if (room->type == 2) {
 						int temp;
 						sem_getvalue(&multiplayer_casual_room_shared_data->sems_server[client_index], &temp);
-						
+
 						if (temp == 0) {
 							sem_post(&multiplayer_casual_room_shared_data->sems_server[client_index]);
 						}
