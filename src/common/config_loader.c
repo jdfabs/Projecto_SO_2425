@@ -195,6 +195,7 @@ int load_server_config(const char *filename, server_config *config) {
 	config->port = cJSON_GetObjectItem(json, "port")->valueint;
 	config->server_size = cJSON_GetObjectItem(json, "multiplayer_room_size")->valueint;
 	config->slow_factor = cJSON_GetObjectItem(json, "slow_factor")->valueint;
+	config->board_creator_cooldown = cJSON_GetObjectItem(json, "board_creator_cooldown")->valueint;
 	// Cleanup
 	cJSON_Delete(json);
 	free(filePath);

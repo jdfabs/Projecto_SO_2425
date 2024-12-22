@@ -10,5 +10,6 @@
   "task_queue_size": 1,
   "event_handler_threads": 2,
   "multiplayer_room_size":4,
-  "slow_factor":0
+  "slow_factor":0,
+  "board_creator_cooldown": 10
 }

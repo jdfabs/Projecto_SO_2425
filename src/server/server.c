@@ -40,12 +40,15 @@ void *task_handler_multiplayer_coop(void *arg);
 void create_singleplayer_room(char *room_name);
 void create_multiplayer_room(int max_players, char *room_name, multiplayer_room_type_t room_type);
 void clean_room_shm(void);
-void *client_handler(room_t *room, int client_socket, int client_id);
+void *client_handler(room_t *room, int client_socket, int client_index);
 void create_new_room(int client_socket, int room_type);
+void *board_creator();
+
 
 server_config config;
 cJSON *boards;
 int num_boards;
+pthread_mutex_t board_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int server_fd;
 
@@ -53,9 +56,11 @@ room_t rooms[100];
 int room_count = 0;
 
 int main(const int argc, char *argv[]) {
+	srand(time(NULL));
 	server_init(argc, argv); // Server data structures setup
 	setup_server_main_socket(); // Ready to accept connections
 
+	pthread_create(NULL,NULL,board_creator(), NULL);
 	// ReSharper disable once CppDFAEndlessLoop
 	while (true) {
 		accept_clients(); //Aceitar connectões e handshake
@@ -81,7 +86,10 @@ void server_init(const int argc, char **argv) {
 	}
 	log_event(config.log_file, "Servidor começou");
 
+	pthread_mutex_lock(&board_mutex);
 	boards = load_boards(config.board_file_path);
+
+
 	if (boards == NULL) {
 		printf("Failed to load boards from %s\n", config.board_file_path);
 		log_event(config.log_file, "Erro ao carregar boards!");
@@ -93,6 +101,8 @@ void server_init(const int argc, char **argv) {
 		num_boards++;
 		child = child->child;
 	}
+	pthread_mutex_unlock(&board_mutex);
+
 	log_event(config.log_file, "Boards carregados para memoria com sucesso");
 	printf("Server started...\n");
 }
@@ -402,8 +412,12 @@ void setup_multiplayer_ranked_shared_memory(const char *room_name, multiplayer_r
 }
 void multiplayer_ranked_select_new_board_and_share(multiplayer_ranked_room_shared_data_t *shared_data) {
     srand(time(NULL));
+
+	pthread_mutex_lock(&board_mutex);
     shared_data->board_id = rand() % num_boards;
+
     const cJSON *round_board = cJSON_GetArrayItem(boards, shared_data->board_id);
+	pthread_mutex_unlock(&board_mutex);
 
     strncpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")), sizeof(shared_data->starting_board));
 }
@@ -520,8 +534,10 @@ void *task_handler_multiplayer_ranked(void *arg) {
         sem_post(mutex_task);
         sem_post(sem_prod);
 
+    	pthread_mutex_lock(&board_mutex);
         int **solution = getMatrixFromJSON(
             cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
+    	pthread_mutex_unlock(&board_mutex);
 
         int row = task.request[2] - '0';
         int col = task.request[4] - '0';
@@ -571,10 +587,14 @@ void setup_multiplayer_casual_shared_memory(char room_name[100], multiplayer_cas
 }
 void multiplayer_casual_select_new_board_and_share(multiplayer_casual_room_shared_data_t *shared_data) {
 	srand(time(NULL));
+
+	pthread_mutex_lock(&board_mutex);
 	shared_data->board_id = rand() % num_boards;
 	int random_board = shared_data->board_id;
 
 	const cJSON *round_board = cJSON_GetArrayItem(boards, random_board);
+	pthread_mutex_unlock(&board_mutex);
+
 	//broadcast new board
 	strcpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
 	//TODO LOGS
@@ -673,8 +693,11 @@ void *task_handler_multiplayer_casual(void *arg) {
 
 		//usleep(rand() % 1);
 		Task task = shared_data->task_queue[current_index];
+
+		pthread_mutex_lock(&board_mutex);
 		int **solution = getMatrixFromJSON(
 			cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
+		pthread_mutex_unlock(&board_mutex);
 
 		if (task.request[0] == '1') {
 			//FOUND SOLUTION - SKIP TO "STEP 6"
@@ -720,10 +743,14 @@ void setup_multiplayer_coop_shared_memory(char room_name[100], multiplayer_coop_
 }
 void multiplayer_coop_select_new_board_and_share(multiplayer_coop_room_shared_data_t *shared_data) {
 	srand(time(NULL));
+
+	pthread_mutex_lock(&board_mutex);
 	shared_data->board_id = rand() % num_boards;
 	int random_board = shared_data->board_id;
 
 	const cJSON *round_board = cJSON_GetArrayItem(boards, random_board);
+	pthread_mutex_unlock(&board_mutex);
+
 	//broadcast new board
 	strcpy(shared_data->current_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
 	//TODO LOGS
@@ -852,8 +879,11 @@ void *task_handler_multiplayer_coop(void *arg) {
 		//usleep(rand() % 1);
 		//sleep(1.5);
 		Task task = shared_data->task_queue[selected_client];
+
+		pthread_mutex_lock(&board_mutex);
 		int **solution = getMatrixFromJSON(
 			cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
+		pthread_mutex_unlock(&board_mutex);
 
 		if (solution[task.request[2] - '0'][task.request[4] - '0'] == task.request[6] - '0') {
 			cJSON *old_board = cJSON_Parse(shared_data->current_board);
@@ -949,7 +979,11 @@ void *task_handler_singleplayer(void *arg) {
 		//ZONA CRITICA
 		//usleep(rand() % 1); //TODO SLEEP FROM CONFIG
 		//VER SE TA CERTO e manda para o buffer se está certo ou não
+
+		pthread_mutex_lock(&board_mutex);
 		int **solution = getMatrixFromJSON( cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
+		pthread_mutex_unlock(&board_mutex);
+
 		if (solution[shared_data->buffer[2] - '0'][shared_data->buffer[4] - '0'] != shared_data->buffer[6] - '0') {
 			strcpy(shared_data->buffer, "0");
 		} else {
@@ -990,10 +1024,14 @@ void *singleplayer_room_handler(void *arg) {
 	//TODO LOGS
 	while (true) {
 		//sleep(5);
+
+		pthread_mutex_lock(&board_mutex);
 		shared_data->board_id = rand() % num_boards;
 		int rand_board = shared_data->board_id;
 
 		cJSON *round_board = cJSON_GetArrayItem(boards, rand_board);
+		pthread_mutex_unlock(&board_mutex);
+
 		strcpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
 
 		//Start Round
@@ -1022,9 +1060,7 @@ void *singleplayer_room_handler(void *arg) {
 
 //CLIENT HANDLER
 
-void send_solution_attempt_multiplayer_ranked(int x, int y, int novo_valor, sem_t *sem_sync_2, sem_t *mutex_task,
-											multiplayer_ranked_room_shared_data_t *multiplayer_ranked_shared_data,
-											int client_socket, sem_t *sem_sync_1) {
+void send_solution_attempt_multiplayer_ranked(int x, int y, int novo_valor, sem_t *sem_sync_2, sem_t *mutex_task, multiplayer_ranked_room_shared_data_t *multiplayer_ranked_shared_data,int  client_socket, sem_t *sem_sync_1) {
 	char message[255];
 	sprintf(message, "0-%d,%d,%d", x, y, novo_valor);
 	//printf("%s\n", message);
@@ -1046,9 +1082,7 @@ void send_solution_attempt_multiplayer_ranked(int x, int y, int novo_valor, sem_
 	sem_post(sem_sync_1);
 }
 
-void send_solution_attempt_multiplayer_casual(int x, int y, int novo_valor,
-											multiplayer_casual_room_shared_data_t *multiplayer_casual_room_shared_data,
-											int client_index) {
+void send_solution_attempt_multiplayer_casual(int x, int y, int novo_valor,	multiplayer_casual_room_shared_data_t *multiplayer_casual_room_shared_data, int client_index) {
 	char message[255];
 	if (x == -1) {
 		sprintf(message, "1--1,-1,-1", y, novo_valor);
@@ -1066,8 +1100,7 @@ void send_solution_attempt_multiplayer_casual(int x, int y, int novo_valor,
 	sem_post(&multiplayer_casual_room_shared_data->sems_server[client_index]);
 }
 
-void send_solution_attempt_multiplayer_coop(multiplayer_coop_room_shared_data_t *multiplayer_coop_room_shared_data,
-											int client_index) {
+void send_solution_attempt_multiplayer_coop(multiplayer_coop_room_shared_data_t *multiplayer_coop_room_shared_data,	int client_index) {
 
 	// PREPROTOCOLO
 	sem_wait(&multiplayer_coop_room_shared_data->sems_client[client_index]);
@@ -1117,9 +1150,7 @@ outside_for:
 	//usleep(rand() % (config.slow_factor + 0));
 }
 
-void send_solution_attempt_single_player(int x, int y, int novo_valor, sem_t *sem_sync_2,
-										singleplayer_room_shared_data_t *singleplayer_room_shared_data,
-										sem_t *sem_sync_1) {
+void send_solution_attempt_single_player(int x, int y, int novo_valor, sem_t *sem_sync_2, singleplayer_room_shared_data_t *singleplayer_room_shared_data, sem_t *sem_sync_1) {
 	char message[255];
 	sprintf(message, "0-%d,%d,%d", x, y, novo_valor);
 	//PREPROTOCOLO
@@ -1435,3 +1466,51 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 		}
 	}
 }
+
+
+//BOARD CREATOR
+
+void *board_creator() {
+
+	while (true) {
+		sleep(config.board_creator_cooldown);
+		int **new_filled_board = generate_sudoku();
+		int **new_empty_board = generate_empty_board(new_filled_board);
+
+		cJSON *json_new_filled_board = convertMatrixToJSON(new_filled_board);
+		cJSON *json_new_empty_board = convertMatrixToJSON(new_empty_board);
+
+		for (int i = 0; i < 9; i++) {
+			free(new_filled_board[i]);
+			free(new_empty_board[i]);
+		}
+		free(new_filled_board);
+		free(new_empty_board);
+
+		int highest_id = 0 ;
+		cJSON* new_board = cJSON_CreateObject();
+		cJSON_AddItemToObject(new_board, "starting_state", json_new_empty_board);
+		cJSON_AddItemToObject(new_board, "solution", json_new_filled_board);
+
+		//PRE
+		pthread_mutex_lock(&board_mutex);
+
+		//ZC
+		for (int i = 0; i < num_boards; i++) {
+			int id = cJSON_GetObjectItem(cJSON_GetArrayItem(boards, i), "id")->valueint;
+			if (id > highest_id) highest_id = id;
+		}
+		highest_id++;
+
+		cJSON_AddNumberToObject(new_board, "id", highest_id);
+		cJSON_AddItemToArray(boards, new_board);
+		num_boards++;
+
+		printf("CURRENT NUM OF BOARDS: %d\n", num_boards);
+		//POS
+		pthread_mutex_unlock(&board_mutex);
+	}
+}
+
+
+//BOARD AMOUNT CONTROLLER

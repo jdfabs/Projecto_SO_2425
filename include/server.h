@@ -22,6 +22,7 @@ typedef struct {
 	int port;
 	int server_size;
 	int slow_factor;
+	int board_creator_cooldown;
 } server_config;
 
 typedef struct {
@@ -57,3 +58,4 @@ int load_server_config(const char *filename, server_config *config);
 
 bool isValidGroup(int group[SIZE]);
 int **generate_sudoku();
+int **generate_empty_board(int **filled_board);

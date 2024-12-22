@@ -259,6 +259,8 @@ cJSON *convertMatrixToJSON(int **matrix)
 }
 
 
+
+//Board Generation
 bool is_safe(int **grid, int row, int col, int num) {
     for (int x = 0; x < SIZE; x++) {
         if (grid[row][x] == num) {
@@ -335,7 +337,7 @@ void fill_diagonal(int **grid) {
     }
 }
 
-int **generate_sudoku() { // TODO FALTA TIRAR OS NUMEROS 👌
+int **generate_sudoku() { // TODO FALTA TIRAR OS NUMEROS
     // Allocate memory for the grid dynamically
     int **grid = malloc(SIZE * sizeof(int *));
     for (int i = 0; i < SIZE; i++) {
@@ -353,21 +355,94 @@ int **generate_sudoku() { // TODO FALTA TIRAR OS NUMEROS 👌
     fill_diagonal(grid);
     fill_sudoku(grid, 0, 0);
 
-    // Print the Sudoku grid
-    printf("\nQuadro de Sudoku:\n");
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
-            printf("%d ", grid[i][j]);
-            if ((j + 1) % 3 == 0 && j != 8) {
-                printf("| ");
-            }
-        }
-        printf("\n");
-        if ((i + 1) % 3 == 0 && i != 8) {
-            printf("---------------------\n");
-        }
-    }
+
     printf("\n");
 
     return grid;
+}
+
+
+
+int **copy_grid(int **grid) {
+    int **copy = malloc(SIZE * sizeof(int *));
+    for (int i = 0; i < SIZE; i++) {
+        copy[i] = malloc(SIZE * sizeof(int));
+        for (int j = 0; j < SIZE; j++) {
+            copy[i][j] = grid[i][j];
+        }
+    }
+    return copy;
+}
+
+void free_grid(int **grid) {
+    for (int i = 0; i < SIZE; i++) {
+        free(grid[i]);
+    }
+    free(grid);
+}
+
+int count_solutions_helper(int **grid, int row, int col, int *count) {
+    if (row == SIZE - 1 && col == SIZE) {
+        (*count)++;
+        return *count > 1;
+    }
+
+    if (col == SIZE) {
+        row++;
+        col = 0;
+    }
+
+    if (grid[row][col] != 0) {
+        return count_solutions_helper(grid, row, col + 1, count);
+    }
+
+    for (int num = 1; num <= SIZE; num++) {
+        if (is_safe(grid, row, col, num)) {
+            grid[row][col] = num;
+            if (count_solutions_helper(grid, row, col + 1, count)) {
+                grid[row][col] = 0;
+                return 1;
+            }
+            grid[row][col] = 0;
+        }
+    }
+
+    return 0;
+}
+
+int count_solutions(int **grid) {
+    int count = 0;
+    count_solutions_helper(grid, 0, 0, &count);
+    return count;
+}
+
+int **generate_empty_board(int **filled_board) {
+    int **empty_board = copy_grid(filled_board);
+
+    // Randomly shuffle cells to remove
+    int indices[SIZE * SIZE];
+    for (int i = 0; i < SIZE * SIZE; i++) {
+        indices[i] = i;
+    }
+    for (int i = SIZE * SIZE - 1; i > 0; i--) {
+        int j = rand() % (i + 1);
+        int temp = indices[i];
+        indices[i] = indices[j];
+        indices[j] = temp;
+    }
+
+    for (int k = 0; k < SIZE * SIZE; k++) {
+        int row = indices[k] / SIZE;
+        int col = indices[k] % SIZE;
+        int backup = empty_board[row][col];
+        empty_board[row][col] = 0;
+
+        int **test_board = copy_grid(empty_board);
+        if (count_solutions(test_board) != 1) {
+            empty_board[row][col] = backup; // Restore the cell if more than one solution exists
+        }
+        free_grid(test_board);
+    }
+
+    return empty_board;
 }
