@@ -113,7 +113,7 @@ void server_init(const int argc, char **argv) {
 	const cJSON *child = boards->child;
 	while (child != NULL) {
 		num_boards++;
-		child = child->child;
+		child = child->next;
 	}
 	end_reading_boards();
 
@@ -169,9 +169,46 @@ void setup_server_main_socket() {
 	printf("Server listening for clients...\n");
 }
 
+
+
+void save_boards_to_file() {
+	const char *file_path = "./boards/boards.json";
+	FILE *file = fopen(file_path, "w");
+	if (!file) {
+		perror("Failed to open boards.json for writing");
+		return;
+	}
+
+	// Wrap boards in an object with the key "sudoku_boards"
+	cJSON *wrapped_boards = cJSON_CreateObject();
+	if (!wrapped_boards) {
+		fprintf(stderr, "Failed to create JSON object\n");
+		fclose(file);
+		return;
+	}
+	cJSON_AddItemToObject(wrapped_boards, "sudoku_boards", boards);
+
+	char *json_string = cJSON_Print(wrapped_boards);
+	if (!json_string) {
+		fprintf(stderr, "Failed to convert wrapped boards to JSON string\n");
+		cJSON_Delete(wrapped_boards);
+		fclose(file);
+		return;
+	}
+
+	if (fprintf(file, "%s", json_string) < 0) {
+		perror("Failed to write to boards.json");
+	}
+
+	fclose(file);
+	cJSON_free(json_string);
+	cJSON_Delete(wrapped_boards);
+}
+
 void graceful_shutdown() {
 	printf("Shutting down...\n");
 	log_event(config.log_file, "Server shutting down gracefully");
+
 	close(server_fd);
 	for (int i = 0; i < room_count; i++) {
 		char temp[256];
@@ -184,6 +221,7 @@ void graceful_shutdown() {
 		clean_room_shm();
 	}
 	log_event(config.log_file, "Server Gracefully Shutdown");
+	save_boards_to_file();
 	exit(EXIT_SUCCESS);
 }
 
@@ -1634,12 +1672,33 @@ void *board_annihilator() {
 
 	start_writing_boards();
 	while (!has_managed_to_delete) {
-		int random_index = rand() % num_boards;
-		int board_readers = cJSON_GetObjectItem(cJSON_GetArrayItem(boards,random_index), "current_rooms_reading")->valueint;
+		int random_index = rand() % (num_boards-1); //NUNCA DESTRUIR O ULTIMO (para manter registo do ultimo id 🙂)
+		cJSON *board = cJSON_GetArrayItem(boards, random_index);
+		int board_readers = cJSON_GetObjectItem(board, "current_rooms_reading")->valueint;
+
 		if (board_readers == 0) {
+			if (cJSON_GetObjectItem(board, "attempts")->valueint != 0) {
+				int board_id = cJSON_GetObjectItem(board, "id")->valueint;
+				char *board_json = cJSON_Print(board);
+				char file_path[256];
+				snprintf(file_path, sizeof(file_path), "./boards/deletedBoards/%d.json", board_id);
+
+				FILE *file = fopen(file_path, "w");
+				if (file != NULL) {
+					fprintf(file, "%s", board_json);
+					fclose(file);
+				} else {
+					fprintf(stderr, "Error: Could not save board to file %s\n", file_path);
+				}
+
+				free(board_json);
+			}
+
 			cJSON_DeleteItemFromArray(boards, random_index);
 			has_managed_to_delete = true;
 			num_boards--;
+
+
 		}
 	}
 
@@ -1671,6 +1730,9 @@ void *board_god() {
 		cJSON_AddItemToObject(new_board, "starting_state", json_new_empty_board);
 		cJSON_AddItemToObject(new_board, "solution", json_new_filled_board);
 		cJSON_AddNumberToObject(new_board, "current_rooms_reading", 0);
+		cJSON_AddNumberToObject(new_board, "fastest_time", 0);
+		cJSON_AddNumberToObject(new_board, "average_time", 0);
+		cJSON_AddNumberToObject(new_board, "attempts", 1);
 
 		//PRE
 		start_writing_boards();
