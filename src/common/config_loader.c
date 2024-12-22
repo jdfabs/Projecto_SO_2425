@@ -196,6 +196,8 @@ int load_server_config(const char *filename, server_config *config) {
 	config->server_size = cJSON_GetObjectItem(json, "multiplayer_room_size")->valueint;
 	config->slow_factor = cJSON_GetObjectItem(json, "slow_factor")->valueint;
 	config->board_creator_cooldown = cJSON_GetObjectItem(json, "board_creator_cooldown")->valueint;
+	config->board_max = cJSON_GetObjectItem(json, "board_limit")->valueint;
+	config->board_min = config->board_max- cJSON_GetObjectItem(json, "board_delta")->valueint;
 	// Cleanup
 	cJSON_Delete(json);
 	free(filePath);

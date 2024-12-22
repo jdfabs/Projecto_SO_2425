@@ -23,6 +23,8 @@ typedef struct {
 	int server_size;
 	int slow_factor;
 	int board_creator_cooldown;
+	int board_max;
+	int board_min;
 } server_config;
 
 typedef struct {

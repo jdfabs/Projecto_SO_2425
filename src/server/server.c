@@ -42,13 +42,21 @@ void create_multiplayer_room(int max_players, char *room_name, multiplayer_room_
 void clean_room_shm(void);
 void *client_handler(room_t *room, int client_socket, int client_index);
 void create_new_room(int client_socket, int room_type);
-void *board_creator();
+void *board_god();
 
+void start_reading_boards();
+void end_reading_boards();
+void start_writing_boards();
+void end_writing_boards();
 
 server_config config;
 cJSON *boards;
 int num_boards;
-pthread_mutex_t board_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t boards_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t boards_cond = PTHREAD_COND_INITIALIZER;
+int boards_readers = 0;
+int boards_writers = 0;
+int boards_write_requests = 0;
 
 int server_fd;
 
@@ -56,11 +64,17 @@ room_t rooms[100];
 int room_count = 0;
 
 int main(const int argc, char *argv[]) {
+
 	srand(time(NULL));
 	server_init(argc, argv); // Server data structures setup
 	setup_server_main_socket(); // Ready to accept connections
 
-	pthread_create(NULL,NULL,board_creator(), NULL);
+	pthread_t temp_thread;
+	if (pthread_create(&temp_thread, NULL, board_god, NULL) != 0) {
+		perror("pthread_create failed");
+		exit(EXIT_FAILURE);
+	}
+
 	// ReSharper disable once CppDFAEndlessLoop
 	while (true) {
 		accept_clients(); //Aceitar connectões e handshake
@@ -86,7 +100,7 @@ void server_init(const int argc, char **argv) {
 	}
 	log_event(config.log_file, "Servidor começou");
 
-	pthread_mutex_lock(&board_mutex);
+	start_reading_boards();
 	boards = load_boards(config.board_file_path);
 
 
@@ -101,7 +115,7 @@ void server_init(const int argc, char **argv) {
 		num_boards++;
 		child = child->child;
 	}
-	pthread_mutex_unlock(&board_mutex);
+	end_reading_boards();
 
 	log_event(config.log_file, "Boards carregados para memoria com sucesso");
 	printf("Server started...\n");
@@ -378,6 +392,7 @@ int compare_timespecs(const struct timespec *a, const struct timespec *b) {
 
 
 //ROOM FUNCTIONS
+
 //RANKED
 void setup_multiplayer_ranked_shared_memory(const char *room_name, multiplayer_ranked_room_shared_data_t **shared_data) {
     int room_shared_memory = shm_open(room_name, O_CREAT | O_RDWR, 0666);
@@ -413,11 +428,16 @@ void setup_multiplayer_ranked_shared_memory(const char *room_name, multiplayer_r
 void multiplayer_ranked_select_new_board_and_share(multiplayer_ranked_room_shared_data_t *shared_data) {
     srand(time(NULL));
 
-	pthread_mutex_lock(&board_mutex);
-    shared_data->board_id = rand() % num_boards;
+	start_writing_boards();
+    const cJSON *round_board = cJSON_GetArrayItem(boards, rand() % num_boards);
+	shared_data->board_id = cJSON_GetObjectItem(round_board,"id")->valueint;
+	int current_rooms_reading =	cJSON_GetObjectItem(round_board, "current_rooms_reading")->valueint;
 
-    const cJSON *round_board = cJSON_GetArrayItem(boards, shared_data->board_id);
-	pthread_mutex_unlock(&board_mutex);
+	cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "current_rooms_reading"), ++current_rooms_reading);
+	end_writing_boards();
+
+
+
 
     strncpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")), sizeof(shared_data->starting_board));
 }
@@ -509,6 +529,22 @@ void *multiplayer_ranked_room_handler(void *arg) {
         }
 
         printf("Average time for %s: %.10f\n", room_name, media.tv_sec + media.tv_nsec / 1e9);
+
+    	start_writing_boards();
+    	const cJSON *round_board;
+    	for (int i = 0; i < num_boards ; i++) {
+    		cJSON *temp_board =	cJSON_GetArrayItem(boards,i);
+    		if (cJSON_GetObjectItem(temp_board, "id")->valueint == shared_data->board_id) {
+    			round_board = temp_board;
+    			break;
+    		}
+    	}
+
+    	int current_rooms_reading =	cJSON_GetObjectItem(round_board, "current_rooms_reading")->valueint;
+    	cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "current_rooms_reading"), --current_rooms_reading);
+		end_writing_boards();
+
+
     }
 }
 void *task_handler_multiplayer_ranked(void *arg) {
@@ -534,10 +570,18 @@ void *task_handler_multiplayer_ranked(void *arg) {
         sem_post(mutex_task);
         sem_post(sem_prod);
 
-    	pthread_mutex_lock(&board_mutex);
-        int **solution = getMatrixFromJSON(
-            cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
-    	pthread_mutex_unlock(&board_mutex);
+    	start_reading_boards();
+    	const cJSON *round_board;
+    	for (int i = 0; i < num_boards ; i++) {
+    		cJSON *temp_board =	cJSON_GetArrayItem(boards,i);
+    		if (cJSON_GetObjectItem(temp_board, "id")->valueint == shared_data->board_id) {
+    			round_board = temp_board;
+    			break;
+    		}
+    	}
+    	int **solution = getMatrixFromJSON(
+				cJSON_GetObjectItem(round_board, "solution"));
+    	end_reading_boards();
 
         int row = task.request[2] - '0';
         int col = task.request[4] - '0';
@@ -588,12 +632,13 @@ void setup_multiplayer_casual_shared_memory(char room_name[100], multiplayer_cas
 void multiplayer_casual_select_new_board_and_share(multiplayer_casual_room_shared_data_t *shared_data) {
 	srand(time(NULL));
 
-	pthread_mutex_lock(&board_mutex);
-	shared_data->board_id = rand() % num_boards;
-	int random_board = shared_data->board_id;
+	start_writing_boards();
+	const cJSON *round_board = cJSON_GetArrayItem(boards, rand() % num_boards);
+	shared_data->board_id = cJSON_GetObjectItem(round_board,"id")->valueint;
+	int current_rooms_reading =	cJSON_GetObjectItem(round_board, "current_rooms_reading")->valueint;
 
-	const cJSON *round_board = cJSON_GetArrayItem(boards, random_board);
-	pthread_mutex_unlock(&board_mutex);
+	cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "current_rooms_reading"), ++current_rooms_reading);
+	end_writing_boards();
 
 	//broadcast new board
 	strcpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
@@ -670,7 +715,21 @@ void *multiplayer_casual_room_handler(void *arg) {
 
 			printf("Novo tempo em %s: %.10f\n", room_name, final.tv_sec + final.tv_nsec / 1e9);
 		}
+
 		printf("Media de %s: %.10f\n", room_name, media.tv_sec + media.tv_nsec / 1e9);
+		start_writing_boards();
+		const cJSON *round_board;
+		for (int i = 0; i < num_boards ; i++) {
+			cJSON *temp_board =	cJSON_GetArrayItem(boards,i);
+			if (cJSON_GetObjectItem(temp_board, "id")->valueint == shared_data->board_id) {
+				round_board = temp_board;
+				break;
+			}
+		}
+
+		int current_rooms_reading =	cJSON_GetObjectItem(round_board, "current_rooms_reading")->valueint;
+		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "current_rooms_reading"), --current_rooms_reading);
+		end_writing_boards();
 	}
 	//TODO LOGS
 }
@@ -694,10 +753,18 @@ void *task_handler_multiplayer_casual(void *arg) {
 		//usleep(rand() % 1);
 		Task task = shared_data->task_queue[current_index];
 
-		pthread_mutex_lock(&board_mutex);
+		start_reading_boards();
+		const cJSON *round_board;
+		for (int i = 0; i < num_boards ; i++) {
+			cJSON *temp_board =	cJSON_GetArrayItem(boards,i);
+			if (cJSON_GetObjectItem(temp_board, "id")->valueint == shared_data->board_id) {
+				round_board = temp_board;
+				break;
+			}
+		}
 		int **solution = getMatrixFromJSON(
-			cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
-		pthread_mutex_unlock(&board_mutex);
+				cJSON_GetObjectItem(round_board, "solution"));
+		end_reading_boards();
 
 		if (task.request[0] == '1') {
 			//FOUND SOLUTION - SKIP TO "STEP 6"
@@ -744,12 +811,13 @@ void setup_multiplayer_coop_shared_memory(char room_name[100], multiplayer_coop_
 void multiplayer_coop_select_new_board_and_share(multiplayer_coop_room_shared_data_t *shared_data) {
 	srand(time(NULL));
 
-	pthread_mutex_lock(&board_mutex);
-	shared_data->board_id = rand() % num_boards;
-	int random_board = shared_data->board_id;
+	start_writing_boards();
+	const cJSON *round_board = cJSON_GetArrayItem(boards, rand() % num_boards);
+	shared_data->board_id = cJSON_GetObjectItem(round_board,"id")->valueint;
+	int current_rooms_reading =	cJSON_GetObjectItem(round_board, "current_rooms_reading")->valueint;
 
-	const cJSON *round_board = cJSON_GetArrayItem(boards, random_board);
-	pthread_mutex_unlock(&board_mutex);
+	cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "current_rooms_reading"), ++current_rooms_reading);
+	end_writing_boards();
 
 	//broadcast new board
 	strcpy(shared_data->current_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
@@ -827,8 +895,22 @@ void *multiplayer_coop_room_handler(void *arg) {
 		media.tv_nsec = (long) ((new_avg - media.tv_sec) * 1e9);
 
 		printf("Novo tempo em %s: %.10f\n", room_name, final.tv_sec + final.tv_nsec / 1e9);
+		start_writing_boards();
+		const cJSON *round_board;
+		for (int i = 0; i < num_boards ; i++) {
+			cJSON *temp_board =	cJSON_GetArrayItem(boards,i);
+			if (cJSON_GetObjectItem(temp_board, "id")->valueint == shared_data->board_id) {
+				round_board = temp_board;
+				break;
+			}
+		}
+
+		int current_rooms_reading =	cJSON_GetObjectItem(round_board, "current_rooms_reading")->valueint;
+		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "current_rooms_reading"), --current_rooms_reading);
+		end_writing_boards();
 		//sleep(5);
 	}
+
 	printf("Media de %s: %.10f\n", room_name, media.tv_sec + media.tv_nsec / 1e9);
 }
 void *task_handler_multiplayer_coop(void *arg) {
@@ -880,10 +962,18 @@ void *task_handler_multiplayer_coop(void *arg) {
 		//sleep(1.5);
 		Task task = shared_data->task_queue[selected_client];
 
-		pthread_mutex_lock(&board_mutex);
+		start_reading_boards();
+		const cJSON *round_board;
+		for (int i = 0; i < num_boards ; i++) {
+			cJSON *temp_board =	cJSON_GetArrayItem(boards,i);
+			if (cJSON_GetObjectItem(temp_board, "id")->valueint == shared_data->board_id) {
+				round_board = temp_board;
+				break;
+			}
+		}
 		int **solution = getMatrixFromJSON(
-			cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
-		pthread_mutex_unlock(&board_mutex);
+				cJSON_GetObjectItem(round_board, "solution"));
+		end_reading_boards();
 
 		if (solution[task.request[2] - '0'][task.request[4] - '0'] == task.request[6] - '0') {
 			cJSON *old_board = cJSON_Parse(shared_data->current_board);
@@ -980,9 +1070,18 @@ void *task_handler_singleplayer(void *arg) {
 		//usleep(rand() % 1); //TODO SLEEP FROM CONFIG
 		//VER SE TA CERTO e manda para o buffer se está certo ou não
 
-		pthread_mutex_lock(&board_mutex);
-		int **solution = getMatrixFromJSON( cJSON_GetObjectItem(cJSON_GetArrayItem(boards, shared_data->board_id), "solution"));
-		pthread_mutex_unlock(&board_mutex);
+		start_reading_boards();
+		const cJSON *round_board;
+		for (int i = 0; i < num_boards ; i++) {
+			cJSON *temp_board =	cJSON_GetArrayItem(boards,i);
+			if (cJSON_GetObjectItem(temp_board, "id")->valueint == shared_data->board_id) {
+				round_board = temp_board;
+				break;
+			}
+		}
+		int **solution = getMatrixFromJSON(
+				cJSON_GetObjectItem(round_board, "solution"));
+		end_reading_boards();
 
 		if (solution[shared_data->buffer[2] - '0'][shared_data->buffer[4] - '0'] != shared_data->buffer[6] - '0') {
 			strcpy(shared_data->buffer, "0");
@@ -1025,12 +1124,13 @@ void *singleplayer_room_handler(void *arg) {
 	while (true) {
 		//sleep(5);
 
-		pthread_mutex_lock(&board_mutex);
-		shared_data->board_id = rand() % num_boards;
-		int rand_board = shared_data->board_id;
+		start_writing_boards();
+		const cJSON *round_board = cJSON_GetArrayItem(boards, rand() % num_boards);
+		shared_data->board_id = cJSON_GetObjectItem(round_board,"id")->valueint;
+		int current_rooms_reading =	cJSON_GetObjectItem(round_board, "current_rooms_reading")->valueint;
 
-		cJSON *round_board = cJSON_GetArrayItem(boards, rand_board);
-		pthread_mutex_unlock(&board_mutex);
+		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "current_rooms_reading"), ++current_rooms_reading);
+		end_writing_boards();
 
 		strcpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
 
@@ -1054,6 +1154,19 @@ void *singleplayer_room_handler(void *arg) {
 
 		printf("Novo tempo em %s: %.10f\n", room_name, final.tv_sec + final.tv_nsec / 1e9);
 		printf("Media de %s: %.10f\n", room_name, media.tv_sec + media.tv_nsec / 1e9);
+		start_writing_boards();
+		*round_board;
+		for (int i = 0; i < num_boards ; i++) {
+			cJSON *temp_board =	cJSON_GetArrayItem(boards,i);
+			if (cJSON_GetObjectItem(temp_board, "id")->valueint == shared_data->board_id) {
+				round_board = temp_board;
+				break;
+			}
+		}
+
+		current_rooms_reading =	cJSON_GetObjectItem(round_board, "current_rooms_reading")->valueint;
+		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "current_rooms_reading"), --current_rooms_reading);
+		end_writing_boards();
 	}
 }
 
@@ -1470,10 +1583,76 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 
 //BOARD CREATOR
 
-void *board_creator() {
+// Start reading boards
+void start_reading_boards() {
+	pthread_mutex_lock(&boards_mutex);
+	while (boards_writers > 0 || boards_write_requests > 0) {
+		pthread_cond_wait(&boards_cond, &boards_mutex);
+	}
+	boards_readers++;
+	pthread_mutex_unlock(&boards_mutex);
+}
 
+// End reading
+void end_reading_boards() {
+	pthread_mutex_lock(&boards_mutex);
+	boards_readers--;
+	if (boards_readers == 0) {
+		pthread_cond_broadcast(&boards_cond);
+	}
+	pthread_mutex_unlock(&boards_mutex);
+}
+
+
+
+// Start writing
+void start_writing_boards() {
+	pthread_mutex_lock(&boards_mutex);
+	boards_write_requests++;
+	while (boards_readers > 0 || boards_writers > 0) {
+		pthread_cond_wait(&boards_cond, &boards_mutex);
+	}
+	boards_write_requests--;
+	boards_writers++;
+	pthread_mutex_unlock(&boards_mutex);
+}
+
+// End writing
+void end_writing_boards() {
+	pthread_mutex_lock(&boards_mutex);
+	boards_writers--;
+	pthread_cond_broadcast(&boards_cond);
+	pthread_mutex_unlock(&boards_mutex);
+}
+
+
+//BOARD AMOUNT CONTROLLER
+
+void *board_annihilator() {
+	//board_deleter
+	bool has_managed_to_delete = false;
+
+	start_writing_boards();
+	while (!has_managed_to_delete) {
+		int random_index = rand() % num_boards;
+		int board_readers = cJSON_GetObjectItem(cJSON_GetArrayItem(boards,random_index), "current_rooms_reading")->valueint;
+		if (board_readers == 0) {
+			cJSON_DeleteItemFromArray(boards, random_index);
+			has_managed_to_delete = true;
+			num_boards--;
+		}
+	}
+
+	end_writing_boards();
+}
+
+void *board_god() {
+	//board creator
 	while (true) {
 		sleep(config.board_creator_cooldown);
+
+		if (num_boards >= config.board_max) goto deletor;
+
 		int **new_filled_board = generate_sudoku();
 		int **new_empty_board = generate_empty_board(new_filled_board);
 
@@ -1491,9 +1670,10 @@ void *board_creator() {
 		cJSON* new_board = cJSON_CreateObject();
 		cJSON_AddItemToObject(new_board, "starting_state", json_new_empty_board);
 		cJSON_AddItemToObject(new_board, "solution", json_new_filled_board);
+		cJSON_AddNumberToObject(new_board, "current_rooms_reading", 0);
 
 		//PRE
-		pthread_mutex_lock(&board_mutex);
+		start_writing_boards();
 
 		//ZC
 		for (int i = 0; i < num_boards; i++) {
@@ -1508,9 +1688,22 @@ void *board_creator() {
 
 		printf("CURRENT NUM OF BOARDS: %d\n", num_boards);
 		//POS
-		pthread_mutex_unlock(&board_mutex);
+		end_writing_boards();
+
+		deletor:
+		if(num_boards > config.board_min) {
+			int chance_to_delete =  (int)(num_boards-config.board_min) * 100/ (config.board_max - config.board_min);
+			if (rand() % 100 < chance_to_delete) {
+				board_annihilator();
+				printf("DELETED BOARD\n");
+				if (rand() % 100 < chance_to_delete) {
+					board_annihilator();
+					printf("DELETED BOARD\n");
+
+				}
+			}
+		}
 	}
 }
 
 
-//BOARD AMOUNT CONTROLLER

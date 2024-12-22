@@ -203,7 +203,11 @@
 		  7,
 		  9
 		]
-	  ]
+	  ],
+	  "current_rooms_reading": 0,
+	  "fastest_time": 0,
+	  "average_time": 0,
+	  "attempts": 0
 	},
 	{
 	  "id": 2,
@@ -408,7 +412,10 @@
 		  5,
 		  9
 		]
-	  ]
+	  ],
+	  "current_rooms_reading": 0,
+	  "fastest_time": 0,
+	  "attempts": 0
 	}
   ]
 }
