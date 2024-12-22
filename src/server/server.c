@@ -481,6 +481,9 @@ void multiplayer_ranked_select_new_board_and_share(multiplayer_ranked_room_share
 }
 void *multiplayer_ranked_room_handler(void *arg) {
     struct timespec media = {0, 0};
+	struct timespec best;
+	best.tv_sec = 0;
+	best.tv_nsec = 0;
     int time_counter = 0;
 
     room_config_t *room_config = (room_config_t *)arg;
@@ -550,6 +553,10 @@ void *multiplayer_ranked_room_handler(void *arg) {
 
         for (int i = 0; i < current_players; i++) {
             sem_wait(sem_solution_found);
+        	if (i == 0) {
+        		best.tv_sec = end.tv_sec - start.tv_sec;
+        		best.tv_nsec = end.tv_nsec - start.tv_nsec;
+        	}
             clock_gettime(CLOCK_MONOTONIC, &end);
 
             struct timespec round_time = {
@@ -580,8 +587,24 @@ void *multiplayer_ranked_room_handler(void *arg) {
 
     	int current_rooms_reading =	cJSON_GetObjectItem(round_board, "current_rooms_reading")->valueint;
     	cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "current_rooms_reading"), --current_rooms_reading);
-		end_writing_boards();
 
+    	int board_attempts = cJSON_GetObjectItem(round_board, "attempts")->valueint;
+    	board_attempts += shared_data->current_player;
+    	cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "attempts"), board_attempts );
+
+    	long current_time_ns = best.tv_sec * 1e9 + best.tv_nsec;
+    	double fastest_time = cJSON_GetObjectItem(round_board, "fastest_time")->valuedouble;
+    	if (fastest_time == 0 || current_time_ns < fastest_time) {
+    		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "fastest_time"), current_time_ns);
+    	}
+
+    	int json_attempts = cJSON_GetObjectItem(round_board, "attempts")->valueint;
+    	double current_avg = cJSON_GetObjectItem(round_board, "average_time")->valuedouble;
+    	double current_time = media.tv_sec + media.tv_nsec / 1e9;
+    	double new_json_avg = ((current_avg * (json_attempts - 1)) + current_time) / json_attempts;
+    	cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "average_time"), new_json_avg);
+
+    	end_writing_boards();
 
     }
 }
@@ -686,6 +709,10 @@ void *multiplayer_casual_room_handler(void *arg) {
 	struct timespec media;
 	media.tv_sec = 0;
 	media.tv_nsec = 0;
+
+	struct timespec best;
+	best.tv_sec = 0;
+	best.tv_nsec = 0;
 	int time_counter = 0;
 
 	room_config_t *room_config = arg;
@@ -741,6 +768,10 @@ void *multiplayer_casual_room_handler(void *arg) {
 		for (int i = 0; i < current_players; i++) {
 			sem_wait(sem_solucao_encontrada);
 			clock_gettime(CLOCK_MONOTONIC, &end);
+			if (i == 0) {
+				best.tv_sec = end.tv_sec - start.tv_sec;
+				best.tv_nsec = end.tv_nsec - start.tv_nsec;
+			}
 			struct timespec final;
 			final.tv_sec = end.tv_sec - start.tv_sec;
 			final.tv_nsec = end.tv_nsec - start.tv_nsec;
@@ -767,7 +798,25 @@ void *multiplayer_casual_room_handler(void *arg) {
 
 		int current_rooms_reading =	cJSON_GetObjectItem(round_board, "current_rooms_reading")->valueint;
 		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "current_rooms_reading"), --current_rooms_reading);
+
+		int board_attempts = cJSON_GetObjectItem(round_board, "attempts")->valueint;
+		board_attempts += shared_data->current_player;
+		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "attempts"), board_attempts );
+
+		long current_time_ns = best.tv_sec * 1e9 + best.tv_nsec;
+		double fastest_time = cJSON_GetObjectItem(round_board, "fastest_time")->valuedouble;
+		if (fastest_time == 0 || current_time_ns < fastest_time) {
+			cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "fastest_time"), current_time_ns);
+		}
+
+		int json_attempts = cJSON_GetObjectItem(round_board, "attempts")->valueint;
+		double current_avg = cJSON_GetObjectItem(round_board, "average_time")->valuedouble;
+		double current_time = media.tv_sec + media.tv_nsec / 1e9;
+		double new_json_avg = ((current_avg * (json_attempts - 1)) + current_time) / json_attempts;
+		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "average_time"), new_json_avg);
+
 		end_writing_boards();
+
 	}
 	//TODO LOGS
 }
@@ -863,9 +912,9 @@ void multiplayer_coop_select_new_board_and_share(multiplayer_coop_room_shared_da
 }
 void *multiplayer_coop_room_handler(void *arg) {
 	struct timespec media;
-
 	media.tv_sec = 0;
 	media.tv_nsec = 0;
+
 	int time_counter = 0;
 
 	room_config_t *room_config = arg;
@@ -903,6 +952,9 @@ void *multiplayer_coop_room_handler(void *arg) {
 	printf("Multiplayer COOP %s: room full - set the games begin\n", room_name);
 
 	pthread_create(&soltution_checker, NULL, task_handler_multiplayer_coop, shared_data);
+
+
+
 	for (;;) {
 		int current_players = shared_data->current_player;
 		if (current_players == 0) {
@@ -945,8 +997,23 @@ void *multiplayer_coop_room_handler(void *arg) {
 
 		int current_rooms_reading =	cJSON_GetObjectItem(round_board, "current_rooms_reading")->valueint;
 		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "current_rooms_reading"), --current_rooms_reading);
+
+		int board_attempts = cJSON_GetObjectItem(round_board, "attempts")->valueint;
+		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "attempts"), ++board_attempts);
+
+		long current_time_ns = final.tv_sec * 1e9 + final.tv_nsec;
+		double fastest_time = cJSON_GetObjectItem(round_board, "fastest_time")->valuedouble;
+		if (fastest_time == 0 || current_time_ns < fastest_time) {
+			cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "fastest_time"), current_time_ns);
+		}
+
+		int json_attempts = cJSON_GetObjectItem(round_board, "attempts")->valueint;
+		double current_avg = cJSON_GetObjectItem(round_board, "average_time")->valuedouble;
+		double current_time = final.tv_sec + final.tv_nsec / 1e9;
+		double new_json_avg = ((current_avg * (json_attempts - 1)) + current_time) / json_attempts;
+		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "average_time"), new_json_avg);
+
 		end_writing_boards();
-		//sleep(5);
 	}
 
 	printf("Media de %s: %.10f\n", room_name, media.tv_sec + media.tv_nsec / 1e9);
@@ -978,7 +1045,6 @@ void *task_handler_multiplayer_coop(void *arg) {
 		for (int i =0; i < config.server_size; i++) {
 			int temp;
 			sem_getvalue(&shared_data->sems_server[i], &temp);
-			printf("client index:%d hasRequest: %d last requested: %d\n", i, temp, last_processed[i]);
 		}
 
 
@@ -996,8 +1062,6 @@ void *task_handler_multiplayer_coop(void *arg) {
 		sem_wait(&shared_data->sems_server[selected_client]);
 
 		//ZC
-		//usleep(rand() % 1);
-		//sleep(1.5);
 		Task task = shared_data->task_queue[selected_client];
 
 		start_reading_boards();
@@ -1192,6 +1256,7 @@ void *singleplayer_room_handler(void *arg) {
 
 		printf("Novo tempo em %s: %.10f\n", room_name, final.tv_sec + final.tv_nsec / 1e9);
 		printf("Media de %s: %.10f\n", room_name, media.tv_sec + media.tv_nsec / 1e9);
+
 		start_writing_boards();
 		*round_board;
 		for (int i = 0; i < num_boards ; i++) {
@@ -1204,6 +1269,23 @@ void *singleplayer_room_handler(void *arg) {
 
 		current_rooms_reading =	cJSON_GetObjectItem(round_board, "current_rooms_reading")->valueint;
 		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "current_rooms_reading"), --current_rooms_reading);
+
+
+		int board_attempts = cJSON_GetObjectItem(round_board, "attempts")->valueint;
+		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "attempts"), ++board_attempts);
+
+		long current_time_ns = final.tv_sec * 1e9 + final.tv_nsec;
+		double fastest_time = cJSON_GetObjectItem(round_board, "fastest_time")->valuedouble;
+		if (fastest_time == 0 || current_time_ns < fastest_time) {
+			cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "fastest_time"), current_time_ns);
+		}
+
+		int json_attempts = cJSON_GetObjectItem(round_board, "attempts")->valueint;
+		double current_avg = cJSON_GetObjectItem(round_board, "average_time")->valuedouble;
+		double current_time = final.tv_sec + final.tv_nsec / 1e9;
+		double new_json_avg = ((current_avg * (json_attempts - 1)) + current_time) / json_attempts;
+		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "average_time"), new_json_avg);
+
 		end_writing_boards();
 	}
 }
@@ -1620,8 +1702,6 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 
 
 //BOARD CREATOR
-
-// Start reading boards
 void start_reading_boards() {
 	pthread_mutex_lock(&boards_mutex);
 	while (boards_writers > 0 || boards_write_requests > 0) {
@@ -1630,8 +1710,6 @@ void start_reading_boards() {
 	boards_readers++;
 	pthread_mutex_unlock(&boards_mutex);
 }
-
-// End reading
 void end_reading_boards() {
 	pthread_mutex_lock(&boards_mutex);
 	boards_readers--;
@@ -1640,10 +1718,6 @@ void end_reading_boards() {
 	}
 	pthread_mutex_unlock(&boards_mutex);
 }
-
-
-
-// Start writing
 void start_writing_boards() {
 	pthread_mutex_lock(&boards_mutex);
 	boards_write_requests++;
@@ -1654,8 +1728,6 @@ void start_writing_boards() {
 	boards_writers++;
 	pthread_mutex_unlock(&boards_mutex);
 }
-
-// End writing
 void end_writing_boards() {
 	pthread_mutex_lock(&boards_mutex);
 	boards_writers--;
@@ -1665,7 +1737,6 @@ void end_writing_boards() {
 
 
 //BOARD AMOUNT CONTROLLER
-
 void *board_annihilator() {
 	//board_deleter
 	bool has_managed_to_delete = false;
@@ -1732,7 +1803,7 @@ void *board_god() {
 		cJSON_AddNumberToObject(new_board, "current_rooms_reading", 0);
 		cJSON_AddNumberToObject(new_board, "fastest_time", 0);
 		cJSON_AddNumberToObject(new_board, "average_time", 0);
-		cJSON_AddNumberToObject(new_board, "attempts", 1);
+		cJSON_AddNumberToObject(new_board, "attempts", 0);
 
 		//PRE
 		start_writing_boards();
