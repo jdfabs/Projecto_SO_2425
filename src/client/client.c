@@ -95,7 +95,8 @@ int main(int argc, char *argv[]) {
 				break;
 			case '1':
 			//Correct Guess
-				board[last_i][last_j] = last_k;
+				log_event(config.log_file, "Correct Guess");
+				board[last_i][last_j] = last_k;//update local board
 			case '2':
 			//Wrong Guess
 			case '3':
@@ -136,14 +137,6 @@ int main(int argc, char *argv[]) {
 					printf("PEDIDO ENVIADO\n");
 				}
 
-				break;
-			case '4':
-				break;
-			case '5':
-				break;
-			case '6':
-				break;
-			case '7':
 				break;
 		}
 	}

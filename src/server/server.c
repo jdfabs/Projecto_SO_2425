@@ -172,6 +172,7 @@ void setup_server_main_socket() {
 
 
 void save_boards_to_file() {
+	log_event(config.log_file, "Saving boards to file");
 	const char *file_path = "./boards/boards.json";
 	FILE *file = fopen(file_path, "w");
 	if (!file) {
@@ -198,8 +199,9 @@ void save_boards_to_file() {
 
 	if (fprintf(file, "%s", json_string) < 0) {
 		perror("Failed to write to boards.json");
+		log_event(config.log_file, "Saving boards FAILED!");
 	}
-
+	log_event(config.log_file, "Saved boards to file");
 	fclose(file);
 	cJSON_free(json_string);
 	cJSON_Delete(wrapped_boards);
@@ -242,6 +244,7 @@ void accept_clients() {
     char client_request[100];
     if (recv(client_socket, client_request, sizeof(client_request), 0) <= 0) {
         perror("Failed to receive client handshake");
+    	log_event(config.log_file, "Failed to receive client handshake");
         close(client_socket);
         return;
     }
@@ -274,6 +277,7 @@ void accept_clients() {
 }
 
 void create_new_room(int client_socket, int room_type) {
+	log_event(config.log_file, "Creating new room");
     snprintf(rooms[room_count].name, sizeof(rooms[room_count].name), "room_%d", room_count);
     rooms[room_count].current_players = 1;
     rooms[room_count].type = room_type;
@@ -466,6 +470,7 @@ void setup_multiplayer_ranked_shared_memory(const char *room_name, multiplayer_r
 void multiplayer_ranked_select_new_board_and_share(multiplayer_ranked_room_shared_data_t *shared_data) {
     srand(time(NULL));
 
+	log_event(config.log_file, "");
 	start_writing_boards();
     const cJSON *round_board = cJSON_GetArrayItem(boards, rand() % num_boards);
 	shared_data->board_id = cJSON_GetObjectItem(round_board,"id")->valueint;
@@ -476,7 +481,9 @@ void multiplayer_ranked_select_new_board_and_share(multiplayer_ranked_room_share
 
 
 
-
+	char temp[255];
+	sprintf(temp, "%d loaded and shared new board", shared_data->room_name);
+	log_event(config.log_file, temp);
     strncpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")), sizeof(shared_data->starting_board));
 }
 void *multiplayer_ranked_room_handler(void *arg) {
@@ -532,9 +539,13 @@ void *multiplayer_ranked_room_handler(void *arg) {
 
     printf("%s of type Multiplayer Ranked - started with a max of %d players\n", room_name, max_player);
 
+	sprintf(temp, "%d ready to start", shared_data->room_name);
+	log_event(config.log_file, temp);
+
     wait_for_full_room(sem_room_full, max_player);
     printf("Multiplayer Ranked %s: room full - let the games begin\n", room_name);
-
+	sprintf(temp, "%d full - start", shared_data->room_name);
+	log_event(config.log_file, temp);
 
     while (1) {
     	int current_players = shared_data->current_player;
@@ -550,6 +561,8 @@ void *multiplayer_ranked_room_handler(void *arg) {
         }
 
         printf("Multiplayer Ranked %s: game start has been signaled\n", room_name);
+    	sprintf(temp, "%d round started", shared_data->room_name);
+    	log_event(config.log_file, temp);
 
         for (int i = 0; i < current_players; i++) {
             sem_wait(sem_solution_found);
@@ -574,6 +587,9 @@ void *multiplayer_ranked_room_handler(void *arg) {
         }
 
         printf("Average time for %s: %.10f\n", room_name, media.tv_sec + media.tv_nsec / 1e9);
+
+    	sprintf(temp, "%d round finished", shared_data->room_name);
+    	log_event(config.log_file, temp);
 
     	start_writing_boards();
     	const cJSON *round_board;
@@ -600,12 +616,12 @@ void *multiplayer_ranked_room_handler(void *arg) {
 
     	int json_attempts = cJSON_GetObjectItem(round_board, "attempts")->valueint;
     	double current_avg = cJSON_GetObjectItem(round_board, "average_time")->valuedouble;
-    	double current_time = media.tv_sec + media.tv_nsec / 1e9;
-    	double new_json_avg = ((current_avg * (json_attempts - 1)) + current_time) / json_attempts;
+    	double new_json_avg = ((current_avg * (json_attempts - 1)) + current_time_ns) / json_attempts;
     	cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "average_time"), new_json_avg);
 
     	end_writing_boards();
-
+		sprintf(temp, "%d updated board var", shared_data->room_name);
+    	log_event(config.log_file, temp);
     }
 }
 void *task_handler_multiplayer_ranked(void *arg) {
@@ -703,7 +719,9 @@ void multiplayer_casual_select_new_board_and_share(multiplayer_casual_room_share
 
 	//broadcast new board
 	strcpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
-	//TODO LOGS
+	char temp[255];
+	sprintf(temp, "%d loaded and shared new board", shared_data->room_name);
+	log_event(config.log_file, temp);
 }
 void *multiplayer_casual_room_handler(void *arg) {
 	struct timespec media;
@@ -745,9 +763,14 @@ void *multiplayer_casual_room_handler(void *arg) {
 
 	printf("%s of type Multiplayer Casual - started with a max of %d players\n", room_name, max_player);
 
+	sprintf(temp, "%d ready to start, waiting for players", shared_data->room_name);
+	log_event(config.log_file, temp);
 
 	wait_for_full_room(sem_room_full, max_player); // Espera que o room encha
 	printf("Multiplayer Casual %s: room full - set the games begin\n", room_name);
+
+	sprintf(temp, "%d room full, starting", shared_data->room_name);
+	log_event(config.log_file, temp);
 
 	for (;;) {
 		int current_players = shared_data->current_player;
@@ -756,6 +779,9 @@ void *multiplayer_casual_room_handler(void *arg) {
 			return 0;
 		}
 		multiplayer_casual_select_new_board_and_share(shared_data);
+
+		sprintf(temp, "%d round started", shared_data->room_name);
+		log_event(config.log_file, temp);
 
 		//Start round
 		clock_gettime(CLOCK_MONOTONIC, &start);
@@ -786,6 +812,10 @@ void *multiplayer_casual_room_handler(void *arg) {
 		}
 
 		printf("Media de %s: %.10f\n", room_name, media.tv_sec + media.tv_nsec / 1e9);
+
+		sprintf(temp, "%d round finished", shared_data->room_name);
+		log_event(config.log_file, temp);
+
 		start_writing_boards();
 		const cJSON *round_board;
 		for (int i = 0; i < num_boards ; i++) {
@@ -811,14 +841,13 @@ void *multiplayer_casual_room_handler(void *arg) {
 
 		int json_attempts = cJSON_GetObjectItem(round_board, "attempts")->valueint;
 		double current_avg = cJSON_GetObjectItem(round_board, "average_time")->valuedouble;
-		double current_time = media.tv_sec + media.tv_nsec / 1e9;
-		double new_json_avg = ((current_avg * (json_attempts - 1)) + current_time) / json_attempts;
+		double new_json_avg = ((current_avg * (json_attempts - 1)) + current_time_ns) / json_attempts;
 		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "average_time"), new_json_avg);
 
 		end_writing_boards();
-
+		sprintf(temp, "%d updated board var", shared_data->room_name);
+    	log_event(config.log_file, temp);
 	}
-	//TODO LOGS
 }
 void *task_handler_multiplayer_casual(void *arg) {
 	multiplayer_casual_room_shared_data_t *shared_data = arg;
@@ -908,7 +937,9 @@ void multiplayer_coop_select_new_board_and_share(multiplayer_coop_room_shared_da
 
 	//broadcast new board
 	strcpy(shared_data->current_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
-	//TODO LOGS
+	char temp[255];
+	sprintf(temp, "%d loaded and shared new board", shared_data->room_name);
+	log_event(config.log_file, temp);
 }
 void *multiplayer_coop_room_handler(void *arg) {
 	struct timespec media;
@@ -943,14 +974,15 @@ void *multiplayer_coop_room_handler(void *arg) {
 	sem_unlink(temp);
 	sem_t *sem_game_start = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
 
-	//TODO LOGS
-
-
 	printf("%s of type Multiplayer COOP - started with a max of %d players\n", room_name, max_player);
+
+	sprintf(temp, "%d ready to start", shared_data->room_name);
+	log_event(config.log_file, temp);
 
 	wait_for_full_room(sem_room_full, max_player); // Espera que o room encha
 	printf("Multiplayer COOP %s: room full - set the games begin\n", room_name);
-
+	sprintf(temp, "%d full - start", shared_data->room_name);
+	log_event(config.log_file, temp);
 	pthread_create(&soltution_checker, NULL, task_handler_multiplayer_coop, shared_data);
 
 
@@ -970,7 +1002,8 @@ void *multiplayer_coop_room_handler(void *arg) {
 		}
 		separator();
 		printf("Multiplayer COOP %s: game start has been signaled \n", room_name);
-
+		sprintf(temp, "%d round started", shared_data->room_name);
+		log_event(config.log_file, temp);
 
 		sem_wait(sem_solucao_encontrada);
 		clock_gettime(CLOCK_MONOTONIC, &end);
@@ -985,6 +1018,11 @@ void *multiplayer_coop_room_handler(void *arg) {
 		media.tv_nsec = (long) ((new_avg - media.tv_sec) * 1e9);
 
 		printf("Novo tempo em %s: %.10f\n", room_name, final.tv_sec + final.tv_nsec / 1e9);
+
+	  	sprintf(temp, "%d round finished", shared_data->room_name);
+    	log_event(config.log_file, temp);
+
+
 		start_writing_boards();
 		const cJSON *round_board;
 		for (int i = 0; i < num_boards ; i++) {
@@ -1009,11 +1047,12 @@ void *multiplayer_coop_room_handler(void *arg) {
 
 		int json_attempts = cJSON_GetObjectItem(round_board, "attempts")->valueint;
 		double current_avg = cJSON_GetObjectItem(round_board, "average_time")->valuedouble;
-		double current_time = final.tv_sec + final.tv_nsec / 1e9;
-		double new_json_avg = ((current_avg * (json_attempts - 1)) + current_time) / json_attempts;
+		double new_json_avg = ((current_avg * (json_attempts - 1)) + current_time_ns) / json_attempts;
 		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "average_time"), new_json_avg);
 
 		end_writing_boards();
+		sprintf(temp, "%d updated board var", shared_data->room_name);
+    	log_event(config.log_file, temp);
 	}
 
 	printf("Media de %s: %.10f\n", room_name, media.tv_sec + media.tv_nsec / 1e9);
@@ -1164,7 +1203,6 @@ void *task_handler_singleplayer(void *arg) {
 	sem_t *sem_server = sem_open(temp, O_CREAT | O_RDWR, 0666, 0);
 	sprintf(temp, "sem_%s_client", shared_data->room_name);
 	sem_t *sem_client = sem_open(temp, O_CREAT | O_RDWR, 0666, 1);
-	//TODO LOGS
 
 	while (true) {
 		sem_wait(sem_server);
@@ -1199,8 +1237,6 @@ void *singleplayer_room_handler(void *arg) {
 	media.tv_nsec = 0;
 	int time_counter = 0;
 
-	printf("hello from singleplayer thread\n");
-
 	room_config_t *room_config = arg;
 	char room_name[100];
 	sprintf(room_name, "%s", room_config->room_name);
@@ -1222,6 +1258,8 @@ void *singleplayer_room_handler(void *arg) {
 
 	pthread_create(&solution_checker, NULL, task_handler_singleplayer, shared_data);
 	printf("%s of type SinglePlayer started - let the games begin\n", room_name);
+sprintf(temp, "%d full - start", shared_data->room_name);
+	log_event(config.log_file, temp);
 	//TODO LOGS
 	while (true) {
 		//sleep(5);
@@ -1235,12 +1273,17 @@ void *singleplayer_room_handler(void *arg) {
 		end_writing_boards();
 
 		strcpy(shared_data->starting_board, cJSON_Print(cJSON_GetObjectItem(round_board, "starting_state")));
+		char temp[255];
+		sprintf(temp, "%d loaded and shared new board", shared_data->room_name);
+		log_event(config.log_file, temp);
 
 		//Start Round
 		clock_gettime(CLOCK_MONOTONIC, &start);
 		sem_post(sem_game_start);
 		separator();
 		printf("Single Player %s: game start signaled\n", room_name);
+    	sprintf(temp, "%d round started", shared_data->room_name);
+    	log_event(config.log_file, temp);
 		sem_wait(sem_solucao_encontrada);
 
 		clock_gettime(CLOCK_MONOTONIC, &end);
@@ -1256,6 +1299,9 @@ void *singleplayer_room_handler(void *arg) {
 
 		printf("Novo tempo em %s: %.10f\n", room_name, final.tv_sec + final.tv_nsec / 1e9);
 		printf("Media de %s: %.10f\n", room_name, media.tv_sec + media.tv_nsec / 1e9);
+
+    	sprintf(temp, "%d round finished", shared_data->room_name);
+    	log_event(config.log_file, temp);
 
 		start_writing_boards();
 		*round_board;
@@ -1280,13 +1326,16 @@ void *singleplayer_room_handler(void *arg) {
 			cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "fastest_time"), current_time_ns);
 		}
 
+
 		int json_attempts = cJSON_GetObjectItem(round_board, "attempts")->valueint;
 		double current_avg = cJSON_GetObjectItem(round_board, "average_time")->valuedouble;
-		double current_time = final.tv_sec + final.tv_nsec / 1e9;
-		double new_json_avg = ((current_avg * (json_attempts - 1)) + current_time) / json_attempts;
-		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "average_time"), new_json_avg);
+		double new_json_avg = (current_avg * (json_attempts - 1) + current_time_ns) / json_attempts;
+		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "average_time"), (int)(new_json_avg + 0.5));
+
 
 		end_writing_boards();
+		sprintf(temp, "%d updated board var", shared_data->room_name);
+    	log_event(config.log_file, temp);
 	}
 }
 
@@ -1314,7 +1363,6 @@ void send_solution_attempt_multiplayer_ranked(int x, int y, int novo_valor, sem_
 	sem_post(mutex_task);
 	sem_post(sem_sync_1);
 }
-
 void send_solution_attempt_multiplayer_casual(int x, int y, int novo_valor,	multiplayer_casual_room_shared_data_t *multiplayer_casual_room_shared_data, int client_index) {
 	char message[255];
 	if (x == -1) {
@@ -1332,7 +1380,6 @@ void send_solution_attempt_multiplayer_casual(int x, int y, int novo_valor,	mult
 	//POSPROTOCOLO
 	sem_post(&multiplayer_casual_room_shared_data->sems_server[client_index]);
 }
-
 void send_solution_attempt_multiplayer_coop(multiplayer_coop_room_shared_data_t *multiplayer_coop_room_shared_data,	int client_index) {
 
 	// PREPROTOCOLO
@@ -1382,16 +1429,14 @@ outside_for:
 
 	//usleep(rand() % (config.slow_factor + 0));
 }
-
 void send_solution_attempt_single_player(int x, int y, int novo_valor, sem_t *sem_sync_2, singleplayer_room_shared_data_t *singleplayer_room_shared_data, sem_t *sem_sync_1) {
 	char message[255];
 	sprintf(message, "0-%d,%d,%d", x, y, novo_valor);
 	//PREPROTOCOLO
 
-	sem_wait(sem_sync_2); // redundante??
+	sem_wait(sem_sync_2);
+
 	//ZC
-	//usleep(rand() % (config.slow_factor + 1));
-	//printf("%s\n", message);
 	strcpy(singleplayer_room_shared_data->buffer, message);
 
 	//POSPROTOCOLO
@@ -1399,13 +1444,9 @@ void send_solution_attempt_single_player(int x, int y, int novo_valor, sem_t *se
 }
 
 bool receice_answer_single_player(sem_t *sem_sync_2, singleplayer_room_shared_data_t *singleplayer_room_shared_data) {
-
-
 	sem_wait(sem_sync_2); //espera pela resposta do server
-	//usleep(rand() % (config.slow_factor + 1));
 	bool answer = atoi(singleplayer_room_shared_data->buffer);
 	sem_post(sem_sync_2); //vai tratar das continhas (vai escrever outra vez) REDUNDANTE??
-
 	return answer;
 };
 bool receive_answer_multiplayer_casual(multiplayer_casual_room_shared_data_t *multiplayer_casual_room_shared_data,int client_index) {
@@ -1596,11 +1637,8 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 		while (true) {
 			ssize_t recv_ret = recv(client_socket, buffer, sizeof(buffer), 0);
 			if (recv_ret == 0) {
-				//TODO REMOVE CLIENT FROM SERVER AND SHIT
-				printf("999\n");
 				switch (room->type) {
 					case 0:
-						//TODO
 							break;
 					case 1:
 						multiplayer_ranked_shared_data->current_player--;
@@ -1681,20 +1719,6 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 						sem_post(sem_solucao);
 
 						goto new_round;
-				case '2':
-					break;
-				case '3':
-					break;
-				case '4':
-					break;
-				case '5':
-					break;
-				case '6':
-					break;
-				case '7':
-					break;
-				case '9':
-				 break;
 			}
 		}
 	}
@@ -1773,6 +1797,7 @@ void *board_annihilator() {
 		}
 	}
 
+	log_event(config.log_file, "Board deleted");
 	end_writing_boards();
 }
 
@@ -1822,7 +1847,7 @@ void *board_god() {
 		printf("CURRENT NUM OF BOARDS: %d\n", num_boards);
 		//POS
 		end_writing_boards();
-
+		log_event(config.log_file, "Board created");
 		deletor:
 		if(num_boards > config.board_min) {
 			int chance_to_delete =  (int)(num_boards-config.board_min) * 100/ (config.board_max - config.board_min);
