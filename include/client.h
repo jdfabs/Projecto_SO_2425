@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 /************************************
  * MACROS AND DEFINES
@@ -25,6 +26,7 @@ typedef struct  {
     char log_file[254];
     int game_type;
     int slow_factor;
+    bool manual_mode;
 } client_config;
 
 #define BOARD_SIZE 9

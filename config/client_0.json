@@ -5,6 +5,7 @@
 	"server_port": 9346,
 	"log_file": "./logs/client2.log",
 	"game_type": 0,
-	"slow_factor": 150000
+	"slow_factor": 150000,
+	"manual_mode": false
 	}
 }

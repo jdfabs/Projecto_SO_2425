@@ -56,17 +56,46 @@ void graceful_shutdown() {
 
 int main(int argc, char *argv[]) {
 	client_init(argc, argv, &config); // Client data structures setup
+
+	char aux[100];
+	if (config.manual_mode) {
+		printf("Welcome to the sudoku server! Please select the game mode you want to play!\n");
+		printf("0) Single Player\n");
+		printf("1) Ranked Multiplayer\n");
+		printf("2) Casual Multiplayer\n");
+		printf("3) Coop Multiplayer\n");
+		printf("4) EXIT\n");
+
+		int game_mode = -1;
+		while (1) {
+			printf("Enter your choice: ");
+			if (scanf("%d", &game_mode) == 1 && game_mode >= 0 && game_mode <= 4) {
+				if (game_mode == 4) {
+					printf("Exiting the client. Goodbye!\n");
+					graceful_shutdown();
+				}
+				sprintf(aux, "%d", game_mode);
+				break;
+			} else {
+				printf("Invalid input. Please enter a number between 0 and 4.\n");
+				while (getchar() != '\n');
+			}
+		}
+		sprintf(aux, "%d", game_mode);
+		config.game_type = game_mode;
+	}
+	else {
+		sprintf(aux, "%d", config.game_type);
+	}
 	connect_to_server(); // Connect to server
 
 	//Handshake com server --- é enviado o socket do cliente e o nome do room em que este fica
-	char aux[100];
-	sprintf(aux, "%d", config.game_type);
 	send(sock, aux, strlen(aux), 0);
 
 	char room_name[100];
 	recv(sock, buffer, BUFFER_SIZE, 0);
-	//sleep(1);
 	printf("%s\n", buffer);
+	clear();
 
 	sscanf(buffer, "%d-%d-%99s", &client_socket, &client_index, room_name);
 
@@ -74,8 +103,13 @@ int main(int argc, char *argv[]) {
 	printf("Nome da sala connectada: %s\n", room_name);
 	printf("Client Index: %d\n", client_index);
 	separator();
-	printf("Inicializacao dos meios de sincronizacao da sala\n");
-	//sleep(1);
+
+	if (config.manual_mode) {
+		printf("PRESS ENTER TO CONTINUE\n");
+		int c;
+		while ((c = getchar()) != '\n' && c != EOF);
+		while (getchar() != '\n');
+	}
 
 	int last_i;
 	int last_j;
@@ -86,6 +120,7 @@ int main(int argc, char *argv[]) {
 		recv(sock, buffer, BUFFER_SIZE, 0);
 		char *message = buffer;
 		message += 2;
+
 		switch (buffer[0]) {
 			case '0':
 				//Update Board
@@ -97,24 +132,42 @@ int main(int argc, char *argv[]) {
 			//Correct Guess
 				log_event(config.log_file, "Correct Guess");
 				board[last_i][last_j] = last_k;//update local board
+				printf("Correct Guess\n");
+				//move to case 2 (print board)
 			case '2':
 			//Wrong Guess
+				printBoard(board);
+				//move to case 3 (new attempt)
 			case '3':
 				//Game Start/Take a guess again
-				//JOGOS INDIVIDUAIS
 				if (config.game_type != 3) {
 					for (int i = 0; i < 9; i++) {
 						for (int j = 0; j < 9; j++) {
 							if (board[i][j] == 0) {	// FIND FIRST EMPTY SPOT
 								printf("celula (%d,%d) está vazia\n", i, j);
+								int k = 0;
+								if (config.manual_mode) {
+									while (1) {
+										printf("Enter your choice: ");
+										if (scanf("%d", &k) == 1 && k >= 1 && k <=9) {
+											break;
+										}
+										else {
+											printf("Invalid input. Please enter a number between 1 and 9.\n");
+											while (getchar() != '\n');
+										}
+									}
+								}
+								else {
+									k = rand() % 9 + 1; // random try
+								}
 
-								const int k = rand() % 9 + 1; // random try
 								last_i = i;
 								last_j = j;
 								last_k = k;
 								clear();
 								printf("ROOM: %s\n", room_name);
-								printBoard(board);
+
 								//usleep(rand() % (config.slow_factor + 1));
 
 
@@ -131,7 +184,15 @@ int main(int argc, char *argv[]) {
 					printf("SOLVED\n");
 				}
 				else {
-					usleep(rand() % config.slow_factor*2+1);
+					if (config.manual_mode) {
+						printf("PRESS ENTER TO SEND RANDOM SOLUTION REQUEST\n");
+						int c;
+						while ((c = getchar()) != '\n' && c != EOF);
+						while (getchar() != '\n');
+					}
+					else {
+						usleep(rand() % config.slow_factor*2+1);
+					}
 					clear();
 					send(sock, "0", strlen("0"), 0);
 					printf("PEDIDO ENVIADO\n");
