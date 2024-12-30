@@ -1,11 +1,11 @@
 {
   "client": {
-	"id": "client1",
+	"id": "Multiplayer_Ranked_Fast",
 	"server_ip": "127.0.0.1",
 	"server_port": 9346,
-	"log_file": "./logs/client1.log",
+	"log_file": "./logs/Ranked_Fast.log",
 	"game_type": 1,
-	"slow_factor": 15000,
+	"slow_factor": 1,
 	"manual_mode": false
-  }
+	}
 }

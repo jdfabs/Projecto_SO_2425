@@ -1,0 +1,11 @@
+{
+  "client": {
+	"id": "SinglePlayer_Med",
+	"server_ip": "127.0.0.1",
+	"server_port": 9346,
+	"log_file": "./logs/SP_Med.log",
+	"game_type": 0,
+	"slow_factor": 50000,
+	"manual_mode": false
+	}
+}

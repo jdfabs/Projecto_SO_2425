@@ -117,10 +117,12 @@ int main(int argc, char *argv[]) {
 
 	while (true) {
 		exit_for:
+
 		recv(sock, buffer, BUFFER_SIZE, 0);
 		char *message = buffer;
 		message += 2;
 
+		printf("ROOM: %s\n", room_name);
 		switch (buffer[0]) {
 			case '0':
 				//Update Board
@@ -133,12 +135,17 @@ int main(int argc, char *argv[]) {
 				log_event(config.log_file, "Correct Guess");
 				board[last_i][last_j] = last_k;//update local board
 				printf("Correct Guess\n");
+				goto try;
 				//move to case 2 (print board)
 			case '2':
 			//Wrong Guess
+
+				printf("Wrong Guess\n");
 				printBoard(board);
+				if (!config.manual_mode) usleep(config.slow_factor/3);
 				//move to case 3 (new attempt)
 			case '3':
+				try:
 				//Game Start/Take a guess again
 				if (config.game_type != 3) {
 					for (int i = 0; i < 9; i++) {
@@ -168,14 +175,15 @@ int main(int argc, char *argv[]) {
 								clear();
 								printf("ROOM: %s\n", room_name);
 
-								//usleep(rand() % (config.slow_factor + 1));
+
 
 
 								sprintf(buffer, "0-%d-%d-%d", i, j, k);
 								send(sock, buffer, strlen(buffer), 0);
 								printf("Pedido de verificação enviado: %d em (%d,%d)\n",k,i,j);
-
-
+								printBoard(board);
+								if (!config.manual_mode) usleep(rand() % config.slow_factor/2+1);
+								clear();
 								goto exit_for;
 							}
 						}
@@ -184,6 +192,7 @@ int main(int argc, char *argv[]) {
 					printf("SOLVED\n");
 				}
 				else {
+					clear();
 					if (config.manual_mode) {
 						printf("PRESS ENTER TO SEND RANDOM SOLUTION REQUEST\n");
 						int c;
@@ -191,9 +200,9 @@ int main(int argc, char *argv[]) {
 						while (getchar() != '\n');
 					}
 					else {
-						usleep(rand() % config.slow_factor*2+1);
+						usleep(rand() % config.slow_factor/2+1);
 					}
-					clear();
+
 					send(sock, "0", strlen("0"), 0);
 					printf("PEDIDO ENVIADO\n");
 				}

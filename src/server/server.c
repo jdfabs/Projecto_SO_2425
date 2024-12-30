@@ -180,6 +180,9 @@ void save_boards_to_file() {
 		return;
 	}
 
+
+
+
 	// Wrap boards in an object with the key "sudoku_boards"
 	cJSON *wrapped_boards = cJSON_CreateObject();
 	if (!wrapped_boards) {
@@ -1482,7 +1485,7 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 	sem_t *sem_sync_1;
 	sem_t *sem_sync_2;
 
-	sleep(0.1);
+	sleep(2);
 
 	if (room->type == 0) {
 		char temp[255];
@@ -1609,6 +1612,7 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 
 		new_round:
 		sem_wait(sem_game_start); // espera que o jogo comece
+
 		int **board;
 		bool is_first_attempt = true;
 
@@ -1805,6 +1809,7 @@ void *board_god() {
 	//board creator
 	while (true) {
 		sleep(config.board_creator_cooldown);
+
 
 		if (num_boards >= config.board_max) goto deletor;
 

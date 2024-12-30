@@ -1,0 +1,11 @@
+{
+  "client": {
+	"id": "Multiplayer_Ranked_Slow",
+	"server_ip": "127.0.0.1",
+	"server_port": 9346,
+	"log_file": "./logs/Ranked_Slow.log",
+	"game_type": 1,
+	"slow_factor": 3000000,
+	"manual_mode": false
+	}
+}

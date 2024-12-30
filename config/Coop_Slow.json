@@ -1,11 +1,11 @@
 {
   "client": {
-	"id": "client2",
+	"id": "Coop_Slow",
 	"server_ip": "127.0.0.1",
 	"server_port": 9346,
-	"log_file": "./logs/client2.log",
+	"log_file": "./logs/Coop_SLow.log",
 	"game_type": 3,
-	"slow_factor":	0 ,
+	"slow_factor": 3000000,
 	"manual_mode": false
 	}
 }
