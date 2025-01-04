@@ -135,6 +135,7 @@ int main(int argc, char *argv[]) {
 				log_event(config.log_file, "Correct Guess");
 				board[last_i][last_j] = last_k;//update local board
 				printf("Correct Guess\n");
+				printBoard(board);
 				goto try;
 				//move to case 3
 			case '2':
@@ -249,6 +250,7 @@ void client_init(const int argc, char *argv[], client_config *config) {
 		fprintf(stderr, "Failed to load client configuration.\n");
 		exit(-1);
 	}
+	config->slow_factor += 100;
 
 	printf("Configuracoes carregadas com sucesso\n");
 	log_event(config->log_file, "Client Started");

@@ -858,6 +858,7 @@ void *task_handler_multiplayer_casual(void *arg) {
 
 		if (shared_data->has_solution[current_index] || !shared_data->still_alive[current_index]) {
 			current_index = (current_index + 1) % config.server_size;
+			sprintf(shared_data->task_queue[current_index].request, "1");
 			continue;
 		}
 
@@ -884,6 +885,7 @@ void *task_handler_multiplayer_casual(void *arg) {
 		} else {
 			sprintf(shared_data->task_queue[current_index].request, "1");
 		}
+
 		//POS PROTOCOLO
 		sem_post(&shared_data->sems_client[current_index]);
 		current_index = (current_index + 1) % config.server_size;
@@ -1380,7 +1382,6 @@ void send_solution_attempt_multiplayer_coop(multiplayer_coop_room_shared_data_t 
 				y = j;
 				value = rand() % 9 + 1;
 				sprintf(multiplayer_coop_room_shared_data->task_queue[client_index].request, "0-%d,%d,%d", x, y, value);
-				printf("%d,%d,%d\n", x, y, value);
 				goto outside_for;
 			}
 		}
@@ -1430,7 +1431,7 @@ bool receive_answer_multiplayer_casual(multiplayer_casual_room_shared_data_t *mu
 
 	//POS
 	sem_post(&multiplayer_casual_room_shared_data->sems_client[client_index]);
-	return response[0] == '0' ? true : false;
+	return response[0] == '0' ? false : true;
 }
 
 void *client_handler(room_t *room, int client_socket, int client_index) {
@@ -1668,12 +1669,12 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 							break;
 						case 2:
 							send_solution_attempt_multiplayer_casual(i,j,k,multiplayer_casual_room_shared_data,client_index);
-							//sleep(1);
+							sleep(0.01);
 							if (receive_answer_multiplayer_casual(multiplayer_casual_room_shared_data, client_index)) {
-								send(client_socket, "2", sizeof("2"), 0);
+								send(client_socket, "1", sizeof("2"), 0);
 							}
 							else {
-								send(client_socket, "1", sizeof("1"), 0);
+								send(client_socket, "2", sizeof("1"), 0);
 							}
 							break;
 					}
