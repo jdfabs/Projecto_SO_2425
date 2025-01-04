@@ -39,7 +39,7 @@ typedef struct multiplayer_ranked_room_shared_data {
  int current_player;
  char starting_board[BUFFER_SIZE], room_name[BUFFER_SIZE];
 
- Task task_queue[5];
+ Task task_queue[50];
  int task_productor_ptr, task_consumer_ptr;
 
 } multiplayer_ranked_room_shared_data_t;

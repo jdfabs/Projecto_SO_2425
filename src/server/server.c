@@ -77,7 +77,7 @@ int main(const int argc, char *argv[]) {
 
 	// ReSharper disable once CppDFAEndlessLoop
 	while (true) {
-		accept_clients(); //Aceitar connectões e handshake
+		accept_clients(); //Accept connection and handshake
 	}
 }
 
@@ -100,9 +100,8 @@ void server_init(const int argc, char **argv) {
 	}
 	log_event(config.log_file, "Servidor começou");
 
-	start_reading_boards();
+	start_writing_boards();
 	boards = load_boards(config.board_file_path);
-
 
 	if (boards == NULL) {
 		printf("Failed to load boards from %s\n", config.board_file_path);
@@ -115,7 +114,7 @@ void server_init(const int argc, char **argv) {
 		num_boards++;
 		child = child->next;
 	}
-	end_reading_boards();
+	end_writing_boards();
 
 	log_event(config.log_file, "Boards carregados para memoria com sucesso");
 	printf("Server started...\n");
@@ -239,9 +238,7 @@ void accept_clients() {
         perror("Accept failed");
         return;
     }
-
     log_event(config.log_file, "Receiving new connection");
-    printf("New connection -");
 
     // HANDSHAKE
     char client_request[100];
@@ -265,9 +262,7 @@ void accept_clients() {
             }
 
             char log_msg[255];
-            snprintf(log_msg, sizeof(log_msg),
-                     "Client assigned to room: %s, ID: %d, Socket: %d",
-                     rooms[i].name, rooms[i].current_players - 1, client_socket);
+            snprintf(log_msg, sizeof(log_msg),"Client assigned to room: %s, ID: %d, Socket: %d", rooms[i].name, rooms[i].current_players - 1, client_socket);
             log_event(config.log_file, log_msg);
 
             return;
@@ -461,7 +456,7 @@ void setup_multiplayer_ranked_shared_memory(const char *room_name, multiplayer_r
     (*shared_data)->board_id = -1;
     (*shared_data)->starting_board[0] = '\0';
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 50; i++) {
         (*shared_data)->task_queue[i].client_socket = -1;
         (*shared_data)->task_queue[i].request[0] = '\0';
     }
@@ -868,8 +863,6 @@ void *task_handler_multiplayer_casual(void *arg) {
 
 		sem_wait(&shared_data->sems_server[current_index]);
 		//ZONA CRITICA --- ler task
-
-		//usleep(rand() % 1);
 		Task task = shared_data->task_queue[current_index];
 
 		start_reading_boards();
@@ -886,13 +879,11 @@ void *task_handler_multiplayer_casual(void *arg) {
 		end_reading_boards();
 
 		if (task.request[0] == '1') {
-			//FOUND SOLUTION - SKIP TO "STEP 6"
 		} else if (solution[task.request[2] - '0'][task.request[4] - '0'] != task.request[6] - '0') {
 			sprintf(shared_data->task_queue[current_index].request, "0");
 		} else {
 			sprintf(shared_data->task_queue[current_index].request, "1");
 		}
-		//sleep(0);
 		//POS PROTOCOLO
 		sem_post(&shared_data->sems_client[current_index]);
 		current_index = (current_index + 1) % config.server_size;
@@ -1075,7 +1066,6 @@ void *task_handler_multiplayer_coop(void *arg) {
 
 	struct timespec oldest_request_time;
 	int selected_client;
-	//TODO LOGS
 
 	while (1) {
 		selected_client = -1;
@@ -1083,13 +1073,6 @@ void *task_handler_multiplayer_coop(void *arg) {
 		oldest_request_time.tv_nsec = 999999999;
 
 		//PRE
-
-		for (int i =0; i < config.server_size; i++) {
-			int temp;
-			sem_getvalue(&shared_data->sems_server[i], &temp);
-		}
-
-
 		sem_wait(&shared_data->sem_has_requests);
 
 		for (int i = 0; i < config.server_size; i++) {
@@ -1125,7 +1108,6 @@ void *task_handler_multiplayer_coop(void *arg) {
 			cJSON_Delete(old_board); // Properly free all memory allocated by cJSON_Parse
 
 			if (old_board_matrix[task.request[2] - '0'][task.request[4] - '0'] == task.request[6] - '0') {
-				//printf("Already had the correct solution\n");
 			}
 			old_board_matrix[task.request[2] - '0'][task.request[4] - '0'] = task.request[6] - '0';
 
@@ -1150,8 +1132,6 @@ void *task_handler_multiplayer_coop(void *arg) {
 
 			free(json_string);
 			free(new_board);
-
-			//printf("Correct\n");
 
 			for (int i = 0; i < 9; i++) {
 				free(old_board_matrix[i]);
@@ -1210,8 +1190,6 @@ void *task_handler_singleplayer(void *arg) {
 	while (true) {
 		sem_wait(sem_server);
 		//ZONA CRITICA
-		//usleep(rand() % 1); //TODO SLEEP FROM CONFIG
-		//VER SE TA CERTO e manda para o buffer se está certo ou não
 
 		start_reading_boards();
 		const cJSON *round_board;
@@ -1348,7 +1326,6 @@ sprintf(temp, "%d full - start", shared_data->room_name);
 void send_solution_attempt_multiplayer_ranked(int x, int y, int novo_valor, sem_t *sem_sync_2, sem_t *mutex_task, multiplayer_ranked_room_shared_data_t *multiplayer_ranked_shared_data,int  client_socket, sem_t *sem_sync_1) {
 	char message[255];
 	sprintf(message, "0-%d,%d,%d", x, y, novo_valor);
-	//printf("%s\n", message);
 	//PREPROTOCOLO
 	sem_wait(sem_sync_2); //produtores
 	sem_wait(mutex_task);
@@ -1359,9 +1336,7 @@ void send_solution_attempt_multiplayer_ranked(int x, int y, int novo_valor, sem_
 	sprintf(multiplayer_ranked_shared_data->task_queue[multiplayer_ranked_shared_data->task_productor_ptr].request,
 			message);
 	multiplayer_ranked_shared_data->task_productor_ptr = (multiplayer_ranked_shared_data->task_productor_ptr + 1) % 5;
-	//printf("Pedido colocado na fila\n");
 
-	//usleep(rand() % (config.slow_factor + 0));
 	//POS PROTOCOLO
 	sem_post(mutex_task);
 	sem_post(sem_sync_1);
@@ -1369,16 +1344,13 @@ void send_solution_attempt_multiplayer_ranked(int x, int y, int novo_valor, sem_
 void send_solution_attempt_multiplayer_casual(int x, int y, int novo_valor,	multiplayer_casual_room_shared_data_t *multiplayer_casual_room_shared_data, int client_index) {
 	char message[255];
 	if (x == -1) {
-		sprintf(message, "1--1,-1,-1", y, novo_valor);
+		sprintf(message, "1--1,-1,-1", y, novo_valor); //Solução encontrada
 	} else sprintf(message, "0-%d,%d,%d", x, y, novo_valor);
 	//PREPROTOCOLO
 	sem_wait(&multiplayer_casual_room_shared_data->sems_client[client_index]);
 
 	//ZC
 	sprintf(multiplayer_casual_room_shared_data->task_queue[client_index].request, message);
-	//printf("Pedido colocado no array\n");
-
-	//usleep(rand() % (config.slow_factor + 0));
 
 	//POSPROTOCOLO
 	sem_post(&multiplayer_casual_room_shared_data->sems_server[client_index]);
@@ -1395,13 +1367,10 @@ void send_solution_attempt_multiplayer_coop(multiplayer_coop_room_shared_data_t 
 		printf("Error parsing JSON\n");
 		return;
 	}
-	//TODO FIX
 	//clear();
 
 	int x, y, value;
 	int **old_board = getMatrixFromJSON(json_board);
-
-	//printBoard(old_board);
 
 	for (int i = 0; i < BOARD_SIZE; i++) {
 		for (int j = 0; j < BOARD_SIZE; j++) {
@@ -1809,7 +1778,6 @@ void *board_god() {
 	//board creator
 	while (true) {
 		sleep(config.board_creator_cooldown);
-
 
 		if (num_boards >= config.board_max) goto deletor;
 

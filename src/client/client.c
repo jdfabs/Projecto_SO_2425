@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
 				board[last_i][last_j] = last_k;//update local board
 				printf("Correct Guess\n");
 				goto try;
-				//move to case 2 (print board)
+				//move to case 3
 			case '2':
 			//Wrong Guess
 

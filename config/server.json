@@ -1,11 +1,7 @@
 {
   "ip_address": "127.0.0.1",
   "port": 9346,
-  "enable_logging": 1,
   "log_file": "./logs/server.log",
-  "log_level": 1,
-  "max_clients": 5,
-  "backup_interval": 15,
   "board_file_path": "./boards/boards.json",
   "task_queue_size": 1,
   "event_handler_threads": 2,

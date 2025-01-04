@@ -83,8 +83,6 @@ void load_default_client_config(client_config *client_config) { //TODO -- fix
 void load_default_server_config(server_config *server_config) { //TODO -- fix
 	strcpy(server_config->log_file, "./logs/server_default.log");
 	server_config->board_file_path, "./boards/boards.json";
-	server_config->task_queue_size = 10;
-	server_config->task_handler_threads = 5;
 }
 
 int load_client_config(const char *filename, client_config *config) {
