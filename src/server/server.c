@@ -564,16 +564,19 @@ void *multiplayer_ranked_room_handler(void *arg) {
 
         for (int i = 0; i < current_players; i++) {
             sem_wait(sem_solution_found);
+            clock_gettime(CLOCK_MONOTONIC, &end);
         	if (i == 0) {
         		best.tv_sec = end.tv_sec - start.tv_sec;
         		best.tv_nsec = end.tv_nsec - start.tv_nsec;
         	}
-            clock_gettime(CLOCK_MONOTONIC, &end);
 
-            struct timespec round_time = {
-                .tv_sec = end.tv_sec - start.tv_sec,
-                .tv_nsec = end.tv_nsec - start.tv_nsec
-            };
+            struct timespec round_time;
+        	round_time.tv_sec  = end.tv_sec  - start.tv_sec;
+        	round_time.tv_nsec = end.tv_nsec - start.tv_nsec;
+        	if (round_time.tv_nsec < 0) {
+        		round_time.tv_sec--;
+        		round_time.tv_nsec += 1000000000L;
+        	}
 
             time_counter++;
             double new_avg = ((media.tv_sec + media.tv_nsec / 1e9) * (time_counter - 1) +
@@ -612,9 +615,10 @@ void *multiplayer_ranked_room_handler(void *arg) {
     		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "fastest_time"), current_time_ns);
     	}
 
+    	long media_time_ns = media.tv_sec * 1e9 + media.tv_nsec;
     	int json_attempts = cJSON_GetObjectItem(round_board, "attempts")->valueint;
     	double current_avg = cJSON_GetObjectItem(round_board, "average_time")->valuedouble;
-    	double new_json_avg = ((current_avg * (json_attempts - 1)) + current_time_ns) / json_attempts;
+    	double new_json_avg = ((current_avg * (json_attempts - current_players)) + media_time_ns * current_players) / json_attempts;
     	cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "average_time"), new_json_avg);
 
     	end_writing_boards();
@@ -799,6 +803,10 @@ void *multiplayer_casual_room_handler(void *arg) {
 			struct timespec final;
 			final.tv_sec = end.tv_sec - start.tv_sec;
 			final.tv_nsec = end.tv_nsec - start.tv_nsec;
+		    if (final.tv_nsec < 0) {
+		        final.tv_sec--;
+		        final.tv_nsec += 1000000000L;
+		    }
 
 			time_counter++;
 			double new_avg = ((media.tv_sec + media.tv_nsec / 1e9) * (time_counter - 1) + (
@@ -837,9 +845,10 @@ void *multiplayer_casual_room_handler(void *arg) {
 			cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "fastest_time"), current_time_ns);
 		}
 
+        long media_time_ns = media.tv_sec * 1e9 + media.tv_nsec;
 		int json_attempts = cJSON_GetObjectItem(round_board, "attempts")->valueint;
 		double current_avg = cJSON_GetObjectItem(round_board, "average_time")->valuedouble;
-		double new_json_avg = ((current_avg * (json_attempts - 1)) + current_time_ns) / json_attempts;
+		double new_json_avg = ((current_avg * (json_attempts - current_players)) + media_time_ns * current_players) / json_attempts;
 		cJSON_SetNumberValue(cJSON_GetObjectItem(round_board, "average_time"), new_json_avg);
 
 		end_writing_boards();
@@ -1004,6 +1013,10 @@ void *multiplayer_coop_room_handler(void *arg) {
 		struct timespec final;
 		final.tv_sec = end.tv_sec - start.tv_sec;
 		final.tv_nsec = end.tv_nsec - start.tv_nsec;
+        if (final.tv_nsec < 0) {
+		        final.tv_sec--;
+		        final.tv_nsec += 1000000000L;
+		}
 
 		time_counter++;
 		double new_avg = ((media.tv_sec + media.tv_nsec / 1e9) * (time_counter - 1) + (
