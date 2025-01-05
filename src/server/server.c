@@ -868,8 +868,8 @@ void *task_handler_multiplayer_casual(void *arg) {
 		//PREPROTOCOLO
 
 		if (shared_data->has_solution[current_index] || !shared_data->still_alive[current_index]) {
+			sprintf(shared_data->task_queue[current_index].request, "0");
 			current_index = (current_index + 1) % config.server_size;
-			sprintf(shared_data->task_queue[current_index].request, "1");
 			continue;
 		}
 
@@ -1622,8 +1622,34 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 		}
 
 		sprintf(buffer, "0-%s", cJSON_Print(convertMatrixToJSON(board)));
-		send(client_socket, buffer, sizeof(buffer), 0); //UPDATE BOARD
-		send(client_socket, "3", sizeof("3"), 0); // START GAME
+		send(client_socket, buffer, sizeof(buffer), 0);
+
+		if (send(client_socket, "3", sizeof("3"), MSG_NOSIGNAL)	<= 0) {
+			printf("%s client: %d DISCONNECTED!\n", room->name, client_index);
+			switch (room->type) {
+				case 0:
+					break;
+				case 1:
+					multiplayer_ranked_shared_data->current_player--;
+				sem_post(sem_solucao);
+				break;
+				case 2:
+					multiplayer_casual_room_shared_data->current_player--;
+				multiplayer_casual_room_shared_data->still_alive[client_index] = false;
+				multiplayer_casual_room_shared_data->has_solution[client_index] = true;
+				sem_post(&multiplayer_casual_room_shared_data->sems_server[client_index]);
+				sem_post(sem_solucao);
+				break;
+				case 3:
+					multiplayer_coop_room_shared_data->current_player--;
+				if (multiplayer_coop_room_shared_data->current_player == 0) {
+					sem_post(sem_solucao);
+				}
+				break;
+			}
+			close(client_socket);
+			pthread_exit(NULL);
+		}// START GAME
 
 		while (true) {
 			ssize_t recv_ret = recv(client_socket, buffer, sizeof(buffer), 0);
@@ -1709,9 +1735,9 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 						}
 						multiplayer_casual_room_shared_data->has_solution[client_index] = true;
 					}
-						sem_post(sem_solucao);
+					sem_post(sem_solucao);
 
-						goto new_round;
+					goto new_round;
 			}
 		}
 	}
