@@ -12,33 +12,6 @@
 #include "server.h"
 #include "client.h"
 
-/************************************
- * EXTERN VARIABLES
- ************************************/
-
-/************************************
- * PRIVATE MACROS AND DEFINES
- ************************************/
-
-/************************************
- * PRIVATE TYPEDEFS
- ************************************/
-
-/************************************
- * STATIC VARIABLES
- ************************************/
-
-/************************************
- * GLOBAL VARIABLES
- ************************************/
-
-/************************************
- * STATIC FUNCTION PROTOTYPE
- ************************************/
-
-/************************************
- * STATIC FUNCTIONS
- ************************************/
 
 
 int parse_json(const char *data, cJSON **json) {
@@ -205,6 +178,4 @@ int load_server_config(const char *filename, server_config *config) {
 	log_event(SERVER_LOG_PATH, "Config server carregada.");
 	return 0; // Success
 }
-/************************************
- * GLOBAL FUNCTIONS
- ************************************/
+
