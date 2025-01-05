@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+### EXTREMAMENTE DESATUALIZO
 # Projeto Sudoku - SO 2425 - Cliente/Servidor
 
 # João Silva 2064413
