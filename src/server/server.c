@@ -111,6 +111,8 @@ void server_init(const int argc, char **argv) {
 
 	const cJSON *child = boards->child;
 	while (child != NULL) {
+		cJSON_SetIntValue(cJSON_GetObjectItem(child, "current_rooms_reading"), 0);
+
 		num_boards++;
 		child = child->next;
 	}
