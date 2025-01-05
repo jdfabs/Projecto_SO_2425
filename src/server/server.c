@@ -1450,11 +1450,12 @@ bool receive_answer_multiplayer_casual(multiplayer_casual_room_shared_data_t *mu
 }
 
 void *client_handler(room_t *room, int client_socket, int client_index) {
-	signal(SIGINT, NULL);
-	signal(SIGTERM, NULL);
+    signal(SIGINT, SIG_DFL);
+    signal(SIGTERM, SIG_DFL);
 
 
 	char buffer[BUFFER_SIZE];
+
 	sprintf(buffer, "%d-%d-%s", client_socket, client_index, room->name);
 	send(client_socket, buffer, sizeof(buffer), 0);
 	multiplayer_ranked_room_shared_data_t *multiplayer_ranked_shared_data;
@@ -1588,15 +1589,16 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 		sem_post(sem_room_full);
 	}
 
-
-	//TODO FIX UI
 	separator();
-	printf("ESPERANDO\n");
+	printf("%s cliente com indice: %d ESPERANDO\n", room->name, client_index);
 
 	while (true) {
 
 		new_round:
-		sem_wait(sem_game_start); // espera que o jogo comece
+		if (sem_wait(sem_game_start) == -1) {
+			perror("sem_wait failed");
+			break;
+		}
 
 		int **board;
 		bool is_first_attempt = true;
@@ -1625,29 +1627,31 @@ void *client_handler(room_t *room, int client_socket, int client_index) {
 
 		while (true) {
 			ssize_t recv_ret = recv(client_socket, buffer, sizeof(buffer), 0);
-			if (recv_ret == 0) {
+			if (recv_ret <= 0) {
+				printf("%s client: %d DISCONNECTED!\n", room->name, client_index);
 				switch (room->type) {
 					case 0:
 							break;
 					case 1:
 						multiplayer_ranked_shared_data->current_player--;
 						sem_post(sem_solucao);
-					break;
+						break;
 					case 2:
 						multiplayer_casual_room_shared_data->current_player--;
-						multiplayer_casual_room_shared_data->starting_board[client_index] = false;
+						multiplayer_casual_room_shared_data->still_alive[client_index] = false;
 						multiplayer_casual_room_shared_data->has_solution[client_index] = true;
 						sem_post(&multiplayer_casual_room_shared_data->sems_server[client_index]);
 						sem_post(sem_solucao);
-					break;
+						break;
 					case 3:
 						multiplayer_coop_room_shared_data->current_player--;
 						if (multiplayer_coop_room_shared_data->current_player == 0) {
 							sem_post(sem_solucao);
 						}
-					break;
+						break;
 				}
-				exit(0);
+				close(client_socket);
+				pthread_exit(NULL);
 			}
 			char *message = buffer;
 			message += 2;
