@@ -15,37 +15,9 @@
 #include <string.h>
 #include "../../include/common.h"
 
-/************************************
- * EXTERN VARIABLES
- ************************************/
 
-/************************************
- * PRIVATE MACROS AND DEFINES
- ************************************/
-
-/************************************
- * PRIVATE TYPEDEFS
- ************************************/
 #define BOARD_DIR "./boards/"
 #define MAX_PATH_LENGTH 100
-
-
-/************************************
- * STATIC VARIABLES
- ************************************/
-
-/************************************
- * GLOBAL VARIABLES
- ************************************/
-
-/************************************
- * STATIC FUNCTION PROTOTYPES
- ************************************/
-
-/************************************
- * STATIC FUNCTIONS
- ************************************/
-
 
 //LOG EVENT FUNCTIONS - CHECKED
 int log_event(const char *file_path, const char *message) {
@@ -72,12 +44,10 @@ cJSON *load_boards(char *path) {
         return NULL;
     }
 
-    // Determine the file size
     fseek(file, 0, SEEK_END);
     const long file_size = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    // Allocate memory for the file content
     char *file_content =  malloc(file_size + 1);
     if (file_content == NULL) {
         printf("Error: Could not allocate memory\n");
@@ -85,12 +55,10 @@ cJSON *load_boards(char *path) {
         return NULL;
     }
 
-    // Read the file content into memory
     fread(file_content, 1, file_size, file);
     file_content[file_size] = '\0'; // Null-terminate the string
     fclose(file);
 
-    // Parse the JSON content
     cJSON *boards_json = cJSON_GetObjectItem(cJSON_Parse(file_content), "sudoku_boards");
     if (boards_json == NULL) {
         printf("Error: Could not parse JSON\n");
@@ -99,7 +67,6 @@ cJSON *load_boards(char *path) {
     }
 
 
-    // Clean up
     free(file_content);
     return boards_json;
 }
